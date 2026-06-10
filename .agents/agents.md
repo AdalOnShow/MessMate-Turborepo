@@ -105,6 +105,24 @@ Never introduce UI that conflicts with design.md.
 
 Before implementing any feature, load and follow relevant skills.
 
+## Monorepo & Workspace Management
+
+### Required Skills:
+
+* turborepo
+* monorepo-management
+
+### When to load these skills:
+
+Whenever working with:
+
+* workspace architecture
+* package management
+* shared libraries
+* build pipelines
+* task orchestration
+* dependency management
+
 ---
 
 ## Frontend UI
@@ -157,6 +175,23 @@ Use for:
 * Service Architecture
 * Authorization
 * Validation
+
+---
+
+## Database & Shared Packages
+
+Describe and follow shared-package boundaries:
+
+* packages/database
+* packages/shared-types
+* packages/validation
+* packages/constants
+* packages/shared-utils
+
+Rules:
+
+* Shared code must live in **packages/**.
+* Shared logic must never be duplicated between apps—extract into **packages/**.
 
 ---
 
@@ -406,3 +441,4 @@ A task is NOT complete until:
 * process-tracker.md updated
 
 Only then mark the task complete.
+
