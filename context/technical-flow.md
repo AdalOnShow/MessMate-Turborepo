@@ -231,7 +231,7 @@ Managers can remove members at any time.
 When removed:
 
 ```text
-status = REMOVED
+removed_at IS NOT NULL
 ```
 
 Effects:
@@ -389,11 +389,25 @@ Lunch = 1
 Dinner = 1
 ```
 
+These names become the JSONB keys in `meal_entries.meals`.
+
 ---
 
 # Daily Meal Entry
 
-Managers add meals using date-based entry.
+Managers add meals using a date-based entry form.
+
+Each member gets one row per date with a JSONB payload.
+
+Example payload:
+
+```json
+{
+  "breakfast": 0.5,
+  "lunch": 1,
+  "dinner": 1
+}
+```
 
 Example:
 
@@ -401,25 +415,43 @@ Example:
 Date:
 2026-06-10
 
-Breakfast
- ☑ Adal
- ☑ Rahim
+Member: Adal
+Meals:
+{
+  "breakfast": 0.5,
+  "lunch": 1,
+  "dinner": 1
+}
 
-Lunch
- ☑ Adal
-
-Dinner
- ☑ Adal
- ☑ Fahad
+Member: Rahim
+Meals:
+{
+  "breakfast": 0.5,
+  "lunch": 1
+}
 ```
 
-System calculates totals automatically.
+System calculates `total_meal` automatically.
+
+Adal:
+
+```text
+0.5 + 1 + 1 = 2.5
+```
+
+Rahim:
+
+```text
+0.5 + 1 = 1.5
+```
 
 ---
 
 # Meal Update Flow
 
 Managers may edit any meal entry.
+
+Each edit replaces the JSONB payload and recalculates `total_meal`.
 
 Every modification creates:
 
@@ -432,11 +464,22 @@ Example:
 ```text
 Fahad updated meal entry
 
+Date:
+2026-06-10
+
 Old:
-Lunch = 0
+{
+  "lunch": 0
+}
 
 New:
-Lunch = 1
+{
+  "lunch": 1,
+  "dinner": 1
+}
+
+Old total_meal: 0
+New total_meal: 2
 ```
 
 ---
@@ -577,9 +620,43 @@ Deposit immediately updates balance calculations.
 
 # Monthly Calculation Engine
 
+## Membership Eligibility Rule
+
+Before generating any monthly calculation, determine which members participated in the month.
+
+Active membership rule:
+
+```text
+A member is active when removed_at IS NULL
+```
+
+Month participation rule:
+
+```sql
+SELECT *
+FROM mess_members
+WHERE joined_at <= month_end
+  AND (
+    removed_at IS NULL
+    OR removed_at >= month_start
+  )
+```
+
+Scenarios:
+- Joined during the month: included.
+- Left during the month: included.
+- Joined after month end: excluded.
+- Left before month start: excluded.
+
+This query is the authoritative source for month summary membership.
+
+---
+
 ## Step 1
 
 Calculate total meal cost.
+
+Read all APPROVED bazaars for the month.
 
 ```text
 Total Bazaar Cost
@@ -592,10 +669,12 @@ Total Bazaar Cost
 Calculate total meals.
 
 ```text
-All Member Meals
+Sum of meal_entries.total_meal
+for all members for the month
 ```
 
 ---
+
 
 ## Step 3
 
@@ -632,7 +711,7 @@ Formula:
 
 ```text
 (
-Member Meals × Meal Rate
+Member total_meal × Meal Rate
 )
 +
 Shared Expenses

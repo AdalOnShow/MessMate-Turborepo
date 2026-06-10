@@ -4,10 +4,402 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum SystemRole {
+  ADMIN
+  USER
+}
+
+enum MessRole {
+  MANAGER
+  MEMBER
+}
+
+enum MonthStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ExpenseType {
+  BAZAAR
+  SHARED
+  INDIVIDUAL
+}
+
+enum BazaarStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CarryForwardType {
+  PREVIOUS_DUE
+  PREVIOUS_BALANCE
+}
+
+enum activity_action {
+  MEMBER_ADDED
+  MEMBER_REMOVED
+  MANAGER_ASSIGNED
+  MEAL_ADDED
+  MEAL_UPDATED
+  MEAL_DELETED
+  EXPENSE_ADDED
+  EXPENSE_UPDATED
+  DEPOSIT_ADDED
+  DEPOSIT_UPDATED
+  MONTH_OPENED
+  MONTH_CLOSED
+  MEMBER_BALANCE_CREATED
+}
+
+// ============================================
+// Models
+// ============================================
+
+model users {
+  id              String     @id @default(uuid())
+  name            String
+  email           String     @unique
+  password        String?
+  phone           String?
+  avatar          String?
+  system_role     SystemRole @default(USER)
+  manager_created Boolean    @default(false)
+  email_verified  Boolean    @default(false)
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @default(now())
+  deleted_at      DateTime?
+
+  oauth_accounts    oauth_accounts[]
+  created_messes    messes[]             @relation("MessCreator")
+  mess_members      mess_members[]
+  created_meals     meal_entries[]
+  submitted_bazaars bazaar_submissions[] @relation("BazaarSubmitter")
+  approved_bazaars  bazaar_submissions[] @relation("BazaarApprover")
+  created_expenses  expenses[]
+  created_deposits  deposits[]
+  created_months    months[]             @relation("MonthCreator")
+  activity_logs     activity_logs[]
+  requested_join_requests join_requests[]   @relation("JoinRequester")
+  user_join_requests      join_requests[]   @relation("UserJoinRequests")
+
+  @@index([email], map: "idx_users_email")
+  @@index([system_role], map: "idx_users_system_role")
+}
+
+model oauth_accounts {
+  id               String   @id @default(uuid())
+  user_id          String
+  provider         String
+  provider_user_id String
+  created_at       DateTime @default(now())
+
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, provider], map: "idx_oauth_accounts_user_provider")
+  @@index([provider, provider_user_id], map: "idx_oauth_accounts_provider")
+}
+
+model messes {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  created_by  String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @default(now())
+  deleted_at  DateTime?
+
+  creator           users                @relation("MessCreator", fields: [created_by], references: [id])
+  mess_members      mess_members[]
+  months            months[]
+  meal_types        meal_types[]
+  bazaar_submissions bazaar_submissions[]
+  expenses          expenses[]
+  deposits          deposits[]
+  activity_logs     activity_logs[]
+  join_requests     join_requests[]
+
+  @@index([created_by], map: "idx_messes_created_by")
+  @@index([slug], map: "idx_messes_slug", where: raw("deleted_at IS NULL"))
+}
+
+model mess_members {
+  id         String    @id @default(uuid())
+  mess_id    String
+  user_id    String
+  mess_role  MessRole
+  joined_at  DateTime  @default(now())
+  removed_at DateTime?
+  created_at DateTime  @default(now())
+  updated_at  DateTime  @default(now())
+  deleted_at  DateTime?
+
+  mess      messes             @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  user      users              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  meals     meal_entries[]
+  expenses  expense_members[]
+  deposits  deposits[]
+  summaries member_month_summaries[]
+  carries   carry_forward_balances[]
+
+  @@unique([mess_id, user_id], map: "idx_mess_members_mess_user", where: raw("deleted_at IS NULL"))
+  @@index([mess_id, removed_at], map: "idx_mess_members_mess_active", where: raw("deleted_at IS NULL"))
+  @@index([user_id], map: "idx_mess_members_user")
+}
+
+model months {
+  id           String      @id @default(uuid())
+  mess_id      String
+  title        String
+  month_status MonthStatus
+  started_at   DateTime
+  ended_at     DateTime?
+  created_by   String
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @default(now())
+  deleted_at   DateTime?
+
+  mess        messes              @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  creator     users               @relation("MonthCreator", fields: [created_by], references: [id])
+  meals       meal_entries[]
+  bazaars     bazaar_submissions[]
+  expenses    expenses[]
+  deposits    deposits[]
+  summaries   member_month_summaries[]
+  source_carries carry_forward_balances[] @relation("SourceCarryForward")
+  target_carries carry_forward_balances[] @relation("TargetCarryForward")
+  activities  activity_logs[]
+
+  @@unique([mess_id], map: "idx_months_mess_status", where: raw("month_status = 'ACTIVE'"))
+  @@index([mess_id], map: "idx_months_mess")
+  @@index([started_at, ended_at], map: "idx_months_dates")
+}
+
+model meal_types {
+  id         String    @id @default(uuid())
+  mess_id    String
+  name       String
+  value      Decimal   @db.Decimal(5, 2)
+  is_active  Boolean   @default(true)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now())
+  deleted_at DateTime?
+
+  mess     messes          @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  items    meal_entry_items[]
+
+  @@unique([mess_id, name], map: "idx_meal_types_mess_name", where: raw("deleted_at IS NULL AND is_active = true"))
+  @@index([is_active], map: "idx_meal_types_is_active")
+}
+
+model meal_entries {
+  id         String    @id @default(uuid())
+  month_id   String
+  member_id  String
+  date       DateTime
+  meals      Json
+  total_meal Decimal   @default(0) @db.Decimal(10, 2)
+  created_by String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now())
+  deleted_at DateTime?
+
+  month    months         @relation(fields: [month_id], references: [id])
+  member   mess_members   @relation(fields: [member_id], references: [id])
+  creator  users          @relation(fields: [created_by], references: [id])
+  items    meal_entry_items[]
+
+  @@unique([month_id, member_id, date], map: "idx_meal_entries_unique", where: raw("deleted_at IS NULL"))
+  @@index([month_id, date], map: "idx_meal_entries_month_date")
+  @@index([member_id], map: "idx_meal_entries_member")
+  @@index([total_meal], map: "idx_meal_entries_total_meal")
+}
+
+model meal_entry_items {
+  id            String   @id @default(uuid())
+  meal_entry_id String
+  meal_type_id  String
+  meal_value    Decimal  @db.Decimal(5, 2)
+  created_at    DateTime @default(now())
+
+  entry     meal_entries @relation(fields: [meal_entry_id], references: [id], onDelete: Cascade)
+  meal_type meal_types   @relation(fields: [meal_type_id], references: [id])
+
+  @@unique([meal_entry_id, meal_type_id], map: "idx_meal_entry_items_entry")
+}
+
+model bazaar_submissions {
+  id           String       @id @default(uuid())
+  mess_id      String
+  month_id     String
+  submitted_by String
+  status       BazaarStatus @default(PENDING)
+  description  String?
+  items        Json
+  total_amount Decimal      @db.Decimal(12, 2)
+  expense_date DateTime
+  approved_by  String?
+  approved_at  DateTime?
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @default(now())
+  deleted_at   DateTime?
+
+  mess      messes  @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  month     months  @relation(fields: [month_id], references: [id])
+  submitter users   @relation("BazaarSubmitter", fields: [submitted_by], references: [id])
+  approver  users?  @relation("BazaarApprover", fields: [approved_by], references: [id])
+
+  @@index([mess_id, month_id], map: "idx_bazaar_submissions_mess_month")
+  @@index([status], map: "idx_bazaar_submissions_status")
+  @@index([approved_at, approved_by], map: "idx_bazaar_submissions_approved", where: raw("status = 'APPROVED'"))
+  @@index([total_amount], map: "idx_bazaar_submissions_total_amount")
+}
+
+model expenses {
+  id           String      @id @default(uuid())
+  mess_id      String
+  month_id     String
+  type         ExpenseType
+  title        String
+  amount       Decimal     @db.Decimal(12, 2)
+  created_by   String
+  expense_date DateTime
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @default(now())
+
+  mess     messes          @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  month    months          @relation(fields: [month_id], references: [id])
+  creator  users           @relation(fields: [created_by], references: [id])
+  members  expense_members[]
+
+  @@index([mess_id, month_id], map: "idx_expenses_mess_month")
+  @@index([type], map: "idx_expenses_type")
+  @@index([created_by], map: "idx_expenses_created")
+}
+
+model expense_members {
+  id               String   @id @default(uuid())
+  expense_id       String
+  member_id        String
+  allocated_amount Decimal  @db.Decimal(12, 2)
+  created_at       DateTime @default(now())
+
+  expense expenses     @relation(fields: [expense_id], references: [id], onDelete: Cascade)
+  member  mess_members @relation(fields: [member_id], references: [id])
+
+  @@unique([expense_id, member_id], map: "idx_expense_members_unique")
+  @@index([expense_id], map: "idx_expense_members_expense")
+  @@index([member_id], map: "idx_expense_members_member")
+}
+
+model deposits {
+  id           String    @id @default(uuid())
+  mess_id      String
+  month_id     String
+  member_id    String
+  amount       Decimal   @db.Decimal(12, 2)
+  note         String?
+  deposit_date DateTime
+  created_by   String
+  created_at   DateTime  @default(now())
+  updated_at DateTime  @default(now())
+  deleted_at   DateTime?
+
+  mess     messes        @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  month    months        @relation(fields: [month_id], references: [id])
+  member   mess_members  @relation(fields: [member_id], references: [id])
+  creator  users         @relation(fields: [created_by], references: [id])
+
+  @@index([mess_id, month_id], map: "idx_deposits_mess_month")
+  @@index([member_id], map: "idx_deposits_member")
+  @@index([deposit_date], map: "idx_deposits_date")
+}
+
+model member_month_summaries {
+  id              String   @id @default(uuid())
+  month_id        String
+  member_id       String
+  total_meals     Int      @default(0)
+  meal_cost       Decimal  @default(0) @db.Decimal(12, 2)
+  shared_cost     Decimal  @default(0) @db.Decimal(12, 2)
+  individual_cost Decimal  @default(0) @db.Decimal(12, 2)
+  deposit_amount  Decimal  @default(0) @db.Decimal(12, 2)
+  final_bill      Decimal  @default(0) @db.Decimal(12, 2)
+  final_balance   Decimal  @default(0) @db.Decimal(12, 2)
+  created_at      DateTime @default(now())
+
+  month   months        @relation(fields: [month_id], references: [id], onDelete: Cascade)
+  member  mess_members  @relation(fields: [member_id], references: [id])
+
+  @@unique([month_id, member_id], map: "idx_member_month_summaries_month_member")
+  @@index([month_id], map: "idx_member_month_summaries_month")
+  @@index([final_balance], map: "idx_member_month_summaries_balance")
+}
+
+model carry_forward_balances {
+  id                 String           @id @default(uuid())
+  source_month_id    String
+  target_month_id    String
+  member_id          String
+  amount             Decimal          @db.Decimal(12, 2)
+  carry_forward_type CarryForwardType
+  created_at         DateTime         @default(now())
+
+  source_month months        @relation("SourceCarryForward", fields: [source_month_id], references: [id])
+  target_month months        @relation("TargetCarryForward", fields: [target_month_id], references: [id])
+  member       mess_members  @relation(fields: [member_id], references: [id])
+
+  @@index([member_id, source_month_id, target_month_id], map: "idx_carry_forward_member_months")
+  @@index([target_month_id], map: "idx_carry_forward_target")
+}
+
+model activity_logs {
+  id          String          @id @default(uuid())
+  mess_id     String
+  month_id    String?
+  actor_id    String
+  action      activity_action
+  entity_type String?
+  entity_id   String?
+  created_at  DateTime        @default(now())
+
+  mess  messes  @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  month months? @relation(fields: [month_id], references: [id])
+  actor users   @relation(fields: [actor_id], references: [id])
+
+  @@index([mess_id, created_at(sort: Desc)], map: "idx_activity_logs_mess_created")
+  @@index([actor_id], map: "idx_activity_logs_actor")
+  @@index([entity_type, entity_id], map: "idx_activity_logs_entity")
+  @@index([action], map: "idx_activity_logs_action")
+}
+
+model join_requests {
+  id           String    @id @default(uuid())
+  mess_id      String
+  user_id      String
+  requested_by String
+  status       String
+  verified_at  DateTime?
+  created_at   DateTime  @default(now())
+
+  mess      messes  @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  requester users   @relation("JoinRequester", fields: [requested_by], references: [id])
+  user      users   @relation("UserJoinRequests", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([mess_id, user_id], map: "idx_join_requests_mess_user", where: raw("status = 'PENDING'"))
+  @@index([user_id], map: "idx_join_requests_user")
 }

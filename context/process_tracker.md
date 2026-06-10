@@ -91,12 +91,10 @@ Turborepo Monorepo
 
 * [ ] meal_types
 * [ ] meal_entries
-* [ ] meal_entry_items
 
 ### Bazaar System
 
 * [ ] bazaar_submissions
-* [ ] bazaar_items
 
 ### Expense System
 
@@ -115,10 +113,6 @@ Turborepo Monorepo
 ### Activity System
 
 * [ ] activity_logs
-
-### Notification System
-
-* [ ] notifications
 
 ### Join Request System
 
@@ -428,13 +422,6 @@ Turborepo Monorepo
 ---
 
 # Future Features
-
-## Notifications
-
-* [ ] In-App Notifications
-* [ ] Activity Notifications
-
----
 
 ## Chat
 

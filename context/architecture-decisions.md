@@ -553,7 +553,7 @@ Code must follow documentation.
 
 Priority:
 
-```text id="pxlzyx"
+```text
 technical-flow.md
 database-schema.md
 features.md
@@ -568,6 +568,105 @@ Documentation must be updated whenever architecture changes.
 * Consistency
 * AI Agent Reliability
 * Long-term Maintainability
+
+---
+
+# ADR-021: JSONB Based Meal Storage
+
+## Status
+
+Accepted
+
+## Decision
+
+Daily meal selections are stored inside a JSONB column on `meal_entries`.
+
+Store the calculated sum in a separate `total_meal` column.
+
+Remove the `meal_entry_items` table entirely.
+
+## Reason
+
+* Simpler schema with fewer joins
+* Matches the small, bounded set of meal types per mess
+* Improves Prisma query ergonomics and developer experience
+* Sufficient for Messenger, and reduces write/update overhead
+
+## Consequences
+
+* Application code must enforce that JSONB keys match active `meal_types` for the mess
+* Reporting and filtering logic reads from a structured JSONB column instead of a relational child table
+
+---
+
+# ADR-022: JSONB Based Bazaar Item Storage
+
+## Status
+
+Accepted
+
+## Decision
+
+Bazaar item lists are stored inside a JSONB column on `bazaar_submissions`.
+
+Store the calculated sum in a separate `total_amount` column.
+
+Remove the `bazaar_items` table entirely.
+
+## Reason
+
+* Simpler schema with fewer joins
+* Removes unnecessary item-level querying for MVP
+* Improves Prisma query ergonomics and NestJS DTO design
+* Lower maintenance cost
+
+## Consequences
+
+* Application code must enforce that `total_amount` equals the sum of line amounts in `items`
+* Reporting remains fast thanks to the denormalized `total_amount`
+* Cannot query individual bazaar line items without reading the JSONB payload
+
+---
+
+# ADR-023: Timestamp-Based Membership Lifecycle
+
+## Status
+
+Accepted
+
+## Decision
+
+Remove redundant membership tracking fields `status`, `joined_month_id`, and `removed_month_id` from `mess_members`.
+
+Membership state is now determined purely from timestamps:
+- Active: `removed_at IS NULL`
+- Removed: `removed_at IS NOT NULL`
+
+Month participation eligibility:
+```sql
+SELECT *
+FROM mess_members
+WHERE joined_at <= month_end
+  AND (
+    removed_at IS NULL
+    OR removed_at >= month_start
+  )
+```
+
+Remove the `MemberStatus` enum entirely.
+
+## Reason
+
+* Simpler schema with fewer updates
+* Eliminates synchronization risks between status fields and timestamps
+* Cleaner and more reliable membership lifecycle
+* Easier reporting and eligibility checks
+
+## Consequences
+
+* Application code must use timestamp-based checks instead of enum/status fields
+* All membership history is preserved through `joined_at` and `removed_at`
+* Member month eligibility query must be used for month summary generation
 
 ---
 

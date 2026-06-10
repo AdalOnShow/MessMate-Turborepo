@@ -118,7 +118,7 @@ Members cannot modify accounting data.
 #### Bazaar Expenses
 
 * Bazaar Submission
-* Itemized Cost List
+* Structured Item List (JSONB)
 * Bazaar Approval Workflow
 * Bazaar History
 

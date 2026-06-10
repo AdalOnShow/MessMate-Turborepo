@@ -402,8 +402,8 @@ Each activity stores:
 - Action
 - Target Entity
 - Timestamp
-- Previous Value (if applicable)
-- New Value (if applicable)
+
+No previous/new value payloads are stored in the database; `activity_logs` captures the event identity only.
 
 ---
 
@@ -432,19 +432,19 @@ Features:
 
 ---
 
-# Notifications
+# Activity Feed
 
 Status:
 
 ```text
-Future Feature
+MVP Feature
 ```
 
-Planned Features:
+Description:
 
-- In-app notifications
-- Push notifications
-- Activity alerts
+- In-app activity feed powered by `activity_logs`.
+- UI may present this as a notification panel.
+- Supports the same tracked events as the activity log system.
 
 ---
 
