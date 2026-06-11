@@ -305,10 +305,10 @@ Scripts like `prebuild` that manually build other packages bypass Turborepo's de
 
 **However, the fix depends on whether workspace dependencies are declared:**
 
-1. **If dependencies ARE declared** (e.g., `"@repo/types": "workspace:*"` in package.json), remove the `prebuild` script. Turbo's `dependsOn: ["^build"]` handles this automatically.
+1. **If dependencies ARE declared** (e.g., `"@repo/shared": "workspace:*"` in package.json), remove the `prebuild` script. Turbo's `dependsOn: ["^build"]` handles this automatically.
 
 2. **If dependencies are NOT declared**, the `prebuild` exists because `^build` won't trigger without a dependency relationship. The fix is to:
-   - Add the dependency to package.json: `"@repo/types": "workspace:*"`
+   - Add the dependency to package.json: `"@repo/shared": "workspace:*"`
    - Then remove the `prebuild` script
 
 ```json
@@ -316,7 +316,7 @@ Scripts like `prebuild` that manually build other packages bypass Turborepo's de
 // package.json
 {
   "dependencies": {
-    "@repo/types": "workspace:*",
+    "@repo/shared": "workspace:*",
     "@repo/utils": "workspace:*"
   },
   "scripts": {

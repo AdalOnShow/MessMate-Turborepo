@@ -54,9 +54,9 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@repo/types':
+      '@repo/shared':
         specifier: workspace:*
-        version: link:../../packages/types
+        version: link:../../packages/shared
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
@@ -216,7 +216,7 @@ importers:
         specifier: ^8.50.0
         version: 8.50.0(eslint@9.39.1(jiti@2.7.0))(typescript@5.9.2)
 
-  packages/types:
+  packages/shared:
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*

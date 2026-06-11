@@ -294,7 +294,7 @@ export interface CreateUserInput {
 }
 
 // Used in both frontend and backend
-import type { User, CreateUserInput } from "@repo/types";
+import type { User, CreateUserInput } from "@repo/shared";
 ```
 
 ## Build Optimization
