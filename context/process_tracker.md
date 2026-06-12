@@ -31,15 +31,12 @@ Turborepo Monorepo
 
 ## Monorepo Setup
 
-* [ ] Initialize Turborepo
-* [ ] Configure pnpm workspace
-* [ ] Create apps/web
-* [ ] Create apps/api
-* [ ] Create packages/database
-* [ ] Create packages/shared-types
-* [ ] Create packages/shared-utils
-* [ ] Create packages/validation
-* [ ] Create packages/constants
+* [x] Initialize Turborepo
+* [x] Configure pnpm workspace
+* [x] Create apps/web
+* [x] Create apps/api
+* [x] Create packages/database
+* [x] Create packages/shared
 
 ---
 
@@ -126,7 +123,8 @@ Turborepo Monorepo
 * [ ] Create Indexes
 * [ ] Configure Soft Deletes
 * [ ] Seed Initial Data
-* [ ] Generate Prisma Client
+* [x] Generate Prisma Client
+
 
 ---
 
@@ -134,10 +132,11 @@ Turborepo Monorepo
 
 ## Backend
 
-* [ ] Register API
-* [ ] Login API
-* [ ] Refresh Token API
-* [ ] Logout API
+* [x] Register API
+* [x] Login API
+* [x] Refresh Token API
+* [x] Logout API
+
 
 ---
 

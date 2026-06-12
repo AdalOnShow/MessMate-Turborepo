@@ -4,8 +4,8 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
   previewFeatures = ["partialIndexes"]
 }
 
@@ -74,6 +74,7 @@ model users {
   name            String
   email           String     @unique
   password        String?
+  refresh_token   String? // Hashed refresh token
   phone           String?
   avatar          String?
   system_role     SystemRole @default(USER)
@@ -83,20 +84,19 @@ model users {
   updated_at      DateTime   @default(now())
   deleted_at      DateTime?
 
-  oauth_accounts    oauth_accounts[]
-  created_messes    messes[]             @relation("MessCreator")
-  mess_members      mess_members[]
-  created_meals     meal_entries[]
-  submitted_bazaars bazaar_submissions[] @relation("BazaarSubmitter")
-  approved_bazaars  bazaar_submissions[] @relation("BazaarApprover")
-  created_expenses  expenses[]
-  created_deposits  deposits[]
-  created_months    months[]             @relation("MonthCreator")
-  activity_logs     activity_logs[]
-  requested_join_requests join_requests[]   @relation("JoinRequester")
-  user_join_requests      join_requests[]   @relation("UserJoinRequests")
+  oauth_accounts          oauth_accounts[]
+  created_messes          messes[]             @relation("MessCreator")
+  mess_members            mess_members[]
+  created_meals           meal_entries[]
+  submitted_bazaars       bazaar_submissions[] @relation("BazaarSubmitter")
+  approved_bazaars        bazaar_submissions[] @relation("BazaarApprover")
+  created_expenses        expenses[]
+  created_deposits        deposits[]
+  created_months          months[]             @relation("MonthCreator")
+  activity_logs           activity_logs[]
+  requested_join_requests join_requests[]      @relation("JoinRequester")
+  user_join_requests      join_requests[]      @relation("UserJoinRequests")
 
-  @@index([email], map: "idx_users_email")
   @@index([system_role], map: "idx_users_system_role")
 }
 
@@ -123,18 +123,17 @@ model messes {
   updated_at  DateTime  @default(now())
   deleted_at  DateTime?
 
-  creator           users                @relation("MessCreator", fields: [created_by], references: [id])
-  mess_members      mess_members[]
-  months            months[]
-  meal_types        meal_types[]
+  creator            users                @relation("MessCreator", fields: [created_by], references: [id])
+  mess_members       mess_members[]
+  months             months[]
+  meal_types         meal_types[]
   bazaar_submissions bazaar_submissions[]
-  expenses          expenses[]
-  deposits          deposits[]
-  activity_logs     activity_logs[]
-  join_requests     join_requests[]
+  expenses           expenses[]
+  deposits           deposits[]
+  activity_logs      activity_logs[]
+  join_requests      join_requests[]
 
   @@index([created_by], map: "idx_messes_created_by")
-  @@index([slug], map: "idx_messes_slug", where: raw("deleted_at IS NULL"))
 }
 
 model mess_members {
@@ -145,18 +144,18 @@ model mess_members {
   joined_at  DateTime  @default(now())
   removed_at DateTime?
   created_at DateTime  @default(now())
-  updated_at  DateTime  @default(now())
-  deleted_at  DateTime?
+  updated_at DateTime  @default(now())
+  deleted_at DateTime?
 
-  mess      messes             @relation(fields: [mess_id], references: [id], onDelete: Cascade)
-  user      users              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  mess      messes                   @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  user      users                    @relation(fields: [user_id], references: [id], onDelete: Cascade)
   meals     meal_entries[]
   expenses  expense_members[]
   deposits  deposits[]
   summaries member_month_summaries[]
   carries   carry_forward_balances[]
 
-  @@unique([mess_id, user_id], map: "idx_mess_members_mess_user", where: raw("deleted_at IS NULL"))
+  @@unique([user_id], where: raw("removed_at IS NULL"))
   @@index([mess_id, removed_at], map: "idx_mess_members_mess_active", where: raw("deleted_at IS NULL"))
   @@index([user_id], map: "idx_mess_members_user")
 }
@@ -173,16 +172,16 @@ model months {
   updated_at   DateTime    @default(now())
   deleted_at   DateTime?
 
-  mess        messes              @relation(fields: [mess_id], references: [id], onDelete: Cascade)
-  creator     users               @relation("MonthCreator", fields: [created_by], references: [id])
-  meals       meal_entries[]
-  bazaars     bazaar_submissions[]
-  expenses    expenses[]
-  deposits    deposits[]
-  summaries   member_month_summaries[]
+  mess           messes                   @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  creator        users                    @relation("MonthCreator", fields: [created_by], references: [id])
+  meals          meal_entries[]
+  bazaars        bazaar_submissions[]
+  expenses       expenses[]
+  deposits       deposits[]
+  summaries      member_month_summaries[]
   source_carries carry_forward_balances[] @relation("SourceCarryForward")
   target_carries carry_forward_balances[] @relation("TargetCarryForward")
-  activities  activity_logs[]
+  activities     activity_logs[]
 
   @@unique([mess_id], map: "idx_months_mess_status", where: raw("month_status = 'ACTIVE'"))
   @@index([mess_id], map: "idx_months_mess")
@@ -199,8 +198,8 @@ model meal_types {
   updated_at DateTime  @default(now())
   deleted_at DateTime?
 
-  mess     messes          @relation(fields: [mess_id], references: [id], onDelete: Cascade)
-  items    meal_entry_items[]
+  mess  messes             @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  items meal_entry_items[]
 
   @@unique([mess_id, name], map: "idx_meal_types_mess_name", where: raw("deleted_at IS NULL AND is_active = true"))
   @@index([is_active], map: "idx_meal_types_is_active")
@@ -218,15 +217,14 @@ model meal_entries {
   updated_at DateTime  @default(now())
   deleted_at DateTime?
 
-  month    months         @relation(fields: [month_id], references: [id])
-  member   mess_members   @relation(fields: [member_id], references: [id])
-  creator  users          @relation(fields: [created_by], references: [id])
-  items    meal_entry_items[]
+  month   months             @relation(fields: [month_id], references: [id])
+  member  mess_members       @relation(fields: [member_id], references: [id])
+  creator users              @relation(fields: [created_by], references: [id])
+  items   meal_entry_items[]
 
   @@unique([month_id, member_id, date], map: "idx_meal_entries_unique", where: raw("deleted_at IS NULL"))
   @@index([month_id, date], map: "idx_meal_entries_month_date")
   @@index([member_id], map: "idx_meal_entries_member")
-  @@index([total_meal], map: "idx_meal_entries_total_meal")
 }
 
 model meal_entry_items {
@@ -258,10 +256,10 @@ model bazaar_submissions {
   updated_at   DateTime     @default(now())
   deleted_at   DateTime?
 
-  mess      messes  @relation(fields: [mess_id], references: [id], onDelete: Cascade)
-  month     months  @relation(fields: [month_id], references: [id])
-  submitter users   @relation("BazaarSubmitter", fields: [submitted_by], references: [id])
-  approver  users?  @relation("BazaarApprover", fields: [approved_by], references: [id])
+  mess      messes @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  month     months @relation(fields: [month_id], references: [id])
+  submitter users  @relation("BazaarSubmitter", fields: [submitted_by], references: [id])
+  approver  users? @relation("BazaarApprover", fields: [approved_by], references: [id])
 
   @@index([mess_id, month_id], map: "idx_bazaar_submissions_mess_month")
   @@index([status], map: "idx_bazaar_submissions_status")
@@ -281,10 +279,10 @@ model expenses {
   created_at   DateTime    @default(now())
   updated_at   DateTime    @default(now())
 
-  mess     messes          @relation(fields: [mess_id], references: [id], onDelete: Cascade)
-  month    months          @relation(fields: [month_id], references: [id])
-  creator  users           @relation(fields: [created_by], references: [id])
-  members  expense_members[]
+  mess    messes            @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  month   months            @relation(fields: [month_id], references: [id])
+  creator users             @relation(fields: [created_by], references: [id])
+  members expense_members[]
 
   @@index([mess_id, month_id], map: "idx_expenses_mess_month")
   @@index([type], map: "idx_expenses_type")
@@ -316,13 +314,13 @@ model deposits {
   deposit_date DateTime
   created_by   String
   created_at   DateTime  @default(now())
-  updated_at DateTime  @default(now())
+  updated_at   DateTime  @default(now())
   deleted_at   DateTime?
 
-  mess     messes        @relation(fields: [mess_id], references: [id], onDelete: Cascade)
-  month    months        @relation(fields: [month_id], references: [id])
-  member   mess_members  @relation(fields: [member_id], references: [id])
-  creator  users         @relation(fields: [created_by], references: [id])
+  mess    messes       @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  month   months       @relation(fields: [month_id], references: [id])
+  member  mess_members @relation(fields: [member_id], references: [id])
+  creator users        @relation(fields: [created_by], references: [id])
 
   @@index([mess_id, month_id], map: "idx_deposits_mess_month")
   @@index([member_id], map: "idx_deposits_member")
@@ -342,8 +340,8 @@ model member_month_summaries {
   final_balance   Decimal  @default(0) @db.Decimal(12, 2)
   created_at      DateTime @default(now())
 
-  month   months        @relation(fields: [month_id], references: [id], onDelete: Cascade)
-  member  mess_members  @relation(fields: [member_id], references: [id])
+  month  months       @relation(fields: [month_id], references: [id], onDelete: Cascade)
+  member mess_members @relation(fields: [member_id], references: [id])
 
   @@unique([month_id, member_id], map: "idx_member_month_summaries_month_member")
   @@index([month_id], map: "idx_member_month_summaries_month")
@@ -359,9 +357,9 @@ model carry_forward_balances {
   carry_forward_type CarryForwardType
   created_at         DateTime         @default(now())
 
-  source_month months        @relation("SourceCarryForward", fields: [source_month_id], references: [id])
-  target_month months        @relation("TargetCarryForward", fields: [target_month_id], references: [id])
-  member       mess_members  @relation(fields: [member_id], references: [id])
+  source_month months       @relation("SourceCarryForward", fields: [source_month_id], references: [id])
+  target_month months       @relation("TargetCarryForward", fields: [target_month_id], references: [id])
+  member       mess_members @relation(fields: [member_id], references: [id])
 
   @@index([member_id, source_month_id, target_month_id], map: "idx_carry_forward_member_months")
   @@index([target_month_id], map: "idx_carry_forward_target")
@@ -396,9 +394,9 @@ model join_requests {
   verified_at  DateTime?
   created_at   DateTime  @default(now())
 
-  mess      messes  @relation(fields: [mess_id], references: [id], onDelete: Cascade)
-  requester users   @relation("JoinRequester", fields: [requested_by], references: [id])
-  user      users   @relation("UserJoinRequests", fields: [user_id], references: [id], onDelete: Cascade)
+  mess      messes @relation(fields: [mess_id], references: [id], onDelete: Cascade)
+  requester users  @relation("JoinRequester", fields: [requested_by], references: [id])
+  user      users  @relation("UserJoinRequests", fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([mess_id, user_id], map: "idx_join_requests_mess_user", where: raw("status = 'PENDING'"))
   @@index([user_id], map: "idx_join_requests_user")
