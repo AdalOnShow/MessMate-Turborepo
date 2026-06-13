@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { ThemeToggle } from "../ThemeToggle";
 
 export function Navbar() {
@@ -17,11 +18,10 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-surface/80 backdrop-blur-md border-b border-[rgba(148,163,184,0.1)] py-4 shadow-lg shadow-black/20"
-          : "bg-transparent py-6"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+        ? "bg-surface/80 backdrop-blur-md border-b border-[rgba(148,163,184,0.1)] py-4 shadow-lg shadow-black/20"
+        : "bg-transparent py-6"
+        }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav className="flex items-center justify-between">
@@ -53,34 +53,40 @@ export function Navbar() {
 
           {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-8">
-            <a
-              href="#features"
+            <Link
+              href="/#features"
               className="text-[15px] font-medium text-foreground-muted hover:text-foreground transition-colors duration-200"
             >
               Features
-            </a>
-            <a
-              href="#how-it-works"
+            </Link>
+            <Link
+              href="/#how-it-works"
               className="text-[15px] font-medium text-foreground-muted hover:text-foreground transition-colors duration-200"
             >
               How It Works
-            </a>
-            <a
-              href="#pricing"
+            </Link>
+            <Link
+              href="/#pricing"
               className="text-[15px] font-medium text-foreground-muted hover:text-foreground transition-colors duration-200"
             >
               Pricing
-            </a>
+            </Link>
           </div>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-4">
-            <a
-              href="#pricing"
-              className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold rounded-lg text-background bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all duration-200 shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/25 cursor-pointer"
+          <div className="hidden md:flex items-center gap-3">
+            <Link
+              href="/signin"
+              className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold rounded-lg text-foreground hover:text-primary transition-colors duration-200"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold rounded-lg text-background bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all duration-200 cursor-pointer"
             >
               Get Started
-            </a>
+            </Link>
             <ThemeToggle />
           </div>
 
@@ -126,11 +132,10 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       <div
-        className={`md:hidden fixed inset-x-0 top-[73px] bottom-0 z-40 bg-background/95 backdrop-blur-lg border-t border-[rgba(148,163,184,0.1)] transition-all duration-300 ease-in-out ${
-          isMobileMenuOpen
-            ? "translate-x-0 opacity-100"
-            : "translate-x-full opacity-0 pointer-events-none"
-        }`}
+        className={`md:hidden fixed inset-x-0 top-18.25 bottom-0 z-40 bg-background/95 backdrop-blur-lg border-t border-[rgba(148,163,184,0.1)] transition-all duration-300 ease-in-out ${isMobileMenuOpen
+          ? "translate-x-0 opacity-100"
+          : "translate-x-full opacity-0 pointer-events-none"
+          }`}
       >
         <div className="flex flex-col p-6 space-y-6">
           <a
@@ -163,12 +168,22 @@ export function Navbar() {
           >
             Pricing
           </a>
-          <button
-            className="flex items-center justify-center w-full py-3.5 text-base font-semibold rounded-lg text-background bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all duration-200"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Get Started
-          </button>
+          <div className="flex flex-col gap-3 pt-2">
+            <a
+              href="/signin"
+              className="flex items-center justify-center w-full py-3 text-base font-semibold rounded-lg text-foreground border border-foreground-muted/20 hover:border-foreground-muted/40 transition-colors duration-200"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Sign in
+            </a>
+            <a
+              href="/signup"
+              className="flex items-center justify-center w-full py-3 text-base font-semibold rounded-lg text-background bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all duration-200"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Sign up
+            </a>
+          </div>
           <ThemeToggle />
         </div>
       </div>

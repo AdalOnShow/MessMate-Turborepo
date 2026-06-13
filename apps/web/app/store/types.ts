@@ -1,24 +1,16 @@
-export interface CreateSessionParams {
-  username: string;
-  email: string;
-  twitchUsername?: string;
-}
-
 export interface SessionState {
+  accessToken: string | null;
   user: {
-    id: string | null;
-    username: string | null;
-    email: string | null;
-    twitchUsername?: string | null;
+    id: string;
+    email: string;
+    name: string;
   } | null;
-
   isAuthenticated: boolean;
 }
 
 export interface SessionActions {
-  createSession: (params: CreateSessionParams) => void;
+  setSession: (token: string, user: SessionState["user"]) => void;
   clearSession: () => void;
-  updateUser: (updates: Partial<SessionState["user"]>) => void;
 }
 
 export type SessionStore = SessionState & SessionActions;

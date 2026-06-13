@@ -87,25 +87,20 @@ export function StatsSection() {
   ];
 
   return (
-    <section className="bg-surface border-y border-[rgba(148,163,184,0.15)] relative py-12 lg:py-16">
+    <section className="bg-surface border-y border-foreground-muted/15 py-12 lg:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {stats.map((stat) => (
             <div
               key={stat.id}
-              className="flex flex-col items-center text-center p-4 hover:bg-surface-raised/40 rounded-xl transition-all duration-300 group border border-transparent hover:border-[rgba(148,163,184,0.05)]"
+              className="flex flex-col items-center text-center p-4 rounded-xl hover:-translate-y-0.5 transition-all duration-300"
             >
-              {/* Icon Container */}
-              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-background border border-[rgba(148,163,184,0.08)] text-primary group-hover:scale-110 group-hover:text-primary-hover transition-all duration-300 mb-4 shadow-sm">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-background border border-foreground-muted/10 text-primary mb-4">
                 {stat.icon}
               </div>
-
-              {/* Metric Number */}
-              <span className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-heading group-hover:text-primary transition-colors duration-300">
+              <span className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-heading">
                 {stat.value}
               </span>
-
-              {/* Metric Label */}
               <span className="text-sm font-semibold text-foreground-muted mt-2">
                 {stat.label}
               </span>

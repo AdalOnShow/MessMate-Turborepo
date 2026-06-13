@@ -1,10 +1,13 @@
 export function HeroSection() {
   return (
-    <section className="min-h-screen flex items-center justify-center pt-24 bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
+    <section className="min-h-screen flex items-center justify-center pt-24 bg-background relative overflow-hidden">
+      {/* Soft ambient blur behind mockup */}
+      <div className="absolute top-1/3 right-0 w-150 h-150 rounded-full bg-primary/5 blur-[100px] pointer-events-none" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Hero Text */}
-          <div className="lg:col-span-7 text-center lg:text-left space-y-6">
+          <div className="lg:col-span-7 text-center lg:text-left space-y-6 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-warm/10 border border-accent-warm/20">
               <span className="w-1.5 h-1.5 rounded-full bg-accent-warm" />
               <span className="text-xs font-semibold tracking-wider text-accent-warm font-bengali">
@@ -79,7 +82,7 @@ export function HeroSection() {
           </div>
 
           {/* UI Mockup Card */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end">
+          <div className="lg:col-span-5 flex justify-center lg:justify-end animate-scale-in">
             <div className="relative w-full max-w-105 aspect-square lg:aspect-auto lg:h-112.5 rounded-2xl bg-surface-raised border border-foreground-muted/10 p-6 flex flex-col justify-between overflow-hidden">
               {/* Mockup Header */}
               <div className="flex items-center justify-between border-b border-foreground-muted/10 pb-4">

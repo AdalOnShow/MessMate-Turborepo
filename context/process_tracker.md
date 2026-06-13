@@ -5,24 +5,26 @@
 ```text
 Project Name: MessMate
 
-Status: Planning Phase
+Status: Active Development (Phase 1-2)
 
 Frontend:
 Next.js 16
 TypeScript
-Tailwind CSS
+Tailwind CSS v4
 TanStack Query
-Zustand
-shadcn/ui
+Zustand + Immer
+shadcn/ui (Lucide icons)
 
 Backend:
-NestJS
-Prisma
-PostgreSQL
-JWT Authentication
+NestJS 11
+Prisma ORM 7.8
+PostgreSQL (Neon)
+JWT Authentication (Access + Refresh Tokens)
+Passport (Local + JWT)
 
 Architecture:
 Turborepo Monorepo
+pnpm Workspace
 ```
 
 ---
@@ -31,35 +33,61 @@ Turborepo Monorepo
 
 ## Monorepo Setup
 
-* [x] Initialize Turborepo
-* [x] Configure pnpm workspace
-* [x] Create apps/web
-* [x] Create apps/api
-* [x] Create packages/database
-* [x] Create packages/shared
+- [x] Initialize Turborepo
+- [x] Configure pnpm workspace
+- [x] Create apps/web (Next.js 16)
+- [x] Create apps/api (NestJS 11)
+- [x] Create packages/database (Prisma + Neon)
+- [x] Create packages/shared (DTOs, types, API response)
+- [ ] Create packages/shared-types
+- [ ] Create packages/shared-utils
+- [ ] Create packages/validation
+- [ ] Create packages/constants
+
+> **Note:** Docs specify 5 separate packages but only `database` and `shared` exist. `shared` is a catch-all with DTOs, types, and API response utilities.
 
 ---
 
 ## Tooling Setup
 
-* [ ] ESLint
-* [ ] Prettier
-* [ ] Husky
-* [ ] Commitlint
-* [ ] Environment Validation
-* [x] API response envelope
-* [x] Global validation pipe
-* [ ] Path Aliases
+- [x] ESLint (configured per app/package, but lint fails in database due to v8→flat config mismatch)
+- [x] Prettier (root config exists)
+- [ ] Husky (not configured)
+- [ ] Commitlint (not configured)
+- [ ] Environment Validation (not implemented)
+- [x] API response envelope (middleware active on all routes)
+- [x] Global validation pipe (whitelist + forbidNonWhitelisted + transform)
+- [ ] Path Aliases (not configured)
 
 ---
 
 ## Documentation
 
-* [x] project-overview.md
-* [x] technical-flow.md
-* [x] database-schema.md
-* [x] features.md
-* [ ] API Documentation
+- [x] project-overview.md
+- [x] technical-flow.md
+- [x] database-schema.md
+- [x] features.md
+- [x] architecture-decisions.md (23 ADRs)
+- [x] design.md (full design system)
+- [ ] API Documentation (not started)
+
+---
+
+## Frontend Foundation
+
+- [x] Next.js 16 app with App Router
+- [x] Tailwind CSS v4 with design system tokens
+- [x] Custom dark/light/system theme store with localStorage persistence
+- [x] TanStack Query client singleton with optimized defaults
+- [x] Zustand stores: Session (auth state) + Theme (dark/light/system)
+- [x] API client with Bearer token injection and ApiResponse unwrapping
+- [x] Google Fonts: Plus Jakarta Sans + Alkatra (Bengali)
+- [x] Landing page: Navbar, Hero, Stats, Features, How It Works, Pricing, Footer
+- [x] Auth pages: /signin, /signup
+- [x] Auth hooks: useSignin, useSignup, useLogout (React Query mutations)
+- [ ] Dashboard pages (not started)
+- [ ] Protected route layout (not implemented)
+- [ ] Loading/error/empty state components (not implemented)
 
 ---
 
@@ -67,9 +95,10 @@ Turborepo Monorepo
 
 ## PostgreSQL Setup
 
-* [ ] Configure PostgreSQL
-* [ ] Configure Prisma
-* [ ] Create Prisma Client Package
+- [x] Configure PostgreSQL (Neon serverless)
+- [x] Configure Prisma (7.8 with Neon adapter)
+- [x] Create Prisma Client Package (@repo/database)
+- [x] 2 migrations applied: init + add_refresh_token
 
 ---
 
@@ -77,56 +106,59 @@ Turborepo Monorepo
 
 ### Core
 
-* [ ] users
-* [ ] oauth_accounts
-* [ ] messes
-* [ ] mess_members
+- [x] users (with refresh_token support)
+- [x] oauth_accounts
+- [x] messes
+- [x] mess_members
 
 ### Month System
 
-* [ ] months
+- [x] months
 
 ### Meal System
 
-* [ ] meal_types
-* [ ] meal_entries
+- [x] meal_types
+- [x] meal_entries
+- [x] meal_entry_items (DROPPED per ADR-021 - should use JSONB instead)
 
 ### Bazaar System
 
-* [ ] bazaar_submissions
+- [x] bazaar_submissions
 
 ### Expense System
 
-* [ ] expenses
-* [ ] expense_members
+- [x] expenses
+- [x] expense_members
 
 ### Deposit System
 
-* [ ] deposits
+- [x] deposits
 
 ### Accounting System
 
-* [ ] member_month_summaries
-* [ ] carry_forward_balances
+- [x] member_month_summaries
+- [x] carry_forward_balances
 
 ### Activity System
 
-* [ ] activity_logs
+- [x] activity_logs
 
 ### Join Request System
 
-* [ ] join_requests
+- [x] join_requests
 
 ---
 
 ## Database Tasks
 
-* [ ] Create Enums
-* [ ] Create Indexes
-* [ ] Configure Soft Deletes
-* [ ] Seed Initial Data
-* [x] Generate Prisma Client
+- [x] Create Enums (SystemRole, MessRole, MonthStatus, ExpenseType, BazaarStatus, CarryForwardType, activity_action)
+- [x] Create Indexes (all specified indexes created)
+- [x] Configure Soft Deletes (deleted_at on all major entities)
+- [ ] Seed Initial Data (not done)
+- [x] Generate Prisma Client
+- [ ] Redis setup (not configured - needed for join verification codes)
 
+> **Issue:** Schema still includes `meal_entry_items` table, but ADR-021 specifies JSONB-based meal storage which eliminates this table. Requires schema migration to remove.
 
 ---
 
@@ -134,36 +166,31 @@ Turborepo Monorepo
 
 ## Backend
 
-* [x] Register API
-* [x] Login API
-* [x] Refresh Token API
-* [x] Logout API
+- [x] Register API (POST /auth/signup)
+- [x] Login API (POST /auth/signin)
+- [x] Refresh Token API (POST /auth/refresh)
+- [x] Logout API (POST /auth/logout)
 
-
----
+> All 4 auth endpoints use httpOnly cookies for refresh tokens. Access tokens via Bearer header. Refresh tokens are hashed with bcrypt and stored in `users.refresh_token`.
 
 ## OAuth
 
-* [ ] Google Login
-* [ ] Facebook Login
-
----
+- [ ] Google Login (not implemented)
+- [ ] Facebook Login (not implemented)
 
 ## Profile
 
-* [ ] Get Profile
-* [ ] Update Profile
-* [ ] Update Password
-* [ ] Upload Avatar
-
----
+- [ ] Get Profile (not implemented)
+- [ ] Update Profile (not implemented)
+- [ ] Update Password (not implemented)
+- [ ] Upload Avatar (not implemented)
 
 ## Manager Created Account
 
-* [ ] Create Member Account
-* [ ] Temporary Password Flow
-* [ ] First Time Setup Flow
-* [ ] One Time Email Update Logic
+- [ ] Create Member Account (not implemented)
+- [ ] Temporary Password Flow (not implemented)
+- [ ] First Time Setup Flow (not implemented)
+- [ ] One Time Email Update Logic (not implemented)
 
 ---
 
@@ -171,35 +198,35 @@ Turborepo Monorepo
 
 ## Mess
 
-* [ ] Create Mess
-* [ ] Update Mess
-* [ ] View Mess
+- [ ] Create Mess
+- [ ] Update Mess
+- [ ] View Mess
 
 ---
 
 ## Members
 
-* [ ] Add Member
-* [ ] Remove Member
-* [ ] Active Members List
-* [ ] Removed Members List
+- [ ] Add Member
+- [ ] Remove Member
+- [ ] Active Members List
+- [ ] Removed Members List
 
 ---
 
 ## Manager Assignment
 
-* [ ] Assign Manager
-* [ ] Remove Manager
-* [ ] Enforce Max Two Managers
+- [ ] Assign Manager
+- [ ] Remove Manager
+- [ ] Enforce Max Two Managers
 
 ---
 
 ## Join Request
 
-* [ ] Generate Verification Code
-* [ ] Redis Storage
-* [ ] Verify Join Request
-* [ ] Join Request History
+- [ ] Generate Verification Code
+- [ ] Redis Storage
+- [ ] Verify Join Request
+- [ ] Join Request History
 
 ---
 
@@ -207,25 +234,25 @@ Turborepo Monorepo
 
 ## Active Month
 
-* [ ] Create Month
-* [ ] Get Active Month
-* [ ] Active Month Dashboard
+- [ ] Create Month
+- [ ] Get Active Month
+- [ ] Active Month Dashboard
 
 ---
 
 ## Month Closing
 
-* [ ] Calculate Final Summary
-* [ ] Generate Member Summary
-* [ ] Generate Carry Forward Balances
-* [ ] Archive Month
+- [ ] Calculate Final Summary
+- [ ] Generate Member Summary
+- [ ] Generate Carry Forward Balances
+- [ ] Archive Month
 
 ---
 
 ## Month History
 
-* [ ] View Previous Months
-* [ ] View Archived Reports
+- [ ] View Previous Months
+- [ ] View Archived Reports
 
 ---
 
@@ -233,26 +260,26 @@ Turborepo Monorepo
 
 ## Meal Types
 
-* [ ] Create Meal Type
-* [ ] Update Meal Type
-* [ ] Disable Meal Type
+- [ ] Create Meal Type
+- [ ] Update Meal Type
+- [ ] Disable Meal Type
 
 ---
 
 ## Meal Entry
 
-* [ ] Create Daily Meal Entry
-* [ ] Bulk Meal Entry
-* [ ] Update Meal Entry
-* [ ] Delete Meal Entry
+- [ ] Create Daily Meal Entry
+- [ ] Bulk Meal Entry
+- [ ] Update Meal Entry
+- [ ] Delete Meal Entry
 
 ---
 
 ## Meal Reports
 
-* [ ] Daily Meal Report
-* [ ] Member Meal Report
-* [ ] Monthly Meal Report
+- [ ] Daily Meal Report
+- [ ] Member Meal Report
+- [ ] Monthly Meal Report
 
 ---
 
@@ -260,24 +287,24 @@ Turborepo Monorepo
 
 ## Bazaar Submission
 
-* [ ] Submit Bazaar
-* [ ] Add Bazaar Items
-* [ ] Edit Bazaar Submission
+- [ ] Submit Bazaar
+- [ ] Add Bazaar Items
+- [ ] Edit Bazaar Submission
 
 ---
 
 ## Bazaar Approval
 
-* [ ] Approve Bazaar
-* [ ] Reject Bazaar
+- [ ] Approve Bazaar
+- [ ] Reject Bazaar
 
 ---
 
 ## Bazaar History
 
-* [ ] Submitted Bazaar List
-* [ ] Approved Bazaar List
-* [ ] Rejected Bazaar List
+- [ ] Submitted Bazaar List
+- [ ] Approved Bazaar List
+- [ ] Rejected Bazaar List
 
 ---
 
@@ -285,26 +312,26 @@ Turborepo Monorepo
 
 ## Shared Expenses
 
-* [ ] Create Shared Expense
-* [ ] Select Members
-* [ ] Allocate Expense
-* [ ] Update Expense
+- [ ] Create Shared Expense
+- [ ] Select Members
+- [ ] Allocate Expense
+- [ ] Update Expense
 
 ---
 
 ## Individual Expenses
 
-* [ ] Create Individual Expense
-* [ ] Assign Member
-* [ ] Update Individual Expense
+- [ ] Create Individual Expense
+- [ ] Assign Member
+- [ ] Update Individual Expense
 
 ---
 
 ## Expense Reports
 
-* [ ] Expense Summary
-* [ ] Expense History
-* [ ] Member Expense Breakdown
+- [ ] Expense Summary
+- [ ] Expense History
+- [ ] Member Expense Breakdown
 
 ---
 
@@ -312,16 +339,16 @@ Turborepo Monorepo
 
 ## Deposits
 
-* [ ] Add Deposit
-* [ ] Update Deposit
-* [ ] Deposit History
+- [ ] Add Deposit
+- [ ] Update Deposit
+- [ ] Deposit History
 
 ---
 
 ## Reports
 
-* [ ] Member Deposit Summary
-* [ ] Monthly Deposit Summary
+- [ ] Member Deposit Summary
+- [ ] Monthly Deposit Summary
 
 ---
 
@@ -329,25 +356,25 @@ Turborepo Monorepo
 
 ## Meal Rate Calculation
 
-* [ ] Calculate Total Meals
-* [ ] Calculate Total Meal Cost
-* [ ] Calculate Meal Rate
+- [ ] Calculate Total Meals
+- [ ] Calculate Total Meal Cost
+- [ ] Calculate Meal Rate
 
 ---
 
 ## Bill Calculation
 
-* [ ] Shared Cost Calculation
-* [ ] Individual Cost Calculation
-* [ ] Deposit Calculation
-* [ ] Final Balance Calculation
+- [ ] Shared Cost Calculation
+- [ ] Individual Cost Calculation
+- [ ] Deposit Calculation
+- [ ] Final Balance Calculation
 
 ---
 
 ## Carry Forward
 
-* [ ] Previous Due Logic
-* [ ] Previous Balance Logic
+- [ ] Previous Due Logic
+- [ ] Previous Balance Logic
 
 ---
 
@@ -355,25 +382,25 @@ Turborepo Monorepo
 
 ## Manager Dashboard
 
-* [ ] Current Month
-* [ ] Total Members
-* [ ] Total Meals
-* [ ] Total Deposits
-* [ ] Total Expenses
-* [ ] Meal Rate
-* [ ] Balance
-* [ ] Recent Activities
+- [ ] Current Month
+- [ ] Total Members
+- [ ] Total Meals
+- [ ] Total Deposits
+- [ ] Total Expenses
+- [ ] Meal Rate
+- [ ] Balance
+- [ ] Recent Activities
 
 ---
 
 ## Member Dashboard
 
-* [ ] Personal Meals
-* [ ] Personal Deposits
-* [ ] Personal Expenses
-* [ ] Personal Balance
-* [ ] Bazaar Information
-* [ ] Monthly Summary
+- [ ] Personal Meals
+- [ ] Personal Deposits
+- [ ] Personal Expenses
+- [ ] Personal Balance
+- [ ] Bazaar Information
+- [ ] Monthly Summary
 
 ---
 
@@ -381,25 +408,25 @@ Turborepo Monorepo
 
 ## Logging
 
-* [ ] Member Added
-* [ ] Member Removed
-* [ ] Meal Added
-* [ ] Meal Updated
-* [ ] Expense Added
-* [ ] Expense Updated
-* [ ] Deposit Added
-* [ ] Deposit Updated
-* [ ] Bazaar Submitted
-* [ ] Bazaar Approved
-* [ ] Manager Assigned
-* [ ] Manager Removed
+- [ ] Member Added
+- [ ] Member Removed
+- [ ] Meal Added
+- [ ] Meal Updated
+- [ ] Expense Added
+- [ ] Expense Updated
+- [ ] Deposit Added
+- [ ] Deposit Updated
+- [ ] Bazaar Submitted
+- [ ] Bazaar Approved
+- [ ] Manager Assigned
+- [ ] Manager Removed
 
 ---
 
 ## Activity Feed
 
-* [ ] Recent Activities API
-* [ ] Activity Feed UI
+- [ ] Recent Activities API
+- [ ] Activity Feed UI
 
 ---
 
@@ -407,18 +434,18 @@ Turborepo Monorepo
 
 ## Member Reports
 
-* [ ] Member Summary
-* [ ] Member Balance
-* [ ] Member Expenses
+- [ ] Member Summary
+- [ ] Member Balance
+- [ ] Member Expenses
 
 ---
 
 ## Month Reports
 
-* [ ] Monthly Summary
-* [ ] Meal Summary
-* [ ] Expense Summary
-* [ ] Deposit Summary
+- [ ] Monthly Summary
+- [ ] Meal Summary
+- [ ] Expense Summary
+- [ ] Deposit Summary
 
 ---
 
@@ -426,25 +453,25 @@ Turborepo Monorepo
 
 ## Chat
 
-* [ ] Group Chat
-* [ ] Message History
-* [ ] File Sharing
+- [ ] Group Chat
+- [ ] Message History
+- [ ] File Sharing
 
 ---
 
 ## Mobile
 
-* [ ] React Native App
-* [ ] Android App
-* [ ] iOS App
+- [ ] React Native App
+- [ ] Android App
+- [ ] iOS App
 
 ---
 
 ## SaaS
 
-* [ ] Subscription Plans
-* [ ] Billing System
-* [ ] Super Admin Dashboard
+- [ ] Subscription Plans
+- [ ] Billing System
+- [ ] Super Admin Dashboard
 
 ---
 
@@ -452,15 +479,15 @@ Turborepo Monorepo
 
 A task can be marked complete only if:
 
-* [ ] Backend API completed
-* [ ] Frontend UI completed
-* [ ] Validation completed
-* [ ] Authorization completed
-* [ ] Activity logging implemented
-* [ ] Error handling implemented
-* [ ] Loading states implemented
-* [ ] Empty states implemented
-* [ ] Documentation updated
+- [ ] Backend API completed
+- [ ] Frontend UI completed
+- [ ] Validation completed
+- [ ] Authorization completed
+- [ ] Activity logging implemented
+- [ ] Error handling implemented
+- [ ] Loading states implemented
+- [ ] Empty states implemented
+- [ ] Documentation updated
 
 ---
 
@@ -468,10 +495,18 @@ A task can be marked complete only if:
 
 ```text
 Current Phase:
-Phase 0
+Phase 1-2 (Active)
 
 Current Priority:
-Project Setup
-Database Design
-Authentication Foundation
+Complete Phase 3 (Mess Management)
+- Create Mess API + UI
+- Member Management (Add/Remove/List)
+- Manager Assignment
+- Join Request with Redis verification
+
+Next Up:
+Phase 4 - Month Management
+- Active month creation
+- Month closing and archiving
+- Balance carry forward
 ```

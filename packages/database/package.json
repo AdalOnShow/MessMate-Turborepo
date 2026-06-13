@@ -14,7 +14,6 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
     "build": "tsc",
-    "dev": "tsc --watch",
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {

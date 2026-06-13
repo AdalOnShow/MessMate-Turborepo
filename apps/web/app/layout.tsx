@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Noto_Sans_Bengali } from "next/font/google";
+import { Plus_Jakarta_Sans, Alkatra } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "./providers";
+import { Providers } from "./providers";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -10,7 +10,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const notoSansBengali = Noto_Sans_Bengali({
+const alkatra = Alkatra({
   subsets: ["bengali"],
   weight: ["400", "500", "600"],
   variable: "--font-bengali",
@@ -48,10 +48,10 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${plusJakartaSans.variable} ${notoSansBengali.variable}`}
+      className={`${plusJakartaSans.variable} ${alkatra.variable}`}
     >
       <body className="font-body antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
