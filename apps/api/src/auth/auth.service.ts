@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -22,6 +23,7 @@ export type AuthTokens = {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private readonly accessSecret: string;
   private readonly refreshSecret: string;
 
@@ -37,8 +39,12 @@ export class AuthService {
 
   async findUserById(userId: string): Promise<AuthUser | null> {
     const user = await prisma.users.findUnique({ where: { id: userId } });
-    if (!user) return null;
+    if (!user) {
+      this.logger.warn(`⚠️ User not found: ${userId}`);
+      return null;
+    }
 
+    this.logger.debug(`🔍 User found: ${user.id} (${user.email})`);
     return {
       id: user.id,
       email: user.email,
@@ -52,11 +58,18 @@ export class AuthService {
     password: string,
   ): Promise<AuthUser | null> {
     const user = await prisma.users.findUnique({ where: { email } });
-    if (!user?.password) return null;
+    if (!user?.password) {
+      this.logger.warn(`⚠️ Login attempt with non-existent email: ${email}`);
+      return null;
+    }
 
     const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return null;
+    if (!ok) {
+      this.logger.warn(`⚠️ Invalid password for email: ${email}`);
+      return null;
+    }
 
+    this.logger.log(`✅ User validated: ${email}`);
     return {
       id: user.id,
       email: user.email,
@@ -77,10 +90,15 @@ export class AuthService {
     password: string;
     phone?: string;
   }): Promise<AuthTokens> {
+    this.logger.log(`📝 Registration attempt for email: ${signupDto.email}`);
+
     const existing = await prisma.users.findUnique({
       where: { email: signupDto.email },
     });
-    if (existing) throw new BadRequestException('Email already in use');
+    if (existing) {
+      this.logger.warn(`⚠️ Duplicate email registration: ${signupDto.email}`);
+      throw new BadRequestException('Email already in use');
+    }
 
     const saltRounds =
       this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;
@@ -95,6 +113,10 @@ export class AuthService {
       },
     });
 
+    this.logger.log(
+      `✅ User registered: id=${user.id}, email=${user.email}, name=${user.name}`,
+    );
+
     const accessToken = await this.createAccessToken(user);
     const refreshToken = await this.createRefreshToken(user);
 
@@ -104,12 +126,18 @@ export class AuthService {
       data: { refresh_token: hashedRefreshToken },
     });
 
+    this.logger.log(`🔑 Tokens issued for new user: ${user.id}`);
     return { accessToken, refreshToken };
   }
 
   async login(user: AuthUser): Promise<AuthTokens> {
+    this.logger.log(`🔐 Login for user: ${user.id} (${user.email})`);
+
     const dbUser = await prisma.users.findUnique({ where: { id: user.id } });
-    if (!dbUser) throw new UnauthorizedException('Invalid credentials');
+    if (!dbUser) {
+      this.logger.error(`❌ Login failed - user not in DB: ${user.id}`);
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     const accessToken = await this.createAccessToken(dbUser);
     const refreshToken = await this.createRefreshToken(dbUser);
@@ -120,6 +148,7 @@ export class AuthService {
       data: { refresh_token: hashedRefreshToken },
     });
 
+    this.logger.log(`✅ Login successful for user: ${dbUser.id}`);
     return { accessToken, refreshToken };
   }
 
@@ -127,12 +156,19 @@ export class AuthService {
     userId: string,
     refreshToken: string,
   ): Promise<AuthTokens> {
+    this.logger.log(`🔄 Token refresh for user: ${userId}`);
+
     const user = await prisma.users.findUnique({ where: { id: userId } });
-    if (!user?.refresh_token)
+    if (!user?.refresh_token) {
+      this.logger.warn(`⚠️ Refresh failed - no stored token: ${userId}`);
       throw new UnauthorizedException('Invalid refresh token');
+    }
 
     const matches = await bcrypt.compare(refreshToken, user.refresh_token);
-    if (!matches) throw new UnauthorizedException('Invalid refresh token');
+    if (!matches) {
+      this.logger.warn(`⚠️ Refresh failed - token mismatch: ${userId}`);
+      throw new UnauthorizedException('Invalid refresh token');
+    }
 
     const accessToken = await this.createAccessToken(user);
     const newRefreshToken = await this.createRefreshToken(user);
@@ -143,14 +179,19 @@ export class AuthService {
       data: { refresh_token: hashedNewRefreshToken },
     });
 
+    this.logger.log(`✅ Token refresh successful for user: ${userId}`);
     return { accessToken, refreshToken: newRefreshToken };
   }
 
   async logout(userId: string): Promise<void> {
+    this.logger.log(`🚪 Logout for user: ${userId}`);
+
     await prisma.users.update({
       where: { id: userId },
       data: { refresh_token: null },
     });
+
+    this.logger.log(`✅ Refresh token cleared for user: ${userId}`);
   }
 
   private async createAccessToken(user: {

@@ -2,8 +2,14 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { api } from "../lib/api-client";
 import { useSessionStore } from "../store";
+
+// Server Action imports
+import {
+  signup as serverSignup,
+  signin as serverSignin,
+  logout as serverLogout,
+} from "../actions/auth";
 
 interface SigninPayload {
   email: string;
@@ -15,10 +21,6 @@ interface SignupPayload {
   email: string;
   password: string;
   phone?: string;
-}
-
-interface AuthResponse {
-  accessToken: string;
 }
 
 function decodeJwt(token: string): { sub: string; email: string } | null {
@@ -36,8 +38,10 @@ export function useSignin() {
   const setSession = useSessionStore((s) => s.setSession);
 
   return useMutation({
-    mutationFn: (payload: SigninPayload) =>
-      api.post<AuthResponse>("/auth/signin", payload),
+    mutationFn: async (payload: SigninPayload) => {
+      const result = await serverSignin(payload);
+      return result;
+    },
     onSuccess: (data) => {
       const decoded = decodeJwt(data.accessToken);
       if (decoded) {
@@ -49,6 +53,9 @@ export function useSignin() {
       }
       router.push("/dashboard");
     },
+    onError: (error) => {
+      console.error("Signin error:", error);
+    },
   });
 }
 
@@ -57,8 +64,10 @@ export function useSignup() {
   const setSession = useSessionStore((s) => s.setSession);
 
   return useMutation({
-    mutationFn: (payload: SignupPayload) =>
-      api.post<AuthResponse>("/auth/signup", payload),
+    mutationFn: async (payload: SignupPayload) => {
+      const result = await serverSignup(payload);
+      return result;
+    },
     onSuccess: (data, variables) => {
       const decoded = decodeJwt(data.accessToken);
       if (decoded) {
@@ -70,6 +79,9 @@ export function useSignup() {
       }
       router.push("/dashboard");
     },
+    onError: (error) => {
+      console.error("Signup error:", error);
+    },
   });
 }
 
@@ -78,7 +90,9 @@ export function useLogout() {
   const clearSession = useSessionStore((s) => s.clearSession);
 
   return useMutation({
-    mutationFn: () => api.post<void>("/auth/logout"),
+    mutationFn: async () => {
+      await serverLogout();
+    },
     onSuccess: () => {
       clearSession();
       router.push("/");

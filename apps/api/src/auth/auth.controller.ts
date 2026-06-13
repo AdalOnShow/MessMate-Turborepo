@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Logger,
   Post,
   Req,
   Res,
@@ -10,7 +11,6 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import type { Response, Request } from 'express';
 import { SignupDto } from '@repo/shared';
-import { ApiResponse, AuthTokensResponse } from '@repo/shared';
 import { AuthService, AuthTokens, AuthUser } from './auth.service';
 import { Public } from './guards/public.decorator';
 
@@ -30,6 +30,8 @@ type RefreshPayload = {
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private readonly authService: AuthService) {}
 
   @Public()
@@ -37,39 +39,42 @@ export class AuthController {
   async signup(
     @Body() signupDto: SignupDto,
     @Res() res: Response,
-  ): Promise<ApiResponse<AuthTokensResponse>> {
+  ): Promise<void> {
+    this.logger.log(`📝 POST /auth/signup - email: ${signupDto.email}`);
+
     const tokens: AuthTokens = await this.authService.register(signupDto);
 
     this.setRefreshCookie(res, tokens.refreshToken);
-    return {
+    this.logger.log(`✅ Signup completed for: ${signupDto.email}`);
+    res.status(201).json({
       success: true,
       message: 'Signup successful',
       data: {
         accessToken: tokens.accessToken,
       },
-    };
+    });
   }
 
   @Public()
   @UseGuards(AuthGuard('local'))
   @Post('signin')
-  async signin(
-    @Req() req: SigninRequest,
-    @Res() res: Response,
-  ): Promise<ApiResponse<AuthTokensResponse>> {
+  async signin(@Req() req: SigninRequest, @Res() res: Response): Promise<void> {
     const user: AuthUser | undefined = req.user;
     if (!user) throw new UnauthorizedException('Unauthorized');
+
+    this.logger.log(`🔐 POST /auth/signin - user: ${user.email}`);
 
     const tokens: AuthTokens = await this.authService.login(user);
 
     this.setRefreshCookie(res, tokens.refreshToken);
-    return {
+    this.logger.log(`✅ Signin completed for: ${user.email}`);
+    res.status(200).json({
       success: true,
       message: 'Signin successful',
       data: {
         accessToken: tokens.accessToken,
       },
-    };
+    });
   }
 
   @Public()
@@ -77,7 +82,9 @@ export class AuthController {
   async refresh(
     @Req() req: RefreshRequest,
     @Res() res: Response,
-  ): Promise<ApiResponse<AuthTokensResponse>> {
+  ): Promise<void> {
+    this.logger.log('🔄 POST /auth/refresh');
+
     const refreshToken = (req.cookies as Record<string, string> | undefined)
       ?.refresh_token;
     if (!refreshToken) throw new UnauthorizedException('Missing refresh token');
@@ -106,13 +113,14 @@ export class AuthController {
       );
 
       this.setRefreshCookie(res, tokens.refreshToken);
-      return {
+      this.logger.log(`✅ Token refreshed for user: ${userId}`);
+      res.status(200).json({
         success: true,
         message: 'Token refreshed successfully',
         data: {
           accessToken: tokens.accessToken,
         },
-      };
+      });
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -122,9 +130,11 @@ export class AuthController {
   async logout(
     @Req() req: Request & { user?: { id?: string } },
     @Res() res: Response,
-  ) {
+  ): Promise<void> {
     const userId = req.user?.id;
     if (!userId) throw new UnauthorizedException('Unauthorized');
+
+    this.logger.log(`🚪 POST /auth/logout - user: ${userId}`);
 
     await this.authService.logout(userId);
 
@@ -135,7 +145,8 @@ export class AuthController {
       path: '/auth/refresh',
     });
 
-    return { ok: true };
+    this.logger.log(`✅ Logout completed for user: ${userId}`);
+    res.status(200).json({ success: true, message: 'Logged out' });
   }
 
   private setRefreshCookie(res: Response, refreshToken: string) {

@@ -4,16 +4,17 @@
 
 You are contributing to the MessMate project.
 
-MessMate is a production-grade mess management and accounting platform built using:
+MessMate is a production-grade mess management and accounting platform built
+using:
 
-* Next.js 16
-* TypeScript
-* NestJS
-* Prisma ORM
-* PostgreSQL
-* Turborepo
-* Tailwind CSS
-* shadcn/ui
+- Next.js 16
+- TypeScript
+- NestJS
+- Prisma ORM
+- PostgreSQL
+- Turborepo
+- Tailwind CSS
+- shadcn/ui
 
 Your goal is to build maintainable, scalable, and production-ready software.
 
@@ -31,12 +32,12 @@ Highest priority for business logic.
 
 Contains:
 
-* Accounting rules
-* Month lifecycle
-* Member lifecycle
-* Balance carry-forward logic
-* Approval workflow
-* Business requirements
+- Accounting rules
+- Month lifecycle
+- Member lifecycle
+- Balance carry-forward logic
+- Approval workflow
+- Business requirements
 
 Never violate rules defined in this file.
 
@@ -48,11 +49,11 @@ Highest priority for database design.
 
 Contains:
 
-* Database structure
-* Relations
-* Constraints
-* Enums
-* Indexes
+- Database structure
+- Relations
+- Constraints
+- Enums
+- Indexes
 
 Never invent new database structures without updating this file.
 
@@ -64,10 +65,10 @@ Feature specification source.
 
 Contains:
 
-* Feature requirements
-* Permissions
-* Module definitions
-* MVP scope
+- Feature requirements
+- Permissions
+- Module definitions
+- MVP scope
 
 ---
 
@@ -77,9 +78,9 @@ Development roadmap.
 
 Contains:
 
-* Current progress
-* Task status
-* Active phase
+- Current progress
+- Task status
+- Active phase
 
 Always update task status when work is completed.
 
@@ -91,11 +92,11 @@ UI and UX source of truth.
 
 Contains:
 
-* Color system
-* Design language
-* Component styling
-* Layout rules
-* Spacing rules
+- Color system
+- Design language
+- Component styling
+- Layout rules
+- Spacing rules
 
 Never introduce UI that conflicts with design.md.
 
@@ -109,19 +110,19 @@ Before implementing any feature, load and follow relevant skills.
 
 ### Required Skills:
 
-* turborepo
-* monorepo-management
+- turborepo
+- monorepo-management
 
 ### When to load these skills:
 
 Whenever working with:
 
-* workspace architecture
-* package management
-* shared libraries
-* build pipelines
-* task orchestration
-* dependency management
+- workspace architecture
+- package management
+- shared libraries
+- build pipelines
+- task orchestration
+- dependency management
 
 ---
 
@@ -129,17 +130,17 @@ Whenever working with:
 
 Required Skills:
 
-* frontend-design
-* ui-ux-pro-max
-* web-design-guidelines
+- frontend-design
+- ui-ux-pro-max
+- web-design-guidelines
 
 Use for:
 
-* Layouts
-* Pages
-* Components
-* Responsive Design
-* Accessibility
+- Layouts
+- Pages
+- Components
+- Responsive Design
+- Accessibility
 
 ---
 
@@ -147,16 +148,16 @@ Use for:
 
 Required Skills:
 
-* nextjs-app-router-patterns
-* vercel-react-best-practices
+- nextjs-app-router-patterns
+- vercel-react-best-practices
 
 Use for:
 
-* Routing
-* Server Components
-* Client Components
-* Data Fetching
-* Performance Optimization
+- Routing
+- Server Components
+- Client Components
+- Data Fetching
+- Performance Optimization
 
 ---
 
@@ -164,17 +165,17 @@ Use for:
 
 Required Skills:
 
-* nestjs-best-practices
-* nestjs-patterns
+- nestjs-best-practices
+- nestjs-patterns
 
 Use for:
 
-* Module Design
-* Dependency Injection
-* Repository Pattern
-* Service Architecture
-* Authorization
-* Validation
+- Module Design
+- Dependency Injection
+- Repository Pattern
+- Service Architecture
+- Authorization
+- Validation
 
 ---
 
@@ -182,16 +183,16 @@ Use for:
 
 Describe and follow shared-package boundaries:
 
-* packages/database
-* packages/shared-types
-* packages/validation
-* packages/constants
-* packages/shared-utils
+- packages/database
+- packages/shared-types
+- packages/validation
+- packages/constants
+- packages/shared-utils
 
 Rules:
 
-* Shared code must live in **packages/**.
-* Shared logic must never be duplicated between apps—extract into **packages/**.
+- Shared code must live in **packages/**.
+- Shared logic must never be duplicated between apps—extract into **packages/**.
 
 ---
 
@@ -199,11 +200,11 @@ Rules:
 
 Always follow:
 
-* Feature-based architecture
-* Modular architecture
-* Clean architecture principles
-* Separation of concerns
-* Single responsibility principle
+- Feature-based architecture
+- Modular architecture
+- Clean architecture principles
+- Separation of concerns
+- Single responsibility principle
 
 Never create large files containing unrelated logic.
 
@@ -236,25 +237,25 @@ Shared code must live inside packages.
 
 Use:
 
-* TypeScript
-* App Router
-* TanStack Query
-* Zustand
-* shadcn/ui
+- TypeScript
+- App Router
+- TanStack Query
+- Zustand
+- shadcn/ui
 
 Always:
 
-* Create reusable components
-* Use feature folders
-* Handle loading states
-* Handle error states
-* Handle empty states
+- Create reusable components
+- Use feature folders
+- Handle loading states
+- Handle error states
+- Handle empty states
 
 Never:
 
-* Hardcode data
-* Duplicate components
-* Put business logic in UI
+- Hardcode data
+- Duplicate components
+- Put business logic in UI
 
 ---
 
@@ -262,22 +263,81 @@ Never:
 
 Use:
 
-* NestJS Modules
-* DTO Validation
-* Prisma ORM
+- NestJS Modules
+- DTO Validation
+- Prisma ORM
 
 Always:
 
-* Keep business logic in services
-* Validate all requests
-* Use proper exceptions
-* Log important actions
+- Keep business logic in services
+- Validate all requests
+- Use proper exceptions
+- Log important actions (with emoji prefixes)
+- Use `@nestjs/common` Logger in every service and controller
+- Use `res.status().json()` when `@Res()` decorator is used (never bare
+  `return`)
 
 Never:
 
-* Put business logic in controllers
-* Skip validation
-* Directly expose database models
+- Put business logic in controllers
+- Skip validation
+- Directly expose database models
+- Suppress logs in production (use `logger: false` in `NestFactory.create` for
+  production)
+
+### Logging Convention (Emoji Prefixes)
+
+Every new NestJS service and controller MUST include a `Logger` instance and log
+all actions with emoji prefixes.
+
+**Required pattern:**
+
+```typescript
+private readonly logger = new Logger(ClassName.name);
+```
+
+**Emoji guide:**
+
+| Emoji | Use for                                                  |
+| ----- | -------------------------------------------------------- |
+| ✅    | Success events (created, updated, deleted, logged in)    |
+| ❌    | Errors (failures, exceptions, critical issues)           |
+| ⚠️    | Warnings (not found, validation issues, fallbacks)       |
+| 📝    | Creation attempts (signup, create record)                |
+| 🔍    | Read/fetch operations (find, query, lookup)              |
+| 🔑    | Token/auth operations (token issued, refreshed)          |
+| 🔐    | Authentication events (login attempt, login success)     |
+| 🔄    | Update/refresh operations (token refresh, status change) |
+| 🚪    | Logout / teardown events                                 |
+| 📊    | Analytics / aggregation operations                       |
+
+**Examples:**
+
+```typescript
+// Service
+this.logger.log(`📝 Creating expense for month: ${monthId}`);
+this.logger.log(`✅ Expense created: ${expense.id}`);
+this.logger.warn(`⚠️ Month not found: ${monthId}`);
+this.logger.error(`❌ Failed to create expense: ${error.message}`);
+
+// Controller
+this.logger.log(`📝 POST /api/expenses - user: ${userId}`);
+this.logger.log(`✅ Expense created successfully: ${expenseId}`);
+this.logger.error(`❌ POST /api/expenses failed: ${error.message}`);
+```
+
+**Production behavior:**
+
+In `main.ts`, configure the NestJS logger to suppress all output in production:
+
+```typescript
+const app = await NestFactory.create(AppModule, {
+  logger: isDev ? ["log", "error", "warn", "debug", "verbose"] : false,
+});
+```
+
+The `LoggingInterceptor` (request/response logging) is only registered in
+development mode.
 
 ---
 
@@ -285,20 +345,20 @@ Never:
 
 Use:
 
-* Prisma
-* PostgreSQL
+- Prisma
+- PostgreSQL
 
 Always:
 
-* Use soft delete
-* Create indexes where needed
-* Follow database-schema.md
+- Use soft delete
+- Create indexes where needed
+- Follow database-schema.md
 
 Never:
 
-* Remove historical accounting data
-* Break month history
-* Recalculate historical expenses
+- Remove historical accounting data
+- Break month history
+- Recalculate historical expenses
 
 ---
 
@@ -310,11 +370,11 @@ Never modify without updating technical-flow.md.
 
 Rules:
 
-* Historical months are immutable
-* Member balances carry forward
-* Historical expenses never recalculate
-* Removed members keep history
-* Every accounting action must be traceable
+- Historical months are immutable
+- Member balances carry forward
+- Historical expenses never recalculate
+- Removed members keep history
+- Every accounting action must be traceable
 
 ---
 
@@ -324,16 +384,16 @@ Every accounting action must create activity logs.
 
 Examples:
 
-* Member Added
-* Member Removed
-* Meal Added
-* Meal Updated
-* Expense Added
-* Expense Updated
-* Deposit Added
-* Deposit Updated
-* Bazaar Approved
-* Manager Assigned
+- Member Added
+- Member Removed
+- Meal Added
+- Meal Updated
+- Expense Added
+- Expense Updated
+- Deposit Added
+- Deposit Updated
+- Bazaar Approved
+- Manager Assigned
 
 Never bypass activity logging.
 
@@ -343,17 +403,17 @@ Never bypass activity logging.
 
 Always:
 
-* Validate inputs
-* Sanitize user data
-* Use authorization guards
-* Protect routes
-* Hash passwords
+- Validate inputs
+- Sanitize user data
+- Use authorization guards
+- Protect routes
+- Hash passwords
 
 Never:
 
-* Store plain text passwords
-* Trust client data
-* Expose sensitive information
+- Store plain text passwords
+- Trust client data
+- Expose sensitive information
 
 ---
 
@@ -361,16 +421,16 @@ Never:
 
 Always:
 
-* Use strict TypeScript
-* Use meaningful names
-* Remove dead code
-* Write self-documenting code
+- Use strict TypeScript
+- Use meaningful names
+- Remove dead code
+- Write self-documenting code
 
 Never:
 
-* Use any
-* Leave TODO comments without tracker updates
-* Introduce duplicate logic
+- Use any
+- Leave TODO comments without tracker updates
+- Introduce duplicate logic
 
 ---
 
@@ -378,16 +438,16 @@ Never:
 
 Always:
 
-* Paginate large data
-* Select only required fields
-* Use database indexes
-* Use React Query caching
+- Paginate large data
+- Select only required fields
+- Use database indexes
+- Use React Query caching
 
 Never:
 
-* Fetch unnecessary data
-* Create N+1 query problems
-* Over-fetch relations
+- Fetch unnecessary data
+- Create N+1 query problems
+- Over-fetch relations
 
 ---
 
@@ -397,15 +457,15 @@ Whenever architecture changes:
 
 Update:
 
-* technical-flow.md
-* database-schema.md
-* features.md
+- technical-flow.md
+- database-schema.md
+- features.md
 
 If implementation status changes:
 
 Update:
 
-* process-tracker.md
+- process-tracker.md
 
 Documentation must stay synchronized with code.
 
@@ -429,16 +489,15 @@ Follow the highest priority document.
 
 A task is NOT complete until:
 
-* Backend implemented
-* Frontend implemented
-* Validation implemented
-* Authorization implemented
-* Activity logging implemented
-* Error handling implemented
-* Loading states implemented
-* Empty states implemented
-* Documentation updated
-* process-tracker.md updated
+- Backend implemented
+- Frontend implemented
+- Validation implemented
+- Authorization implemented
+- Activity logging implemented
+- Error handling implemented
+- Loading states implemented
+- Empty states implemented
+- Documentation updated
+- process-tracker.md updated
 
 Only then mark the task complete.
-
