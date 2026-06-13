@@ -1,3 +1,22 @@
-import { PrismaClient } from "./generated/prisma";
+import { PrismaClient } from '@prisma/client';
+import { PrismaNeon } from '@prisma/adapter-neon';
 
-export const prisma = new PrismaClient();
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+
+export function getPrisma(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error('DATABASE_URL is not set');
+    }
+    const adapter = new PrismaNeon({ connectionString });
+    globalForPrisma.prisma = new PrismaClient({ adapter, log: ['query'] });
+  }
+  return globalForPrisma.prisma;
+}
+
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_, prop) {
+    return (getPrisma() as any)[prop];
+  },
+});
