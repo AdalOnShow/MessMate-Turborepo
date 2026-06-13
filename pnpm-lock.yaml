@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      lucide-react:
+        specifier: ^1.18.0
+        version: 1.18.0(react@19.2.0)
     devDependencies:
       prettier:
         specifier: ^3.7.4
@@ -159,6 +163,12 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.3.0
         version: 4.3.0
+      immer:
+        specifier: ^11.1.8
+        version: 11.1.8
+      lucide-react:
+        specifier: ^1.18.0
+        version: 1.18.0(react@19.2.0)
       next:
         specifier: 16.2.0
         version: 16.2.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -171,6 +181,9 @@ importers:
       tailwindcss:
         specifier: ^4.3.0
         version: 4.3.0
+      zustand:
+        specifier: ^5.0.14
+        version: 5.0.14(@types/react@19.2.2)(immer@11.1.8)(react@19.2.0)
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
@@ -3001,6 +3014,9 @@ packages:
     resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
     engines: {node: '>= 4'}
 
+  immer@11.1.8:
+    resolution: {integrity: sha512-/tbkHMW7y10Lx6i1crLjD4/OhNkRG+Fo7byZHtah0547nIeXYcpIXaUh0IAQY6gO5459qpGGYapcEOHtFXkIuA==}
+
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
     engines: {node: '>=6'}
@@ -3557,6 +3573,11 @@ packages:
   lru.min@1.1.4:
     resolution: {integrity: sha512-DqC6n3QQ77zdFpCMASA1a3Jlb64Hv2N2DciFGkO/4L9+q/IpIAuRlKOvCXabtRW6cQf8usbmM6BE/TOPysCdIA==}
     engines: {bun: '>=1.0.0', deno: '>=1.30.0', node: '>=8.0.0'}
+
+  lucide-react@1.18.0:
+    resolution: {integrity: sha512-LZDb7H/0YfM+RJncD0hDQRCAu+vSGODqpe35TuVI8EuXaRjkczbsx7p8dY4J87F/MUSj6bpYqeI8nw8qXaAdmA==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   magic-string@0.30.17:
     resolution: {integrity: sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA==}
@@ -4829,6 +4850,24 @@ packages:
 
   zeptomatch@2.1.0:
     resolution: {integrity: sha512-KiGErG2J0G82LSpniV0CtIzjlJ10E04j02VOudJsPyPwNZgGnRKQy7I1R7GMyg/QswnE4l7ohSGrQbQbjXPPDA==}
+
+  zustand@5.0.14:
+    resolution: {integrity: sha512-/8tAspM5LMPr28b3fwLYrtdj77ECpfZviaP75CMTnwO8ISyaE4GDIG/9rDDYq/cH9D2Xw2A2RXglLInmVBQB/g==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      immer: '>=9.0.6'
+      react: '>=18.0.0'
+      use-sync-external-store: '>=1.2.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      immer:
+        optional: true
+      react:
+        optional: true
+      use-sync-external-store:
+        optional: true
 
 snapshots:
 
@@ -7918,6 +7957,8 @@ snapshots:
 
   ignore@7.0.5: {}
 
+  immer@11.1.8: {}
+
   import-fresh@3.3.1:
     dependencies:
       parent-module: 1.0.1
@@ -8678,6 +8719,10 @@ snapshots:
       yallist: 3.1.1
 
   lru.min@1.1.4: {}
+
+  lucide-react@1.18.0(react@19.2.0):
+    dependencies:
+      react: 19.2.0
 
   magic-string@0.30.17:
     dependencies:
@@ -10051,3 +10096,9 @@ snapshots:
     dependencies:
       grammex: 3.1.12
       graphmatch: 1.1.1
+
+  zustand@5.0.14(@types/react@19.2.2)(immer@11.1.8)(react@19.2.0):
+    optionalDependencies:
+      '@types/react': 19.2.2
+      immer: 11.1.8
+      react: 19.2.0

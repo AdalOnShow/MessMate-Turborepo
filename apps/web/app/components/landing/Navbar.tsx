@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ThemeToggle } from "../ThemeToggle";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -80,6 +81,7 @@ export function Navbar() {
             >
               Get Started
             </a>
+            <ThemeToggle />
           </div>
 
           {/* Mobile Menu Button */}
@@ -134,31 +136,40 @@ export function Navbar() {
           <a
             href="#features"
             className="text-lg font-medium text-foreground-muted hover:text-foreground border-b border-[rgba(148,163,184,0.05)] pb-4 transition-colors duration-200"
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={(e) => {
+              e.preventDefault();
+              setIsMobileMenuOpen(false);
+            }}
           >
             Features
           </a>
           <a
             href="#how-it-works"
             className="text-lg font-medium text-foreground-muted hover:text-foreground border-b border-[rgba(148,163,184,0.05)] pb-4 transition-colors duration-200"
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={(e) => {
+              e.preventDefault();
+              setIsMobileMenuOpen(false);
+            }}
           >
             How It Works
           </a>
           <a
             href="#pricing"
             className="text-lg font-medium text-foreground-muted hover:text-foreground border-b border-[rgba(148,163,184,0.05)] pb-4 transition-colors duration-200"
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={(e) => {
+              e.preventDefault();
+              setIsMobileMenuOpen(false);
+            }}
           >
             Pricing
           </a>
-          <a
-            href="#pricing"
-            className="flex items-center justify-center w-full py-3.5 text-base font-semibold rounded-lg text-background bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all duration-200 cursor-pointer"
+          <button
+            className="flex items-center justify-center w-full py-3.5 text-base font-semibold rounded-lg text-background bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all duration-200"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Get Started
-          </a>
+          </button>
+          <ThemeToggle />
         </div>
       </div>
     </header>

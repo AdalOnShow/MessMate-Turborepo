@@ -1,5 +1,21 @@
 import type { Metadata } from "next";
+import { Plus_Jakarta_Sans, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "./providers";
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-heading",
+  display: "swap",
+});
+
+const notoSansBengali = Noto_Sans_Bengali({
+  subsets: ["bengali"],
+  weight: ["400", "500", "600"],
+  variable: "--font-bengali",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "MessMate — মেস ম্যানেজমেন্ট সহজ করুন | Smart Mess Management",
@@ -17,8 +33,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "MessMate — Smart Mess Management",
-    description:
-      "Simplify meal tracking, expenses & accounting for your mess.",
+    description: "Simplify meal tracking, expenses & accounting for your mess.",
     type: "website",
     locale: "en_US",
   },
@@ -30,20 +45,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="font-body antialiased">{children}</body>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${plusJakartaSans.variable} ${notoSansBengali.variable}`}
+    >
+      <body className="font-body antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

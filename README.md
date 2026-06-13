@@ -18,6 +18,9 @@ This Turborepo includes the following packages/apps:
 
 - `docs`: a [Next.js](https://nextjs.org/) app
 - `web`: another [Next.js](https://nextjs.org/) app
+  - Zustand state management with TypeScript type safety
+  - DevTools integration enabled for debugging
+  - Immer middleware for immutable state updates
 - `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
 - `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
