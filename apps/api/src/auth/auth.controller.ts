@@ -1,8 +1,17 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Response, Request } from 'express';
 import { SignupDto } from '@repo/shared';
-import { AuthService, AuthUser } from './auth.service';
+import { ApiResponse, AuthTokensResponse } from '@repo/shared';
+import { AuthService, AuthTokens, AuthUser } from './auth.service';
 import { Public } from './guards/public.decorator';
 
 type SigninRequest = Request & {
@@ -25,40 +34,56 @@ export class AuthController {
 
   @Public()
   @Post('signup')
-  async signup(@Body() signupDto: SignupDto, @Res() res: Response) {
-    const { accessToken, refreshToken } =
-      await this.authService.register(signupDto);
+  async signup(
+    @Body() signupDto: SignupDto,
+    @Res() res: Response,
+  ): Promise<ApiResponse<AuthTokensResponse>> {
+    const tokens: AuthTokens = await this.authService.register(signupDto);
 
-    this.setRefreshCookie(res, refreshToken);
-    return { accessToken };
+    this.setRefreshCookie(res, tokens.refreshToken);
+    return {
+      success: true,
+      message: 'Signup successful',
+      data: {
+        accessToken: tokens.accessToken,
+      },
+    };
   }
 
   @Public()
   @UseGuards(AuthGuard('local'))
   @Post('signin')
-  async signin(@Req() req: SigninRequest, @Res() res: Response) {
+  async signin(
+    @Req() req: SigninRequest,
+    @Res() res: Response,
+  ): Promise<ApiResponse<AuthTokensResponse>> {
     const user: AuthUser | undefined = req.user;
-    if (!user) return res.status(401).json({ message: 'Unauthorized' });
+    if (!user) throw new UnauthorizedException('Unauthorized');
 
-    const { accessToken, refreshToken } = await this.authService.login(user);
+    const tokens: AuthTokens = await this.authService.login(user);
 
-    this.setRefreshCookie(res, refreshToken);
-    return { accessToken };
+    this.setRefreshCookie(res, tokens.refreshToken);
+    return {
+      success: true,
+      message: 'Signin successful',
+      data: {
+        accessToken: tokens.accessToken,
+      },
+    };
   }
 
   @Public()
   @Post('refresh')
-  async refresh(@Req() req: RefreshRequest, @Res() res: Response) {
+  async refresh(
+    @Req() req: RefreshRequest,
+    @Res() res: Response,
+  ): Promise<ApiResponse<AuthTokensResponse>> {
     const refreshToken = (req.cookies as Record<string, string> | undefined)
       ?.refresh_token;
-    if (!refreshToken)
-      return res.status(401).json({ message: 'Missing refresh token' });
+    if (!refreshToken) throw new UnauthorizedException('Missing refresh token');
 
-    // AuthService performs bcrypt refresh-hash verification; we only need userId from refresh token.
-    // Refresh token format is JWT; we can decode payload safely without verifying signature.
     const [, payloadPart] = refreshToken.split('.');
-    if (!payloadPart)
-      return res.status(401).json({ message: 'Invalid refresh token' });
+    if (!payloadPart) throw new UnauthorizedException('Invalid refresh token');
 
     const decodedString = Buffer.from(payloadPart, 'base64url').toString(
       'utf8',
@@ -72,17 +97,24 @@ export class AuthController {
     }
 
     const userId = payload?.sub;
-    if (!userId)
-      return res.status(401).json({ message: 'Invalid refresh token' });
+    if (!userId) throw new UnauthorizedException('Invalid refresh token');
 
     try {
-      const { accessToken, refreshToken: newRefresh } =
-        await this.authService.refreshTokens(userId, refreshToken);
+      const tokens: AuthTokens = await this.authService.refreshTokens(
+        userId,
+        refreshToken,
+      );
 
-      this.setRefreshCookie(res, newRefresh);
-      return { accessToken };
+      this.setRefreshCookie(res, tokens.refreshToken);
+      return {
+        success: true,
+        message: 'Token refreshed successfully',
+        data: {
+          accessToken: tokens.accessToken,
+        },
+      };
     } catch {
-      return res.status(401).json({ message: 'Invalid refresh token' });
+      throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
@@ -92,7 +124,7 @@ export class AuthController {
     @Res() res: Response,
   ) {
     const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+    if (!userId) throw new UnauthorizedException('Unauthorized');
 
     await this.authService.logout(userId);
 

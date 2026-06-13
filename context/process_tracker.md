@@ -47,6 +47,8 @@ Turborepo Monorepo
 * [ ] Husky
 * [ ] Commitlint
 * [ ] Environment Validation
+* [x] API response envelope
+* [x] Global validation pipe
 * [ ] Path Aliases
 
 ---

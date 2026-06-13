@@ -12,7 +12,12 @@ export type AuthUser = {
   id: string;
   email: string;
   name: string;
-  system_role: unknown; // keep loose to avoid importing Prisma enum typing
+  system_role: unknown;
+};
+
+export type AuthTokens = {
+  accessToken: string;
+  refreshToken: string;
 };
 
 @Injectable()
@@ -71,7 +76,7 @@ export class AuthService {
     email: string;
     password: string;
     phone?: string;
-  }): Promise<{ accessToken: string; refreshToken: string }> {
+  }): Promise<AuthTokens> {
     const existing = await prisma.users.findUnique({
       where: { email: signupDto.email },
     });
@@ -102,9 +107,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async login(
-    user: AuthUser,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async login(user: AuthUser): Promise<AuthTokens> {
     const dbUser = await prisma.users.findUnique({ where: { id: user.id } });
     if (!dbUser) throw new UnauthorizedException('Invalid credentials');
 
@@ -123,7 +126,7 @@ export class AuthService {
   async refreshTokens(
     userId: string,
     refreshToken: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<AuthTokens> {
     const user = await prisma.users.findUnique({ where: { id: userId } });
     if (!user?.refresh_token)
       throw new UnauthorizedException('Invalid refresh token');
