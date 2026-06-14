@@ -6,20 +6,17 @@ import type { SessionStore } from "./types";
 export const useSessionStore = create<SessionStore>()(
   devtools(
     immer((set) => ({
-      accessToken: null,
       user: null,
       isAuthenticated: false,
 
-      setSession: (token, user) =>
+      setSession: (user) =>
         set((state) => {
-          state.accessToken = token;
           state.user = user;
           state.isAuthenticated = true;
         }),
 
       clearSession: () =>
         set((state) => {
-          state.accessToken = null;
           state.user = null;
           state.isAuthenticated = false;
         }),

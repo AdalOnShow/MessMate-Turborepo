@@ -491,6 +491,37 @@ A task can be marked complete only if:
 
 ---
 
+# Infrastructure & DevOps
+
+## Security Improvements
+
+- [x] Rate limiting configured (5 req/min on auth, 10 req/min global)
+- [x] JWT tokens stored in httpOnly cookies only (removed from Zustand)
+- [x] CORS hardened (explicit methods/headers, no fallback)
+- [x] Environment variables documented (.env.example files)
+
+## CI/CD Pipeline
+
+- [x] GitHub Actions workflow created
+- [x] Turborepo remote caching configured
+- [x] Selective builds (--filter=[origin/main])
+- [x] Frozen lockfile in CI (--frozen-lockfile)
+
+## Deployment
+
+- [x] Vercel deployment guide (web app)
+- [x] Vercel deployment guide (API - serverless)
+- [x] Neon database setup guide
+- [x] Environment variables configuration
+
+## Performance
+
+- [x] Turbo.json updated (test task, inputs, cache)
+- [x] Bundle analyzer added to Next.js
+- [x] DATABASE_URL consolidated (single source of truth)
+
+---
+
 # Current Focus
 
 ```text

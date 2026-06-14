@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle } from '@nestjs/throttler';
 import type { Response, Request } from 'express';
 import { SignupDto } from '@repo/shared';
 import { AuthService, AuthTokens, AuthUser } from './auth.service';
@@ -35,6 +36,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('signup')
   async signup(
     @Body() signupDto: SignupDto,
@@ -56,6 +58,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseGuards(AuthGuard('local'))
   @Post('signin')
   async signin(@Req() req: SigninRequest, @Res() res: Response): Promise<void> {

@@ -2,6 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 import { useSessionStore } from "../store";
 
 // Server Action imports
@@ -23,11 +24,14 @@ interface SignupPayload {
   phone?: string;
 }
 
-function decodeJwt(token: string): { sub: string; email: string } | null {
+interface JwtPayload {
+  sub: string;
+  email: string;
+}
+
+function decodeJwt(token: string): JwtPayload | null {
   try {
-    const payload = token.split(".")[1];
-    if (!payload) return null;
-    return JSON.parse(atob(payload));
+    return jwtDecode<JwtPayload>(token);
   } catch {
     return null;
   }
@@ -45,7 +49,7 @@ export function useSignin() {
     onSuccess: (data) => {
       const decoded = decodeJwt(data.accessToken);
       if (decoded) {
-        setSession(data.accessToken, {
+        setSession({
           id: decoded.sub,
           email: decoded.email,
           name: "",
@@ -71,7 +75,7 @@ export function useSignup() {
     onSuccess: (data, variables) => {
       const decoded = decodeJwt(data.accessToken);
       if (decoded) {
-        setSession(data.accessToken, {
+        setSession({
           id: decoded.sub,
           email: decoded.email,
           name: variables.name,

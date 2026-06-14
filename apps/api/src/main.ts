@@ -1,8 +1,61 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import serverlessExpress from '@vendia/serverless-express';
+import express from 'express';
 import { AppModule } from './app.module';
 import { ApiExceptionFilter } from './common/filters/api-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+
+let cachedServer: any;
+
+async function createServer() {
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  const app = await NestFactory.create(
+    AppModule,
+    new ExpressAdapter(express()),
+    {
+      logger: isDev ? ['log', 'error', 'warn', 'debug', 'verbose'] : false,
+    },
+  );
+
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
+  if (isDev) {
+    app.useGlobalInterceptors(new LoggingInterceptor());
+  }
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
+
+  app.useGlobalFilters(new ApiExceptionFilter());
+
+  await app.init();
+
+  const expressApp = app.getHttpAdapter().getInstance();
+  return serverlessExpress({ app: expressApp });
+}
+
+export async function handler(event: any, context: any) {
+  if (!cachedServer) {
+    cachedServer = await createServer();
+  }
+  return cachedServer(event, context);
+}
 
 async function bootstrap() {
   const isDev = process.env.NODE_ENV !== 'production';
@@ -13,8 +66,10 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
   app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   if (isDev) {
@@ -44,12 +99,18 @@ async function bootstrap() {
   }
 }
 
-void bootstrap().catch((error: unknown) => {
-  if (process.env.NODE_ENV !== 'production') {
-    const logger = new Logger('Bootstrap');
-    logger.error(
-      `❌ Fatal bootstrap error: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`,
-    );
-  }
-  process.exit(1);
-});
+const isVercel = process.env.VERCEL === '1';
+
+if (isVercel) {
+  module.exports = handler;
+} else {
+  void bootstrap().catch((error: unknown) => {
+    if (process.env.NODE_ENV !== 'production') {
+      const logger = new Logger('Bootstrap');
+      logger.error(
+        `❌ Fatal bootstrap error: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`,
+      );
+    }
+    process.exit(1);
+  });
+}

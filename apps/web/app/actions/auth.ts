@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
 
 // Server-side API call to NestJS
 async function callNestJSAPI<T>(
@@ -36,11 +37,14 @@ interface SignupPayload {
   phone?: string;
 }
 
-function decodeJwt(token: string): { sub: string; email: string } | null {
+interface JwtPayload {
+  sub: string;
+  email: string;
+}
+
+function decodeJwt(token: string): JwtPayload | null {
   try {
-    const payload = token.split(".")[1];
-    if (!payload) return null;
-    return JSON.parse(atob(payload));
+    return jwtDecode<JwtPayload>(token);
   } catch {
     return null;
   }

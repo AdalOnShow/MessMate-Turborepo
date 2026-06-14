@@ -9,7 +9,7 @@ export function UserSessionDisplay() {
   const clearSession = useSessionStore((state) => state.clearSession);
 
   const handleCreateUser = () => {
-    setSession("mock-token", {
+    setSession({
       id: "1",
       email: "john@example.com",
       name: "John Doe",
@@ -24,7 +24,7 @@ export function UserSessionDisplay() {
 
       {isAuthenticated && user ? (
         <div className="space-y-3">
-          <p className="text-lg text-foreground">Welcome, {user.name}! 👋</p>
+          <p className="text-lg text-foreground">Welcome, {user.name}!</p>
           <div className="text-sm text-foreground-muted bg-background/50 p-3 rounded-lg">
             <p>
               <strong>ID:</strong> {user.id}

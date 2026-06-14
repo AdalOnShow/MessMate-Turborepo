@@ -7,11 +7,20 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
     },
+    "test": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**", "test/**"],
+      "cache": true
+    },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "inputs": ["src/**", "*.ts", "*.tsx", ".eslintrc*", "eslint.config*"],
+      "cache": true
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["^check-types"],
+      "inputs": ["src/**", "tsconfig*.json"],
+      "cache": true
     },
     "dev": {
       "cache": false,

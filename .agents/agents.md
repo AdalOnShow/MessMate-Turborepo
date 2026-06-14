@@ -408,12 +408,70 @@ Always:
 - Use authorization guards
 - Protect routes
 - Hash passwords
+- Apply rate limiting on authentication endpoints
+- Store JWT tokens in httpOnly cookies only (never in client-side storage)
 
 Never:
 
 - Store plain text passwords
 - Trust client data
 - Expose sensitive information
+- Store access tokens in Zustand or localStorage
+
+### Rate Limiting
+
+The API uses `@nestjs/throttler` for rate limiting:
+
+- **Global default:** 10 requests per minute
+- **Auth endpoints (signup/signin):** 5 requests per minute
+
+When adding new endpoints, consider rate limiting for:
+
+- Public endpoints
+- Resource-intensive operations
+- File upload endpoints
+
+### JWT Token Storage
+
+Access tokens are stored exclusively in httpOnly cookies:
+
+- **Server-side (Next.js Server Actions):** Tokens set via `cookies().set()`
+- **Client-side:** Uses `credentials: 'include'` in fetch requests
+- **Never store in:** Zustand, localStorage, sessionStorage, or React state
+
+This prevents XSS attacks from accessing tokens.
+
+---
+
+# CI/CD Rules
+
+The project uses GitHub Actions for CI/CD:
+
+- **Trigger:** Push to `main` branch or pull requests
+- **Build:** Turborepo with remote caching
+- **Deployment:** Vercel (web) and Vercel (API - serverless)
+
+When modifying build pipeline:
+
+1. Update `turbo.json` for task configuration
+2. Test locally with `pnpm turbo build --filter=[origin/main]`
+3. Verify CI passes before merging
+
+---
+
+# Environment Variables
+
+Environment variables are managed as follows:
+
+- **Root `.env`:** Shared variables (DATABASE_URL)
+- **`apps/api/.env`:** API-specific variables (JWT secrets, CORS, PORT)
+- **`packages/database/.env`:** Deprecated (use root `.env`)
+
+When adding new environment variables:
+
+1. Add to `.env.example` files
+2. Document in deployment guide
+3. Add to CI/CD secrets if sensitive
 
 ---
 
