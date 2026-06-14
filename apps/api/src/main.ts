@@ -10,13 +10,12 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 let cachedServer: any;
 
 async function createServer() {
-  const isDev = process.env.NODE_ENV !== 'production';
-
+  const expressApp = express();
   const app = await NestFactory.create(
     AppModule,
-    new ExpressAdapter(express()),
+    new ExpressAdapter(expressApp),
     {
-      logger: isDev ? ['log', 'error', 'warn', 'debug', 'verbose'] : false,
+      logger: false,
     },
   );
 
@@ -26,10 +25,6 @@ async function createServer() {
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
-
-  if (isDev) {
-    app.useGlobalInterceptors(new LoggingInterceptor());
-  }
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -46,64 +41,61 @@ async function createServer() {
 
   await app.init();
 
-  const expressApp = app.getHttpAdapter().getInstance();
   return serverlessExpress({ app: expressApp });
 }
 
-export async function handler(event: any, context: any) {
+export const handler = async (event: any, context: any) => {
   if (!cachedServer) {
     cachedServer = await createServer();
   }
   return cachedServer(event, context);
-}
-
-async function bootstrap() {
-  const isDev = process.env.NODE_ENV !== 'production';
-
-  const app = await NestFactory.create(AppModule, {
-    logger: isDev ? ['log', 'error', 'warn', 'debug', 'verbose'] : false,
-  });
-
-  app.enableShutdownHooks();
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  });
-
-  if (isDev) {
-    app.useGlobalInterceptors(new LoggingInterceptor());
-  }
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
-  );
-
-  app.useGlobalFilters(new ApiExceptionFilter());
-
-  const port = process.env.PORT ?? 4000;
-  await app.listen(port);
-
-  if (isDev) {
-    const logger = new Logger('Bootstrap');
-    logger.log(`🚀 Server running on http://localhost:${port}`);
-    logger.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
-  }
-}
+};
 
 const isVercel = process.env.VERCEL === '1';
 
-if (isVercel) {
-  module.exports = handler;
-} else {
+if (!isVercel) {
+  async function bootstrap() {
+    const isDev = process.env.NODE_ENV !== 'production';
+
+    const app = await NestFactory.create(AppModule, {
+      logger: isDev ? ['log', 'error', 'warn', 'debug', 'verbose'] : false,
+    });
+
+    app.enableShutdownHooks();
+    app.enableCors({
+      origin: process.env.CORS_ORIGIN,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    });
+
+    if (isDev) {
+      app.useGlobalInterceptors(new LoggingInterceptor());
+    }
+
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        transformOptions: {
+          enableImplicitConversion: true,
+        },
+      }),
+    );
+
+    app.useGlobalFilters(new ApiExceptionFilter());
+
+    const port = process.env.PORT ?? 4000;
+    await app.listen(port);
+
+    if (isDev) {
+      const logger = new Logger('Bootstrap');
+      logger.log(`🚀 Server running on http://localhost:${port}`);
+      logger.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+    }
+  }
+
   void bootstrap().catch((error: unknown) => {
     if (process.env.NODE_ENV !== 'production') {
       const logger = new Logger('Bootstrap');
