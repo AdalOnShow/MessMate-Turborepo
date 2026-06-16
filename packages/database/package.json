@@ -13,7 +13,7 @@
   "scripts": {
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
