@@ -5,7 +5,18 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**", "dist/**"],
+      "env": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "NEXT_PUBLIC_*",
+        "CORS_ORIGIN",
+        "JWT_REFRESH_SECRET",
+        "BCRYPT_SALT_ROUNDS",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_CALLBACK_URL"
+      ]
     },
     "test": {
       "dependsOn": ["build"],
