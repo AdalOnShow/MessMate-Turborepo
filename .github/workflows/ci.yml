@@ -61,19 +61,12 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Pull Vercel environment
-        run: npx vercel@latest pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/web
-
       - name: Build for Vercel
-        run: npx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: pnpm turbo build --filter=web
         working-directory: apps/web
 
       - name: Deploy to Vercel
-        run: npx vercel@latest deploy --yes --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel@latest deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: apps/web
 
   deploy-api:
@@ -97,14 +90,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Pull Vercel environment
-        run: npx vercel@latest pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/api
-
       - name: Build API
-        run: npx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: pnpm turbo build --filter=api
         working-directory: apps/api
 
       - name: Deploy to Vercel
-        run: npx vercel@latest deploy --yes --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel@latest deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: apps/api
