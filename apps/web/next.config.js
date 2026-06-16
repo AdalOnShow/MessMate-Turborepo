@@ -7,7 +7,6 @@ const monorepoRoot = join(__dirname, "../..");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  outputFileTracingRoot: monorepoRoot,
   turbopack: {
     root: monorepoRoot,
   },
