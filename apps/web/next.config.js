@@ -3,11 +3,13 @@ import { fileURLToPath } from "url";
 import withBundleAnalyzer from "@next/bundle-analyzer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const monorepoRoot = join(__dirname, "../..");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingRoot: monorepoRoot,
   turbopack: {
-    root: join(__dirname, "../.."),
+    root: monorepoRoot,
   },
 };
 
