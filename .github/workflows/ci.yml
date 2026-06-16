@@ -99,6 +99,8 @@ jobs:
 
       - name: Build workspace packages
         run: pnpm turbo build --filter=@repo/database
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
 
       - name: Pull Vercel environment
         run: npx vercel@latest pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
