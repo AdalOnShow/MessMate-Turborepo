@@ -1,4 +1,5 @@
 {
+  "installCommand": "NODE_ENV=development pnpm install",
   "routes": [
     {
       "src": "/(.*)",

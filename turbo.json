@@ -11,6 +11,7 @@
         "DATABASE_URL",
         "NEXT_PUBLIC_*",
         "CORS_ORIGIN",
+        "JWT_ACCESS_SECRET",
         "JWT_REFRESH_SECRET",
         "BCRYPT_SALT_ROUNDS",
         "GOOGLE_CLIENT_ID",
