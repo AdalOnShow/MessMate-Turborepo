@@ -205,3 +205,31 @@ export async function getCurrentUser() {
     };
   }
 }
+
+export async function handleGoogleCallback(accessToken: string): Promise<{
+  success: true;
+  user: { id: string; email: string; name: string };
+}> {
+  const decoded = decodeJwt(accessToken);
+  if (!decoded) {
+    throw new Error("Invalid access token");
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set("access_token", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 604800,
+    path: "/",
+  });
+
+  return {
+    success: true,
+    user: {
+      id: decoded.sub,
+      email: decoded.email,
+      name: "",
+    },
+  };
+}

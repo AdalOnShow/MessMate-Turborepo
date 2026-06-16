@@ -78,6 +78,85 @@ export class AuthService {
     };
   }
 
+  async findOrCreateGoogleUser(profile: {
+    googleId: string;
+    email: string;
+    name: string;
+    avatar?: string | null;
+  }): Promise<AuthUser> {
+    this.logger.log(
+      `📝 Google OAuth: finding or creating user for ${profile.email}`,
+    );
+
+    const existingOAuth = await prisma.oauth_accounts.findFirst({
+      where: {
+        provider: 'google',
+        provider_user_id: profile.googleId,
+      },
+      include: { user: true },
+    });
+
+    if (existingOAuth) {
+      this.logger.log(
+        `✅ Google OAuth: existing user found: ${existingOAuth.user.id}`,
+      );
+      return {
+        id: existingOAuth.user.id,
+        email: existingOAuth.user.email,
+        name: existingOAuth.user.name,
+        system_role: existingOAuth.user.system_role,
+      };
+    }
+
+    const existingUser = await prisma.users.findUnique({
+      where: { email: profile.email },
+    });
+
+    if (existingUser) {
+      this.logger.log(
+        `🔗 Google OAuth: linking to existing user: ${existingUser.id}`,
+      );
+      await prisma.oauth_accounts.create({
+        data: {
+          user_id: existingUser.id,
+          provider: 'google',
+          provider_user_id: profile.googleId,
+        },
+      });
+      return {
+        id: existingUser.id,
+        email: existingUser.email,
+        name: existingUser.name,
+        system_role: existingUser.system_role,
+      };
+    }
+
+    this.logger.log(`📝 Google OAuth: creating new user for ${profile.email}`);
+    const user = await prisma.users.create({
+      data: {
+        name: profile.name,
+        email: profile.email,
+        avatar: profile.avatar ?? null,
+        email_verified: true,
+        oauth_accounts: {
+          create: {
+            provider: 'google',
+            provider_user_id: profile.googleId,
+          },
+        },
+      },
+      include: { oauth_accounts: true },
+    });
+
+    this.logger.log(`✅ Google OAuth: new user created: ${user.id}`);
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      system_role: user.system_role,
+    };
+  }
+
   private async hashRefreshToken(refreshToken: string): Promise<string> {
     const saltRounds =
       this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;

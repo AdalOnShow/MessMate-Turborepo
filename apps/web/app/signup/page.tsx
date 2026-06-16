@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSignup } from "../hooks/use-auth";
+import { GoogleSignInButton } from "../components/GoogleSignInButton";
+import { handleGoogleCallback } from "../actions/auth";
+import { useSessionStore } from "../store";
+import { jwtDecode } from "jwt-decode";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function SignUpPage() {
@@ -12,6 +17,32 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const signup = useSignup();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const setSession = useSessionStore((s) => s.setSession);
+
+  useEffect(() => {
+    const accessToken = searchParams.get("access_token");
+    if (accessToken) {
+      handleGoogleCallback(accessToken)
+        .then((result) => {
+          const decoded = jwtDecode<{ sub: string; email: string }>(
+            accessToken,
+          );
+          if (decoded) {
+            setSession({
+              id: decoded.sub,
+              email: decoded.email,
+              name: result.user.name,
+            });
+          }
+          router.push("/dashboard");
+        })
+        .catch(() => {
+          router.replace("/signup");
+        });
+    }
+  }, [searchParams, router, setSession]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,100 +85,117 @@ export default function SignUpPage() {
             Start managing your mess in minutes
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="name"
-                className="text-sm font-medium text-foreground"
-              >
-                Full name
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="John Doe"
-                required
-                autoComplete="name"
-                className="w-full h-11 px-3.5 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
-              />
-            </div>
+          <div className="space-y-4">
+            <GoogleSignInButton />
 
-            <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="text-sm font-medium text-foreground"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                autoComplete="email"
-                className="w-full h-11 px-3.5 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium text-foreground"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 8 characters"
-                  required
-                  minLength={8}
-                  autoComplete="new-password"
-                  className="w-full h-11 px-3.5 pr-11 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-foreground-muted/15" />
               </div>
-              <p className="text-xs text-foreground-muted/70">
-                Must be at least 8 characters
-              </p>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-surface px-2 text-foreground-muted">
+                  or
+                </span>
+              </div>
             </div>
 
-            {signup.error && (
-              <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg">
-                {signup.error.message ||
-                  "Something went wrong. Please try again."}
-              </p>
-            )}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="name"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Full name
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  required
+                  autoComplete="name"
+                  className="w-full h-11 px-3.5 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={signup.isPending}
-              className="w-full h-11 rounded-xl bg-primary text-background font-bold text-sm hover:bg-primary-hover active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {signup.isPending ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Create account"
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="email"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  autoComplete="email"
+                  className="w-full h-11 px-3.5 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="password"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min. 8 characters"
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                    className="w-full h-11 px-3.5 pr-11 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                <p className="text-xs text-foreground-muted/70">
+                  Must be at least 8 characters
+                </p>
+              </div>
+
+              {signup.error && (
+                <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg">
+                  {signup.error.message ||
+                    "Something went wrong. Please try again."}
+                </p>
               )}
-            </button>
-          </form>
+
+              <button
+                type="submit"
+                disabled={signup.isPending}
+                className="w-full h-11 rounded-xl bg-primary text-background font-bold text-sm hover:bg-primary-hover active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {signup.isPending ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Create account"
+                )}
+              </button>
+            </form>
+          </div>
 
           <p className="text-sm text-foreground-muted text-center mt-6">
             Already have an account?{" "}

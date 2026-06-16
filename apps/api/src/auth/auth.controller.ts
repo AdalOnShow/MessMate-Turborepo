@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Logger,
   Post,
   Req,
@@ -11,6 +12,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 import type { Response, Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 import { SignupDto } from '@repo/shared';
 import { AuthService, AuthTokens, AuthUser } from './auth.service';
 import { Public } from './guards/public.decorator';
@@ -32,8 +34,14 @@ type RefreshPayload = {
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
+  private readonly webAppUrl: string;
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {
+    this.webAppUrl = this.configService.getOrThrow<string>('CORS_ORIGIN');
+  }
 
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60000 } })
@@ -150,6 +158,45 @@ export class AuthController {
 
     this.logger.log(`✅ Logout completed for user: ${userId}`);
     res.status(200).json({ success: true, message: 'Logged out' });
+  }
+
+  @Public()
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  googleAuth(): void {
+    this.logger.log('🔐 GET /auth/google - initiating Google OAuth');
+  }
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleCallback(
+    @Req() req: Request & { user?: AuthUser },
+    @Res() res: Response,
+  ): Promise<void> {
+    const user = req.user;
+    if (!user) {
+      this.logger.error('❌ Google OAuth callback: no user found');
+      res.redirect(`${this.webAppUrl}/signin?error=google_auth_failed`);
+      return;
+    }
+
+    this.logger.log(`🔐 Google OAuth callback for user: ${user.email}`);
+
+    try {
+      const tokens: AuthTokens = await this.authService.login(user);
+
+      this.setRefreshCookie(res, tokens.refreshToken);
+      this.logger.log(`✅ Google OAuth completed for: ${user.email}`);
+      res.redirect(
+        `${this.webAppUrl}/signin?access_token=${tokens.accessToken}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `❌ Google OAuth callback failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      res.redirect(`${this.webAppUrl}/signin?error=google_auth_failed`);
+    }
   }
 
   private setRefreshCookie(res: Response, refreshToken: string) {
