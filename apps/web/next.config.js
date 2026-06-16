@@ -1,17 +1,18 @@
-import withBundleAnalyzer from "@next/bundle-analyzer";
-
-import { dirname } from "path";
+import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import withBundleAnalyzer from "@next/bundle-analyzer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   turbopack: {
-    root: __dirname,
+    root: join(__dirname, "../.."),
   },
 };
 
-export default withBundleAnalyzer({
+const analyzed = withBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 })(nextConfig);
+
+export default analyzed;
