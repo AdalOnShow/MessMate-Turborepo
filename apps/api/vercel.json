@@ -1,9 +1,19 @@
 {
+  "version": 2,
   "installCommand": "NODE_ENV=development pnpm install",
+  "builds": [
+    {
+      "src": "dist/main.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["dist/**"]
+      }
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "dist/main.js"
     }
   ]
 }

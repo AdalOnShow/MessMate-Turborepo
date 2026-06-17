@@ -38,17 +38,15 @@ async function createServer() {
   );
 
   app.useGlobalFilters(new ApiExceptionFilter());
-
   await app.init();
-
   return serverlessExpress({ app: expressApp });
 }
 
-export const handler = async (event: any, context: any) => {
+const handler = async (req: any, res: any) => {
   if (!cachedServer) {
     cachedServer = await createServer();
   }
-  return cachedServer(event, context);
+  return cachedServer(req, res);
 };
 
 const isVercel = process.env.VERCEL === '1';
@@ -56,12 +54,12 @@ const isVercel = process.env.VERCEL === '1';
 if (!isVercel) {
   async function bootstrap() {
     const isDev = process.env.NODE_ENV !== 'production';
-
     const app = await NestFactory.create(AppModule, {
       logger: isDev ? ['log', 'error', 'warn', 'debug', 'verbose'] : false,
     });
 
     app.enableShutdownHooks();
+
     app.enableCors({
       origin: process.env.CORS_ORIGIN,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -106,3 +104,5 @@ if (!isVercel) {
     process.exit(1);
   });
 }
+
+export default handler;
