@@ -1,22 +1,21 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import serverlessExpress from '@vendia/serverless-express';
 import express from 'express';
 import { AppModule } from './app.module';
 import { ApiExceptionFilter } from './common/filters/api-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
-let cachedServer: any;
+const expressApp = express();
+let isInitialized = false;
 
 async function createServer() {
-  const expressApp = express();
+  if (isInitialized) return expressApp;
+
   const app = await NestFactory.create(
     AppModule,
     new ExpressAdapter(expressApp),
-    {
-      logger: false,
-    },
+    { logger: false },
   );
 
   app.enableCors({
@@ -31,23 +30,15 @@ async function createServer() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
+      transformOptions: { enableImplicitConversion: true },
     }),
   );
 
   app.useGlobalFilters(new ApiExceptionFilter());
   await app.init();
-  return serverlessExpress({ app: expressApp });
+  isInitialized = true;
+  return expressApp;
 }
-
-const handler = async (req: any, res: any) => {
-  if (!cachedServer) {
-    cachedServer = await createServer();
-  }
-  return cachedServer(req, res);
-};
 
 const isVercel = process.env.VERCEL === '1';
 
@@ -59,7 +50,6 @@ if (!isVercel) {
     });
 
     app.enableShutdownHooks();
-
     app.enableCors({
       origin: process.env.CORS_ORIGIN,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -76,14 +66,11 @@ if (!isVercel) {
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
-        transformOptions: {
-          enableImplicitConversion: true,
-        },
+        transformOptions: { enableImplicitConversion: true },
       }),
     );
 
     app.useGlobalFilters(new ApiExceptionFilter());
-
     const port = process.env.PORT ?? 4000;
     await app.listen(port);
 
@@ -105,4 +92,7 @@ if (!isVercel) {
   });
 }
 
-export default handler;
+export default async (req: any, res: any) => {
+  const server = await createServer();
+  server(req, res);
+};
