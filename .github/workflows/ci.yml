@@ -1,5 +1,4 @@
 name: CI/CD Pipeline
-
 on:
   push:
     branches: [main]
@@ -30,10 +29,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Trace deprecation warnings
-        run: node --trace-deprecation -e "require('./package.json')"
-        continue-on-error: true
-
       - name: Build
         run: pnpm turbo build --filter=[origin/main]
 
@@ -42,88 +37,3 @@ jobs:
 
       - name: Type check
         run: pnpm turbo check-types --filter=[origin/main]
-
-  deploy-web:
-    name: Deploy Web to Vercel
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Pull Vercel environment
-        run:
-          npx vercel@latest pull --yes --environment=production --token=${{
-          secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-
-      - name: Build for Vercel
-        run: npx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-
-      - name: Deploy to Vercel
-        run:
-          npx vercel@latest deploy --yes --prebuilt --prod --token=${{
-          secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-
-  deploy-api:
-    name: Deploy API to Vercel
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build workspace packages
-        run: pnpm turbo build --filter=@repo/database
-        env:
-          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
-
-      - name: Pull Vercel environment
-        run:
-          npx vercel@latest pull --yes --environment=production --token=${{
-          secrets.VERCEL_TOKEN }}
-        working-directory: apps/api
-
-      - name: Build API
-        run: npx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/api
-
-      - name: Deploy to Vercel
-        run:
-          npx vercel@latest deploy --yes --prebuilt --prod --token=${{
-          secrets.VERCEL_TOKEN }}
-        working-directory: apps/api
