@@ -4,16 +4,13 @@
   "builds": [
     {
       "src": "dist/main.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["dist/**"]
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/main.js"
+      "dest": "/dist/main.js"
     }
   ]
 }
