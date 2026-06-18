@@ -31,7 +31,7 @@ pnpm Workspace
 
 # Phase 0 - Project Foundation
 
-## Monorepo Setup
+## Monorepo Setupww
 
 - [x] Initialize Turborepo
 - [x] Configure pnpm workspace
@@ -44,13 +44,15 @@ pnpm Workspace
 - [ ] Create packages/validation
 - [ ] Create packages/constants
 
-> **Note:** Docs specify 5 separate packages but only `database` and `shared` exist. `shared` is a catch-all with DTOs, types, and API response utilities.
+> **Note:** Docs specify 5 separate packages but only `database` and `shared`
+> exist. `shared` is a catch-all with DTOs, types, and API response utilities.
 
 ---
 
 ## Tooling Setup
 
-- [x] ESLint (configured per app/package, but lint fails in database due to v8→flat config mismatch)
+- [x] ESLint (configured per app/package, but lint fails in database due to
+      v8→flat config mismatch)
 - [x] Prettier (root config exists)
 - [ ] Husky (not configured)
 - [ ] Commitlint (not configured)
@@ -151,14 +153,17 @@ pnpm Workspace
 
 ## Database Tasks
 
-- [x] Create Enums (SystemRole, MessRole, MonthStatus, ExpenseType, BazaarStatus, CarryForwardType, activity_action)
+- [x] Create Enums (SystemRole, MessRole, MonthStatus, ExpenseType,
+      BazaarStatus, CarryForwardType, activity_action)
 - [x] Create Indexes (all specified indexes created)
 - [x] Configure Soft Deletes (deleted_at on all major entities)
 - [ ] Seed Initial Data (not done)
 - [x] Generate Prisma Client
 - [ ] Redis setup (not configured - needed for join verification codes)
 
-> **Issue:** Schema still includes `meal_entry_items` table, but ADR-021 specifies JSONB-based meal storage which eliminates this table. Requires schema migration to remove.
+> **Issue:** Schema still includes `meal_entry_items` table, but ADR-021
+> specifies JSONB-based meal storage which eliminates this table. Requires
+> schema migration to remove.
 
 ---
 
@@ -171,7 +176,9 @@ pnpm Workspace
 - [x] Refresh Token API (POST /auth/refresh)
 - [x] Logout API (POST /auth/logout)
 
-> All 4 auth endpoints use httpOnly cookies for refresh tokens. Access tokens via Bearer header. Refresh tokens are hashed with bcrypt and stored in `users.refresh_token`.
+> All 4 auth endpoints use httpOnly cookies for refresh tokens. Access tokens
+> via Bearer header. Refresh tokens are hashed with bcrypt and stored in
+> `users.refresh_token`.
 
 ## OAuth
 
@@ -450,6 +457,16 @@ pnpm Workspace
 ---
 
 # Future Features
+
+## Connected Accounts Management
+
+- [ ] Google account linking
+- [ ] Google account unlinking
+- [ ] Linked providers UI
+- [ ] OAuth account management settings page
+- [ ] Activity logging for linking/unlinking
+
+---
 
 ## Chat
 

@@ -4,6 +4,26 @@ import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth.service';
 
+interface GoogleProfileJson {
+  email_verified?: boolean;
+  email?: string;
+  sub?: string;
+  name?: string;
+  picture?: string;
+}
+
+interface GoogleProfile {
+  id: string;
+  emails?: { value: string }[];
+  displayName?: string;
+  photos?: { value: string }[];
+  _json?: GoogleProfileJson;
+}
+
+type ValidatedUser =
+  | { id: string; email: string; name: string; system_role: unknown }
+  | { error: string; message: string };
+
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   private readonly logger = new Logger(GoogleStrategy.name);
@@ -23,21 +43,28 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   async validate(
     accessToken: string,
     refreshToken: string,
-    profile: {
-      id: string;
-      emails?: { value: string }[];
-      displayName?: string;
-      photos?: { value: string }[];
-    },
+    profile: GoogleProfile,
     done: VerifyCallback,
   ): Promise<void> {
-    const email = profile.emails?.[0]?.value;
-    const name = profile.displayName || '';
-    const avatar = profile.photos?.[0]?.value || null;
+    const email = profile.emails?.[0]?.value ?? profile._json?.email;
+    const name = profile.displayName ?? profile._json?.name ?? '';
+    const avatar = profile.photos?.[0]?.value ?? profile._json?.picture ?? null;
+    const emailVerified = profile._json?.email_verified ?? false;
 
     if (!email) {
       this.logger.warn('❌ Google OAuth: No email found in profile');
-      return done(new Error('No email found in Google profile'), undefined);
+      return done(null, {
+        error: 'NO_EMAIL',
+        message: 'No email found in Google profile',
+      } as ValidatedUser);
+    }
+
+    if (!emailVerified) {
+      this.logger.warn(`❌ Google OAuth: Email not verified for ${email}`);
+      return done(null, {
+        error: 'EMAIL_NOT_VERIFIED',
+        message: 'Google email is not verified',
+      } as ValidatedUser);
     }
 
     this.logger.log(`🔐 Google OAuth validation for: ${email}`);
@@ -56,6 +83,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       this.logger.error(
         `❌ Google OAuth failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
+      if (error instanceof Error && error.message.includes('already exists')) {
+        return done(null, {
+          error: 'ACCOUNT_EXISTS',
+          message: error.message,
+        } as ValidatedUser);
+      }
       return done(error as Error, undefined);
     }
   }

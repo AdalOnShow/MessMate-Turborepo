@@ -113,22 +113,12 @@ export class AuthService {
     });
 
     if (existingUser) {
-      this.logger.log(
-        `🔗 Google OAuth: linking to existing user: ${existingUser.id}`,
+      this.logger.warn(
+        `🔗 Google OAuth: rejected auto-linking for existing user: ${existingUser.id}`,
       );
-      await prisma.oauth_accounts.create({
-        data: {
-          user_id: existingUser.id,
-          provider: 'google',
-          provider_user_id: profile.googleId,
-        },
-      });
-      return {
-        id: existingUser.id,
-        email: existingUser.email,
-        name: existingUser.name,
-        system_role: existingUser.system_role,
-      };
+      throw new UnauthorizedException(
+        'An account with this email already exists. Please sign in with your password or link your Google account from settings after signing in.',
+      );
     }
 
     this.logger.log(`📝 Google OAuth: creating new user for ${profile.email}`);
@@ -158,8 +148,10 @@ export class AuthService {
   }
 
   private async hashRefreshToken(refreshToken: string): Promise<string> {
-    const saltRounds =
-      this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;
+    const saltRounds = Number(
+      this.configService.get('BCRYPT_SALT_ROUNDS') ?? 10,
+    );
+
     return bcrypt.hash(refreshToken, saltRounds);
   }
 
@@ -179,8 +171,9 @@ export class AuthService {
       throw new BadRequestException('Email already in use');
     }
 
-    const saltRounds =
-      this.configService.get<number>('BCRYPT_SALT_ROUNDS') ?? 10;
+    const saltRounds = Number(
+      this.configService.get('BCRYPT_SALT_ROUNDS') ?? 10,
+    );
     const hashedPassword = await bcrypt.hash(signupDto.password, saltRounds);
 
     const user = await prisma.users.create({

@@ -24,3 +24,12 @@ export const useSessionStore = create<SessionStore>()(
     { enabled: true, name: "SessionStore" },
   ),
 );
+
+if (process.env.NODE_ENV === "development") {
+  useSessionStore.subscribe((state) => {
+    console.log("[SessionStore] User state:", {
+      isAuthenticated: state.isAuthenticated,
+      user: state.user,
+    });
+  });
+}

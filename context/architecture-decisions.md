@@ -2,11 +2,13 @@
 
 ## Purpose
 
-This document records important architectural and business decisions made during the development of MessMate.
+This document records important architectural and business decisions made during
+the development of MessMate.
 
 Every major decision must be documented here.
 
-Before changing any core architecture, database structure, accounting logic, or business workflow, review this document first.
+Before changing any core architecture, database structure, accounting logic, or
+business workflow, review this document first.
 
 ---
 
@@ -37,10 +39,10 @@ packages/
 
 ## Reason
 
-* Shared code reuse
-* Future mobile app support
-* Better maintainability
-* Scalable architecture
+- Shared code reuse
+- Future mobile app support
+- Better maintainability
+- Scalable architecture
 
 ---
 
@@ -66,10 +68,10 @@ PostgreSQL
 
 ## Reason
 
-* Mobile-ready architecture
-* Better separation of concerns
-* Easier scaling
-* Future SaaS support
+- Mobile-ready architecture
+- Better separation of concerns
+- Easier scaling
+- Future SaaS support
 
 ---
 
@@ -91,9 +93,9 @@ Database structure remains flexible.
 
 ## Reason
 
-* Simpler user experience
-* Easier accounting logic
-* Future expansion remains possible
+- Simpler user experience
+- Easier accounting logic
+- Future expansion remains possible
 
 ---
 
@@ -109,14 +111,14 @@ Each mess can have a maximum of two managers.
 
 ## Rules
 
-* Both managers have identical permissions.
-* No hierarchy exists.
-* No owner role inside a mess.
+- Both managers have identical permissions.
+- No hierarchy exists.
+- No owner role inside a mess.
 
 ## Reason
 
-* Operational simplicity
-* Reduced permission complexity
+- Operational simplicity
+- Reduced permission complexity
 
 ---
 
@@ -143,9 +145,9 @@ Brunch
 
 ## Reason
 
-* Future flexibility
-* Ramadan support
-* No schema changes required
+- Future flexibility
+- Ramadan support
+- No schema changes required
 
 ---
 
@@ -163,8 +165,8 @@ System does not automatically create or close months.
 
 ## Reason
 
-* Matches real-world mess operations
-* Provides manager control
+- Matches real-world mess operations
+- Provides manager control
 
 ---
 
@@ -190,8 +192,8 @@ Previous months become historical records.
 
 ## Reason
 
-* Historical accuracy
-* Accounting integrity
+- Historical accuracy
+- Accounting integrity
 
 ---
 
@@ -233,8 +235,8 @@ Previous Month Due
 
 ## Reason
 
-* Simplifies accounting
-* Preserves balance history
+- Simplifies accounting
+- Preserves balance history
 
 ---
 
@@ -250,16 +252,16 @@ Historical accounting data must never be deleted.
 
 Includes:
 
-* Meals
-* Expenses
-* Deposits
-* Month Summaries
-* Activity Logs
+- Meals
+- Expenses
+- Deposits
+- Month Summaries
+- Activity Logs
 
 ## Reason
 
-* Accounting transparency
-* Auditability
+- Accounting transparency
+- Auditability
 
 ---
 
@@ -281,8 +283,8 @@ deleted_at
 
 ## Reason
 
-* Data recovery
-* Historical preservation
+- Data recovery
+- Historical preservation
 
 ---
 
@@ -312,8 +314,8 @@ Future membership changes do not affect the calculation.
 
 ## Reason
 
-* Historical accuracy
-* Accounting consistency
+- Historical accuracy
+- Accounting consistency
 
 ---
 
@@ -343,8 +345,8 @@ Approved submissions automatically create expenses.
 
 ## Reason
 
-* Expense validation
-* Prevent unauthorized accounting entries
+- Expense validation
+- Prevent unauthorized accounting entries
 
 ---
 
@@ -360,19 +362,19 @@ Every accounting action must generate an activity log.
 
 Examples:
 
-* Meal Added
-* Meal Updated
-* Expense Added
-* Expense Updated
-* Deposit Added
-* Deposit Updated
-* Member Added
-* Member Removed
+- Meal Added
+- Meal Updated
+- Expense Added
+- Expense Updated
+- Deposit Added
+- Deposit Updated
+- Member Added
+- Member Removed
 
 ## Reason
 
-* Traceability
-* Accountability
+- Traceability
+- Accountability
 
 ---
 
@@ -402,8 +404,8 @@ manager_created = false
 
 ## Reason
 
-* Easier onboarding
-* Less friction for mess members
+- Easier onboarding
+- Less friction for mess members
 
 ---
 
@@ -431,8 +433,8 @@ Code Length:
 
 ## Reason
 
-* Prevent incorrect member assignment
-* Verify identity
+- Prevent incorrect member assignment
+- Verify identity
 
 ---
 
@@ -492,9 +494,9 @@ constants
 
 ## Reason
 
-* Reusability
-* Maintainability
-* Mobile app compatibility
+- Reusability
+- Maintainability
+- Mobile app compatibility
 
 ---
 
@@ -530,10 +532,10 @@ Architecture must remain SaaS-compatible.
 
 Future support:
 
-* Subscriptions
-* Billing
-* Super Admin Dashboard
-* Usage Limits
+- Subscriptions
+- Billing
+- Super Admin Dashboard
+- Usage Limits
 
 ## Reason
 
@@ -565,9 +567,9 @@ Documentation must be updated whenever architecture changes.
 
 ## Reason
 
-* Consistency
-* AI Agent Reliability
-* Long-term Maintainability
+- Consistency
+- AI Agent Reliability
+- Long-term Maintainability
 
 ---
 
@@ -587,15 +589,17 @@ Remove the `meal_entry_items` table entirely.
 
 ## Reason
 
-* Simpler schema with fewer joins
-* Matches the small, bounded set of meal types per mess
-* Improves Prisma query ergonomics and developer experience
-* Sufficient for Messenger, and reduces write/update overhead
+- Simpler schema with fewer joins
+- Matches the small, bounded set of meal types per mess
+- Improves Prisma query ergonomics and developer experience
+- Sufficient for Messenger, and reduces write/update overhead
 
 ## Consequences
 
-* Application code must enforce that JSONB keys match active `meal_types` for the mess
-* Reporting and filtering logic reads from a structured JSONB column instead of a relational child table
+- Application code must enforce that JSONB keys match active `meal_types` for
+  the mess
+- Reporting and filtering logic reads from a structured JSONB column instead of
+  a relational child table
 
 ---
 
@@ -615,16 +619,17 @@ Remove the `bazaar_items` table entirely.
 
 ## Reason
 
-* Simpler schema with fewer joins
-* Removes unnecessary item-level querying for MVP
-* Improves Prisma query ergonomics and NestJS DTO design
-* Lower maintenance cost
+- Simpler schema with fewer joins
+- Removes unnecessary item-level querying for MVP
+- Improves Prisma query ergonomics and NestJS DTO design
+- Lower maintenance cost
 
 ## Consequences
 
-* Application code must enforce that `total_amount` equals the sum of line amounts in `items`
-* Reporting remains fast thanks to the denormalized `total_amount`
-* Cannot query individual bazaar line items without reading the JSONB payload
+- Application code must enforce that `total_amount` equals the sum of line
+  amounts in `items`
+- Reporting remains fast thanks to the denormalized `total_amount`
+- Cannot query individual bazaar line items without reading the JSONB payload
 
 ---
 
@@ -636,13 +641,16 @@ Accepted
 
 ## Decision
 
-Remove redundant membership tracking fields `status`, `joined_month_id`, and `removed_month_id` from `mess_members`.
+Remove redundant membership tracking fields `status`, `joined_month_id`, and
+`removed_month_id` from `mess_members`.
 
 Membership state is now determined purely from timestamps:
+
 - Active: `removed_at IS NULL`
 - Removed: `removed_at IS NOT NULL`
 
 Month participation eligibility:
+
 ```sql
 SELECT *
 FROM mess_members
@@ -657,16 +665,37 @@ Remove the `MemberStatus` enum entirely.
 
 ## Reason
 
-* Simpler schema with fewer updates
-* Eliminates synchronization risks between status fields and timestamps
-* Cleaner and more reliable membership lifecycle
-* Easier reporting and eligibility checks
+- Simpler schema with fewer updates
+- Eliminates synchronization risks between status fields and timestamps
+- Cleaner and more reliable membership lifecycle
+- Easier reporting and eligibility checks
 
 ## Consequences
 
-* Application code must use timestamp-based checks instead of enum/status fields
-* All membership history is preserved through `joined_at` and `removed_at`
-* Member month eligibility query must be used for month summary generation
+- Application code must use timestamp-based checks instead of enum/status fields
+- All membership history is preserved through `joined_at` and `removed_at`
+- Member month eligibility query must be used for month summary generation
+
+---
+
+# ADR-024: OAuth Account Linking Policy
+
+## Status
+
+Accepted
+
+## Decision
+
+OAuth providers are never automatically linked during login.
+
+Account linking must occur from an authenticated settings page.
+
+## Reason
+
+- Prevent accidental account linking
+- Improve user control
+- Simplify future OAuth provider support
+- Reduce account takeover risk
 
 ---
 

@@ -403,7 +403,8 @@ Each activity stores:
 - Target Entity
 - Timestamp
 
-No previous/new value payloads are stored in the database; `activity_logs` captures the event identity only.
+No previous/new value payloads are stored in the database; `activity_logs`
+captures the event identity only.
 
 ---
 
@@ -493,6 +494,32 @@ Planned Features:
 - Usage limits
 - Billing system
 - Super admin dashboard
+
+---
+
+# Connected Accounts
+
+Status:
+
+```text
+Future Feature
+```
+
+Description:
+
+Users can manage their linked OAuth providers from Account Settings.
+
+Features:
+
+- Connect Google account
+- Disconnect Google account
+- View linked providers
+
+Constraints:
+
+- Available only from Account Settings
+- Requires authenticated session
+- OAuth accounts must never be auto-linked during login
 
 ---
 

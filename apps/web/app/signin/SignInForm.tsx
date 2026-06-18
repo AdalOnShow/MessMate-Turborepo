@@ -5,43 +5,40 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSignin } from "../hooks/use-auth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
-import { handleGoogleCallback } from "../actions/auth";
-import { useSessionStore } from "../store";
-import { jwtDecode } from "jwt-decode";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+
+function getErrorMessage(error: string): string {
+  switch (error) {
+    case "ACCOUNT_EXISTS":
+      return "An account with this email already exists. Please sign in with your password.";
+    case "NO_EMAIL":
+      return "Google did not provide an email address. Please try again or use email sign in.";
+    case "EMAIL_NOT_VERIFIED":
+      return "Your Google email is not verified. Please verify it in your Google account settings.";
+    case "google_auth_failed":
+    default:
+      return "Google sign in failed. Please try again.";
+  }
+}
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [oauthError, setOauthError] = useState<string | null>(null);
 
-  const signin = useSignin();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const setSession = useSessionStore((s) => s.setSession);
+  const signin = useSignin();
 
   useEffect(() => {
-    const accessToken = searchParams.get("access_token");
-    if (accessToken) {
-      handleGoogleCallback(accessToken)
-        .then((result) => {
-          const decoded = jwtDecode<{ sub: string; email: string }>(
-            accessToken,
-          );
-          if (decoded) {
-            setSession({
-              id: decoded.sub,
-              email: decoded.email,
-              name: result.user.name,
-            });
-          }
-          router.push("/dashboard");
-        })
-        .catch(() => {
-          router.replace("/signin");
-        });
+    const error = searchParams.get("error");
+    if (error) {
+      setOauthError(getErrorMessage(error));
+      // Clean up URL
+      router.replace("/signin");
     }
-  }, [searchParams, router, setSession]);
+  }, [searchParams, router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,9 +146,12 @@ export default function SignInForm() {
                 </div>
               </div>
 
-              {signin.error && (
-                <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg">
-                  {signin.error.message || "Invalid email or password"}
+              {(signin.error || oauthError) && (
+                <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg flex items-center gap-2">
+                  <AlertCircle size={16} />
+                  {oauthError ||
+                    signin.error?.message ||
+                    "Invalid email or password"}
                 </p>
               )}
 

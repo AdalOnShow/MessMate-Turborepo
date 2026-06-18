@@ -13,6 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 import type { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { SignupDto } from '@repo/shared';
 import { AuthService, AuthTokens, AuthUser } from './auth.service';
 import { Public } from './guards/public.decorator';
@@ -27,20 +28,20 @@ type RefreshRequest = Request & {
   };
 };
 
-type RefreshPayload = {
-  sub?: string;
-};
-
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
   private readonly webAppUrl: string;
+  private readonly refreshSecret: string;
 
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
   ) {
     this.webAppUrl = this.configService.getOrThrow<string>('CORS_ORIGIN');
+    this.refreshSecret =
+      this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
   }
 
   @Public()
@@ -89,6 +90,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('refresh')
   async refresh(
     @Req() req: RefreshRequest,
@@ -100,22 +102,17 @@ export class AuthController {
       ?.refresh_token;
     if (!refreshToken) throw new UnauthorizedException('Missing refresh token');
 
-    const [, payloadPart] = refreshToken.split('.');
-    if (!payloadPart) throw new UnauthorizedException('Invalid refresh token');
-
-    const decodedString = Buffer.from(payloadPart, 'base64url').toString(
-      'utf8',
-    );
-    let payload: RefreshPayload | null = null;
-
+    let userId: string;
     try {
-      payload = JSON.parse(decodedString) as RefreshPayload;
+      const payload = await this.jwtService.verifyAsync<{ sub: string }>(
+        refreshToken,
+        { secret: this.refreshSecret },
+      );
+      userId = payload.sub;
+      if (!userId) throw new UnauthorizedException('Invalid refresh token');
     } catch {
-      payload = null;
+      throw new UnauthorizedException('Invalid refresh token');
     }
-
-    const userId = payload?.sub;
-    if (!userId) throw new UnauthorizedException('Invalid refresh token');
 
     try {
       const tokens: AuthTokens = await this.authService.refreshTokens(
@@ -135,6 +132,13 @@ export class AuthController {
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  @Public()
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  googleAuth(): void {
+    this.logger.log('🔐 GET /auth/google - initiating Google OAuth');
   }
 
   @Post('logout')
@@ -161,36 +165,39 @@ export class AuthController {
   }
 
   @Public()
-  @Get('google')
-  @UseGuards(AuthGuard('google'))
-  googleAuth(): void {
-    this.logger.log('🔐 GET /auth/google - initiating Google OAuth');
-  }
-
-  @Public()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(
-    @Req() req: Request & { user?: AuthUser },
+    @Req()
+    req: Request & { user?: AuthUser | { error: string; message: string } },
     @Res() res: Response,
   ): Promise<void> {
     const user = req.user;
-    if (!user) {
-      this.logger.error('❌ Google OAuth callback: no user found');
-      res.redirect(`${this.webAppUrl}/signin?error=google_auth_failed`);
+
+    // Handle strategy-level errors (passed via done(null, { error, message }))
+    if (!user || (typeof user === 'object' && 'error' in user)) {
+      const errorCode =
+        user && 'error' in user ? user.error : 'google_auth_failed';
+      const errorMessage =
+        user && 'message' in user
+          ? user.message
+          : 'Google authentication failed';
+      this.logger.warn(`❌ Google OAuth error: ${errorCode} - ${errorMessage}`);
+      res.redirect(`${this.webAppUrl}/signin?error=${errorCode}`);
       return;
     }
 
-    this.logger.log(`🔐 Google OAuth callback for user: ${user.email}`);
+    // TypeScript knows user is AuthUser here
+    const authUser = user as AuthUser;
+    this.logger.log(`🔐 Google OAuth callback for user: ${authUser.email}`);
 
     try {
-      const tokens: AuthTokens = await this.authService.login(user);
+      const tokens: AuthTokens = await this.authService.login(authUser);
 
       this.setRefreshCookie(res, tokens.refreshToken);
-      this.logger.log(`✅ Google OAuth completed for: ${user.email}`);
-      res.redirect(
-        `${this.webAppUrl}/signin?access_token=${tokens.accessToken}`,
-      );
+      this.setAccessCookie(res, tokens.accessToken);
+      this.logger.log(`✅ Google OAuth completed for: ${authUser.email}`);
+      res.redirect(`${this.webAppUrl}/dashboard`);
     } catch (error) {
       this.logger.error(
         `❌ Google OAuth callback failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -205,6 +212,16 @@ export class AuthController {
       secure: true,
       sameSite: 'strict',
       path: '/auth/refresh',
+    });
+  }
+
+  private setAccessCookie(res: Response, accessToken: string) {
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 }

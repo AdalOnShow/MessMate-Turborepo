@@ -2,7 +2,8 @@
 
 ## Overview
 
-MessMate is designed around a month-based accounting system where all meals, expenses, deposits, and balances are tracked within an active month.
+MessMate is designed around a month-based accounting system where all meals,
+expenses, deposits, and balances are tracked within an active month.
 
 A mess always has exactly one active month.
 
@@ -44,9 +45,9 @@ Balance Carry Forward
 
 Users can register using:
 
-* Email & Password
-* Google Login
-* Facebook Login
+- Email & Password
+- Google Login
+- Facebook Login
 
 After registration:
 
@@ -72,8 +73,8 @@ Managers can create users directly.
 
 Required fields:
 
-* Name
-* Email
+- Name
+- Email
 
 System generates:
 
@@ -91,9 +92,9 @@ Manager can see this password only until the user updates their account.
 
 After the user updates:
 
-* Password
-* Email
-* Profile
+- Password
+- Email
+- Profile
 
 Manager loses access to the generated password.
 
@@ -123,6 +124,75 @@ Email becomes locked.
 
 ---
 
+# OAuth Account Linking Flow
+
+## Manual Account Linking (Required)
+
+OAuth providers are never automatically linked during login. Account linking
+must occur from an authenticated session inside Account Settings.
+
+### Linking Flow
+
+```text
+User
+↓
+Login
+↓
+Settings
+↓
+Connected Accounts
+↓
+Connect Google
+↓
+Google Consent
+↓
+Link Success
+```
+
+### Auto-Linking Prohibition
+
+```text
+Auto-linking during login is prohibited.
+```
+
+#### Rationale
+
+- Prevent accidental account linking
+- Improve user control over connected identities
+- Simplify future OAuth provider support (Facebook, Apple, etc.)
+- Reduce account takeover risk from pre-hijacking attacks
+
+#### Current Behavior (Login with Existing Email)
+
+```text
+Google Login
+↓
+Existing Email Found
+↓
+Reject Login
+↓
+Show Message:
+"An account with this email already exists. Please sign in with your password first."
+```
+
+#### Future Planned Behavior
+
+```text
+User Login
+↓
+Account Settings
+↓
+Connected Accounts
+↓
+Connect Google
+↓
+Google OAuth Consent
+↓
+Link Account
+```
+
+---
+
 # Mess Lifecycle
 
 ## Create Mess
@@ -131,9 +201,9 @@ Only a manager can create a mess.
 
 Required:
 
-* Mess Name
-* Mess Description (optional)
-* Initial Meal Configuration
+- Mess Name
+- Mess Description (optional)
+- Initial Meal Configuration
 
 Creator automatically becomes:
 
@@ -162,17 +232,17 @@ There is no owner hierarchy.
 
 Managers can:
 
-* Add members
-* Remove members
-* Add meals
-* Update meals
-* Add deposits
-* Add expenses
-* Approve bazaar submissions
-* Assign managers
-* Remove managers
-* Configure meal settings
-* Start a new month
+- Add members
+- Remove members
+- Add meals
+- Update meals
+- Add deposits
+- Add expenses
+- Approve bazaar submissions
+- Assign managers
+- Remove managers
+- Configure meal settings
+- Start a new month
 
 ---
 
@@ -236,10 +306,10 @@ removed_at IS NOT NULL
 
 Effects:
 
-* No new meals
-* No new expenses
-* No new deposits
-* Cannot access current mess
+- No new meals
+- No new expenses
+- No new deposits
+- Cannot access current mess
 
 History remains intact.
 
@@ -492,12 +562,12 @@ Any active member may submit a bazaar.
 
 Required:
 
-* At least one item
+- At least one item
 
 Optional:
 
-* Description
-* Date
+- Description
+- Date
 
 ---
 
@@ -549,10 +619,10 @@ and accounting is updated.
 
 Examples:
 
-* Gas
-* Electricity
-* Internet
-* Cleaning
+- Gas
+- Electricity
+- Internet
+- Cleaning
 
 Managers select affected members.
 
@@ -583,9 +653,9 @@ Future member changes do not affect historical calculations.
 
 Used for:
 
-* Personal purchases
-* Previous month due
-* Custom charges
+- Personal purchases
+- Previous month due
+- Custom charges
 
 Example:
 
@@ -622,7 +692,8 @@ Deposit immediately updates balance calculations.
 
 ## Membership Eligibility Rule
 
-Before generating any monthly calculation, determine which members participated in the month.
+Before generating any monthly calculation, determine which members participated
+in the month.
 
 Active membership rule:
 
@@ -643,6 +714,7 @@ WHERE joined_at <= month_end
 ```
 
 Scenarios:
+
 - Joined during the month: included.
 - Left during the month: included.
 - Joined after month end: excluded.
@@ -674,7 +746,6 @@ for all members for the month
 ```
 
 ---
-
 
 ## Step 3
 
@@ -739,14 +810,14 @@ Total Bill
 
 Managers and members can see:
 
-* Current Meal Rate
-* Total Members
-* Total Meals
-* Total Expenses
-* Total Deposits
-* Current Balance
-* Active Month Status
-* Recent Activities
+- Current Meal Rate
+- Total Members
+- Total Meals
+- Total Expenses
+- Total Deposits
+- Current Balance
+- Active Month Status
+- Recent Activities
 
 ---
 
@@ -756,18 +827,18 @@ Every accounting action creates an activity.
 
 Tracked Actions:
 
-* Member Added
-* Member Removed
-* Meal Added
-* Meal Updated
-* Bazaar Submitted
-* Bazaar Approved
-* Expense Added
-* Expense Updated
-* Deposit Added
-* Deposit Updated
-* Manager Assigned
-* Manager Removed
+- Member Added
+- Member Removed
+- Meal Added
+- Meal Updated
+- Bazaar Submitted
+- Bazaar Approved
+- Expense Added
+- Expense Updated
+- Deposit Added
+- Deposit Updated
+- Manager Assigned
+- Manager Removed
 
 Each log contains:
 
@@ -796,12 +867,12 @@ Internet Bill
 
 Database design must support:
 
-* Group Chat
-* Notifications
-* Mobile Apps
-* SaaS Subscriptions
-* Push Notifications
-* Analytics
-* Report Exports
+- Group Chat
+- Notifications
+- Mobile Apps
+- SaaS Subscriptions
+- Push Notifications
+- Analytics
+- Report Exports
 
 without major schema redesign.

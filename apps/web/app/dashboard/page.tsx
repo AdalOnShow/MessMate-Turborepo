@@ -3,8 +3,9 @@
 import { useSessionStore } from "../store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { AuthInitializer } from "../components/AuthInitializer";
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { user, isAuthenticated, clearSession } = useSessionStore();
   const router = useRouter();
 
@@ -65,5 +66,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <AuthInitializer>
+      <DashboardContent />
+    </AuthInitializer>
   );
 }
