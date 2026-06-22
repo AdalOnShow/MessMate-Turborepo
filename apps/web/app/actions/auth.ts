@@ -42,6 +42,22 @@ interface JwtPayload {
   email: string;
 }
 
+export interface ProfileUser {
+  id: string;
+  email: string;
+  name: string;
+  phone: string | null;
+  avatar: string | null;
+  manager_created: boolean;
+  email_verified: boolean;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
 function decodeJwt(token: string): JwtPayload | null {
   try {
     return jwtDecode<JwtPayload>(token);
@@ -50,10 +66,24 @@ function decodeJwt(token: string): JwtPayload | null {
   }
 }
 
+async function callAuthenticatedNestJSAPI<T>(
+  endpoint: string,
+  accessToken: string,
+  options?: RequestInit,
+): Promise<T> {
+  return callNestJSAPI<T>(endpoint, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      ...options?.headers,
+    },
+  });
+}
+
 export async function signup(payload: SignupPayload): Promise<{
   success: true;
   accessToken: string;
-  user: { id: string; email: string; name: string };
+  user: ProfileUser;
 }> {
   try {
     const response = await callNestJSAPI<{
@@ -88,6 +118,10 @@ export async function signup(payload: SignupPayload): Promise<{
         id: decoded.sub,
         email: decoded.email,
         name: payload.name,
+        phone: payload.phone ?? null,
+        avatar: null,
+        manager_created: false,
+        email_verified: false,
       },
     };
   } catch (error) {
@@ -99,7 +133,7 @@ export async function signup(payload: SignupPayload): Promise<{
 export async function signin(payload: SigninPayload): Promise<{
   success: true;
   accessToken: string;
-  user: { id: string; email: string; name: string };
+  user: ProfileUser;
 }> {
   try {
     const response = await callNestJSAPI<{
@@ -127,15 +161,17 @@ export async function signin(payload: SigninPayload): Promise<{
       path: "/",
     });
 
-    return {
-      success: true,
-      accessToken,
-      user: {
-        id: decoded.sub,
-        email: decoded.email,
-        name: "",
-      },
-    };
+    const user = await getProfileWithToken(accessToken, {
+      id: decoded.sub,
+      email: decoded.email,
+      name: "",
+      phone: null,
+      avatar: null,
+      manager_created: false,
+      email_verified: false,
+    });
+
+    return { success: true, accessToken, user };
   } catch (error) {
     console.error("Signin error:", error);
     throw error;
@@ -188,20 +224,41 @@ export async function getCurrentUser() {
     return null;
   }
 
-  // Optionally call NestJS user profile API
   try {
-    const user = await callNestJSAPI<{
-      id: string;
-      email: string;
-      name: string;
-    }>(`/users/${decoded.sub}`);
-    return user;
+    return await getProfileWithToken(accessToken, {
+      id: decoded.sub,
+      email: decoded.email,
+      name: "",
+      phone: null,
+      avatar: null,
+      manager_created: false,
+      email_verified: false,
+    });
   } catch {
-    // Fallback to decoded info
     return {
       id: decoded.sub,
       email: decoded.email,
       name: "",
+      phone: null,
+      avatar: null,
+      manager_created: false,
+      email_verified: false,
     };
+  }
+}
+
+async function getProfileWithToken(
+  accessToken: string,
+  fallback: ProfileUser,
+): Promise<ProfileUser> {
+  try {
+    const response = await callAuthenticatedNestJSAPI<ApiResponse<ProfileUser>>(
+      "/users/me",
+      accessToken,
+    );
+
+    return response.data ?? fallback;
+  } catch {
+    return fallback;
   }
 }

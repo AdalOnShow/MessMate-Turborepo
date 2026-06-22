@@ -86,7 +86,6 @@ Members cannot modify accounting data.
 
 * Email & Password Login
 * Google Login
-* Facebook Login
 * JWT Authentication
 * Refresh Token Support
 

@@ -10,6 +10,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ApiResponseMiddleware } from './common/api-response/api-response.middleware';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ApiResponseMiddleware } from './common/api-response/api-response.middle
       },
     ]),
     AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

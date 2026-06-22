@@ -47,7 +47,6 @@ Users can register using:
 
 - Email & Password
 - Google Login
-- Facebook Login
 
 After registration:
 
@@ -124,6 +123,26 @@ Email becomes locked.
 
 ---
 
+## Profile API Flow
+
+Authenticated users can manage their profile via:
+
+- GET /users/me - Get current user profile
+- PATCH /users/me - Update profile (name, phone)
+- PATCH /users/me/password - Change password
+
+Profile response includes:
+
+- id
+- name
+- email
+- phone
+- avatar
+- manager_created
+- email_verified
+
+---
+
 # OAuth Account Linking Flow
 
 ## Manual Account Linking (Required)
@@ -159,7 +178,7 @@ Auto-linking during login is prohibited.
 
 - Prevent accidental account linking
 - Improve user control over connected identities
-- Simplify future OAuth provider support (Facebook, Apple, etc.)
+- Simplify future OAuth provider support
 - Reduce account takeover risk from pre-hijacking attacks
 
 #### Current Behavior (Login with Existing Email)

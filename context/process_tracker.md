@@ -183,13 +183,12 @@ pnpm Workspace
 ## OAuth
 
 - [ ] Google Login (not implemented)
-- [ ] Facebook Login (not implemented)
 
 ## Profile
 
-- [ ] Get Profile (not implemented)
-- [ ] Update Profile (not implemented)
-- [ ] Update Password (not implemented)
+- [x] Get Profile (GET /users/me)
+- [x] Update Profile (PATCH /users/me)
+- [x] Update Password (PATCH /users/me/password)
 - [ ] Upload Avatar (not implemented)
 
 ## Manager Created Account

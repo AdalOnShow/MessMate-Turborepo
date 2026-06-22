@@ -1,0 +1,164 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  BarChart3,
+  Home,
+  LogOut,
+  Menu,
+  ReceiptText,
+  User,
+  Utensils,
+  WalletCards,
+  X,
+} from "lucide-react";
+import { useState } from "react";
+import { useSessionStore } from "../../store";
+import { useLogout } from "../../hooks/use-auth";
+
+const navItems = [
+  { href: "/dashboard", label: "Dashboard", icon: Home },
+  { href: "/meals", label: "Meals", icon: Utensils },
+  { href: "/expenses", label: "Expenses", icon: ReceiptText },
+  { href: "/deposits", label: "Deposits", icon: WalletCards },
+  { href: "/reports", label: "Reports", icon: BarChart3 },
+  { href: "/profile", label: "Profile", icon: User },
+];
+
+function initials(name?: string | null, email?: string | null) {
+  const source = name?.trim() || email?.split("@")[0] || "User";
+  return source
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  const user = useSessionStore((state) => state.user);
+  const logout = useLogout();
+
+  return (
+    <aside className="flex h-full w-72 flex-col border-r border-foreground-muted/15 bg-surface">
+      <div className="flex h-16 items-center gap-3 border-b border-foreground-muted/10 px-5">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-lg font-bold text-primary">
+          M
+        </div>
+        <Link
+          href="/dashboard"
+          onClick={onNavigate}
+          className="text-xl font-bold tracking-tight text-foreground"
+        >
+          Mess<span className="text-primary">Mate</span>
+        </Link>
+      </div>
+
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = pathname === item.href;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
+              className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition-colors ${
+                active
+                  ? "bg-primary text-background"
+                  : "text-foreground-muted hover:bg-surface-raised hover:text-foreground"
+              }`}
+            >
+              <Icon size={18} aria-hidden="true" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="border-t border-foreground-muted/10 p-4">
+        <div className="mb-3 flex items-center gap-3 rounded-lg bg-background/60 p-3">
+          {user?.avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.avatar}
+              alt=""
+              className="h-10 w-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary">
+              {initials(user?.name, user?.email)}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-foreground">
+              {user?.name || "MessMate user"}
+            </p>
+            <p className="truncate text-xs text-foreground-muted">
+              {user?.email}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => logout.mutate()}
+          disabled={logout.isPending}
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-foreground-muted/15 text-sm font-semibold text-foreground-muted transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <LogOut size={16} aria-hidden="true" />
+          Logout
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+export function Sidebar() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <div className="hidden lg:block lg:fixed lg:inset-y-0 lg:left-0">
+        <SidebarContent />
+      </div>
+
+      <div className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-foreground-muted/15 bg-background/95 px-4 backdrop-blur lg:hidden">
+        <Link href="/dashboard" className="text-lg font-bold text-foreground">
+          Mess<span className="text-primary">Mate</span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-foreground-muted/15 text-foreground"
+          aria-label="Open navigation"
+        >
+          <Menu size={20} />
+        </button>
+      </div>
+
+      {open && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-background/80"
+            onClick={() => setOpen(false)}
+            aria-label="Close navigation"
+          />
+          <div className="absolute inset-y-0 left-0 shadow-2xl shadow-black/40">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-lg text-foreground-muted hover:bg-surface-raised hover:text-foreground"
+              aria-label="Close navigation"
+            >
+              <X size={18} />
+            </button>
+            <SidebarContent onNavigate={() => setOpen(false)} />
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

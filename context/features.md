@@ -18,13 +18,11 @@ developers, AI coding agents, and future contributors.
 
 - Register using email and password
 - Register using Google account
-- Register using Facebook account
 
 ### User Login
 
 - Email login
 - Google login
-- Facebook login
 
 ### Account Security
 

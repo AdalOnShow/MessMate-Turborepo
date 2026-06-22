@@ -3,6 +3,10 @@ export interface SessionState {
     id: string;
     email: string;
     name: string;
+    phone: string | null;
+    avatar: string | null;
+    manager_created: boolean;
+    email_verified: boolean;
   } | null;
   isAuthenticated: boolean;
 }

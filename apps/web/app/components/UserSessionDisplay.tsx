@@ -13,6 +13,10 @@ export function UserSessionDisplay() {
       id: "1",
       email: "john@example.com",
       name: "John Doe",
+      phone: null,
+      avatar: null,
+      manager_created: false,
+      email_verified: false,
     });
   };
 
