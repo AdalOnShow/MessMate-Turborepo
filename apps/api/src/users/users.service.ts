@@ -8,6 +8,8 @@ import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { prisma } from '@repo/database';
 import type { UpdateProfileRequest } from '@repo/shared';
+import { CloudinaryService } from '../common/services/cloudinary.service';
+import type { MulterFile } from '../common/upload/multer.types';
 
 export type UserProfile = {
   id: string;
@@ -21,7 +23,10 @@ export type UserProfile = {
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   async getProfile(userId: string): Promise<UserProfile> {
     const user = await prisma.users.findUnique({
@@ -117,5 +122,77 @@ export class UsersService {
     });
 
     return { success: true };
+  }
+
+  async uploadAvatar(userId: string, file: MulterFile): Promise<UserProfile> {
+    if (!file?.buffer) {
+      throw new BadRequestException('No file provided');
+    }
+
+    // Get current avatar URL so we can delete the old one from Cloudinary
+    const existing = await prisma.users.findUnique({
+      where: { id: userId },
+      select: { avatar: true },
+    });
+
+    // Upload new avatar to Cloudinary
+    const result = await this.cloudinaryService.uploadAvatar(
+      file.buffer,
+      userId,
+    );
+
+    // Delete old Cloudinary asset if it exists
+    if (existing?.avatar) {
+      const publicId = this.cloudinaryService.extractPublicId(existing.avatar);
+      if (publicId) {
+        await this.cloudinaryService.deleteByPublicId(publicId);
+      }
+    }
+
+    const user = await prisma.users.update({
+      where: { id: userId },
+      data: { avatar: result.secure_url, updated_at: new Date() },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        manager_created: true,
+        email_verified: true,
+      },
+    });
+
+    return user;
+  }
+
+  async deleteAvatar(userId: string): Promise<UserProfile> {
+    const existing = await prisma.users.findUnique({
+      where: { id: userId },
+      select: { avatar: true },
+    });
+
+    if (existing?.avatar) {
+      const publicId = this.cloudinaryService.extractPublicId(existing.avatar);
+      if (publicId) {
+        await this.cloudinaryService.deleteByPublicId(publicId);
+      }
+    }
+
+    const user = await prisma.users.update({
+      where: { id: userId },
+      data: { avatar: null, updated_at: new Date() },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        manager_created: true,
+        email_verified: true,
+      },
+    });
+
+    return user;
   }
 }

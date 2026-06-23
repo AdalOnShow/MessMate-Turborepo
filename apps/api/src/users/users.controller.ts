@@ -1,9 +1,23 @@
-import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import type { ChangePasswordRequest, UpdateProfileRequest } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
 import { UsersService } from './users.service';
+import { avatarUploadOptions } from '../common/upload/avatar-upload.options';
+import type { MulterFile } from '../common/upload/multer.types';
 
 type AuthenticatedRequest = Request & {
   user?: AuthUser;
@@ -37,5 +51,19 @@ export class UsersController {
       body.currentPassword,
       body.newPassword,
     );
+  }
+
+  @Post('me/avatar')
+  @UseInterceptors(FileInterceptor('avatar', avatarUploadOptions))
+  uploadAvatar(
+    @Req() req: AuthenticatedRequest,
+    @UploadedFile() file: MulterFile,
+  ) {
+    return this.usersService.uploadAvatar(req.user!.id, file);
+  }
+
+  @Delete('me/avatar')
+  deleteAvatar(@Req() req: AuthenticatedRequest) {
+    return this.usersService.deleteAvatar(req.user!.id);
   }
 }

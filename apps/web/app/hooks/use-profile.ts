@@ -8,6 +8,10 @@ import {
   updateProfile,
   type UpdateProfilePayload,
 } from "../actions/profile";
+import {
+  uploadAvatarClientApi,
+  deleteAvatarClientApi,
+} from "../actions/avatar.client";
 
 export function useGetProfile(enabled = true) {
   const setSession = useSessionStore((state) => state.setSession);
@@ -45,5 +49,31 @@ export function useChangePassword() {
       currentPassword: string;
       newPassword: string;
     }) => changePassword(currentPassword, newPassword),
+  });
+}
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+  const setSession = useSessionStore((state) => state.setSession);
+
+  return useMutation({
+    mutationFn: (file: File) => uploadAvatarClientApi(file),
+    onSuccess: (profile) => {
+      setSession(profile);
+      queryClient.setQueryData(["profile"], profile);
+    },
+  });
+}
+
+export function useDeleteAvatar() {
+  const queryClient = useQueryClient();
+  const setSession = useSessionStore((state) => state.setSession);
+
+  return useMutation({
+    mutationFn: () => deleteAvatarClientApi(),
+    onSuccess: (profile) => {
+      setSession(profile);
+      queryClient.setQueryData(["profile"], profile);
+    },
   });
 }

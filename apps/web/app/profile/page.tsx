@@ -1,16 +1,237 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2, Save, Shield } from "lucide-react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import {
+  AlertCircle,
+  Camera,
+  CheckCircle2,
+  Loader2,
+  Save,
+  Shield,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import { AuthInitializer } from "../components/AuthInitializer";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { useSessionStore } from "../store";
 import {
   useChangePassword,
+  useDeleteAvatar,
   useGetProfile,
   useUpdateProfile,
+  useUploadAvatar,
 } from "../hooks/use-profile";
 import { useRouter } from "next/navigation";
+
+function AvatarUpload({
+  currentAvatarUrl,
+  userName,
+}: {
+  currentAvatarUrl: string | null | undefined;
+  userName: string;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const uploadAvatar = useUploadAvatar();
+  const deleteAvatar = useDeleteAvatar();
+
+  const initials = (userName || "U").slice(0, 2).toUpperCase();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setFileError(null);
+    if (!file) return;
+
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setFileError("Only JPEG, PNG, and WebP images are allowed.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setFileError("File must be smaller than 5 MB.");
+      return;
+    }
+
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = () => {
+    if (!selectedFile) return;
+    uploadAvatar.mutate(selectedFile, {
+      onSuccess: () => {
+        setSelectedFile(null);
+        setPreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      },
+    });
+  };
+
+  const handleDiscard = () => {
+    setSelectedFile(null);
+    setPreview(null);
+    setFileError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemove = () => {
+    deleteAvatar.mutate();
+  };
+
+  const displaySrc = preview ?? currentAvatarUrl;
+  const isBusy = uploadAvatar.isPending || deleteAvatar.isPending;
+
+  return (
+    <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+      <h2 className="text-xl font-semibold text-foreground">Profile photo</h2>
+      <div className="mt-5 flex flex-col items-center gap-4">
+        {/* Avatar preview */}
+        <div className="relative group">
+          <div className="h-24 w-24 rounded-full overflow-hidden ring-4 ring-primary/20 ring-offset-2 ring-offset-surface transition-all duration-300 group-hover:ring-primary/40">
+            {displaySrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={displaySrc}
+                alt={`${userName}'s avatar`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-primary/15 text-primary text-2xl font-bold">
+                {initials}
+              </div>
+            )}
+          </div>
+          {/* Overlay camera icon on hover */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isBusy}
+            aria-label="Change avatar"
+            className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center disabled:cursor-not-allowed"
+          >
+            <Camera size={22} className="text-white" />
+          </button>
+        </div>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={handleFileChange}
+          aria-label="Upload avatar"
+        />
+
+        {/* File validation error */}
+        {fileError && (
+          <p className="flex items-center gap-1.5 text-xs text-destructive">
+            <AlertCircle size={13} />
+            {fileError}
+          </p>
+        )}
+
+        {/* Upload/delete API errors */}
+        {uploadAvatar.error && !fileError && (
+          <p className="flex items-center gap-1.5 text-xs text-destructive">
+            <AlertCircle size={13} />
+            {uploadAvatar.error.message}
+          </p>
+        )}
+        {deleteAvatar.error && (
+          <p className="flex items-center gap-1.5 text-xs text-destructive">
+            <AlertCircle size={13} />
+            {deleteAvatar.error.message}
+          </p>
+        )}
+
+        {/* Success messages */}
+        {uploadAvatar.isSuccess && !selectedFile && (
+          <p className="flex items-center gap-1.5 text-xs text-success">
+            <CheckCircle2 size={13} />
+            Avatar updated!
+          </p>
+        )}
+        {deleteAvatar.isSuccess && (
+          <p className="flex items-center gap-1.5 text-xs text-success">
+            <CheckCircle2 size={13} />
+            Avatar removed.
+          </p>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex flex-wrap gap-2 justify-center">
+          {selectedFile ? (
+            <>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isBusy}
+                id="save-avatar-btn"
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-background transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {uploadAvatar.isPending ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : (
+                  <Upload size={13} />
+                )}
+                Save avatar
+              </button>
+              <button
+                type="button"
+                onClick={handleDiscard}
+                disabled={isBusy}
+                id="discard-avatar-btn"
+                className="flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-4 py-2 text-xs font-medium text-foreground-muted transition-colors hover:bg-foreground-muted/10 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <X size={13} />
+                Discard
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isBusy}
+                id="change-avatar-btn"
+                className="flex items-center gap-1.5 rounded-lg border border-primary/30 px-4 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Camera size={13} />
+                Change photo
+              </button>
+              {currentAvatarUrl && !preview && (
+                <button
+                  type="button"
+                  onClick={handleRemove}
+                  disabled={isBusy}
+                  id="remove-avatar-btn"
+                  className="flex items-center gap-1.5 rounded-lg border border-destructive/30 px-4 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {deleteAvatar.isPending ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={13} />
+                  )}
+                  Remove
+                </button>
+              )}
+            </>
+          )}
+        </div>
+
+        <p className="text-xs text-foreground-muted text-center">
+          JPEG, PNG or WebP · max 5 MB
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function ProfileContent() {
   const router = useRouter();
@@ -78,10 +299,21 @@ function ProfileContent() {
               </h1>
             </div>
             <div className="flex items-center gap-3 rounded-xl border border-foreground-muted/15 bg-surface px-4 py-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-base font-bold text-primary">
-                {(activeUser?.name || activeUser?.email || "U")
-                  .slice(0, 1)
-                  .toUpperCase()}
+              <div className="h-12 w-12 rounded-full overflow-hidden flex-shrink-0">
+                {activeUser?.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={activeUser.avatar}
+                    alt={activeUser.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center bg-primary/15 text-base font-bold text-primary">
+                    {(activeUser?.name || activeUser?.email || "U")
+                      .slice(0, 1)
+                      .toUpperCase()}
+                  </div>
+                )}
               </div>
               <div>
                 <p className="font-semibold text-foreground">
@@ -144,18 +376,6 @@ function ProfileContent() {
                       className="mt-2 h-11 w-full rounded-lg border border-foreground-muted/15 bg-background/60 px-3.5 text-sm text-foreground-muted outline-none"
                     />
                   </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-foreground">
-                      Avatar URL
-                    </span>
-                    <input
-                      value={activeUser?.avatar ?? ""}
-                      readOnly
-                      className="mt-2 h-11 w-full rounded-lg border border-foreground-muted/15 bg-background/60 px-3.5 text-sm text-foreground-muted outline-none"
-                      placeholder="No avatar set"
-                    />
-                  </label>
                 </div>
 
                 {updateProfile.error && (
@@ -186,6 +406,12 @@ function ProfileContent() {
               </form>
 
               <div className="space-y-6">
+                {/* Avatar upload card */}
+                <AvatarUpload
+                  currentAvatarUrl={activeUser?.avatar}
+                  userName={activeUser?.name ?? ""}
+                />
+
                 <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
                   <h2 className="flex items-center gap-2 text-xl font-semibold text-foreground">
                     <Shield size={20} className="text-primary" />
