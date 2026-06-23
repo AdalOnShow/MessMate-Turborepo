@@ -175,6 +175,9 @@ importers:
       '@next/bundle-analyzer':
         specifier: ^16.2.9
         version: 16.2.9
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@tailwindcss/postcss':
         specifier: ^4.3.0
         version: 4.3.0
@@ -315,6 +318,9 @@ importers:
       class-validator:
         specifier: ^0.15.1
         version: 0.15.1
+      zod:
+        specifier: ^4.0.0
+        version: 4.4.3
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
@@ -4986,6 +4992,9 @@ packages:
 
   zeptomatch@2.1.0:
     resolution: {integrity: sha512-KiGErG2J0G82LSpniV0CtIzjlJ10E04j02VOudJsPyPwNZgGnRKQy7I1R7GMyg/QswnE4l7ohSGrQbQbjXPPDA==}
+
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
   zustand@5.0.14:
     resolution: {integrity: sha512-/8tAspM5LMPr28b3fwLYrtdj77ECpfZviaP75CMTnwO8ISyaE4GDIG/9rDDYq/cH9D2Xw2A2RXglLInmVBQB/g==}
@@ -10343,6 +10352,8 @@ snapshots:
     dependencies:
       grammex: 3.1.12
       graphmatch: 1.1.1
+
+  zod@4.4.3: {}
 
   zustand@5.0.14(@types/react@19.2.2)(immer@11.1.8)(react@19.2.0):
     optionalDependencies:

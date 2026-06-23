@@ -1,32 +1,48 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from "class-validator";
+import { z } from "zod";
 
-type AuthValidationSchema = Record<string, readonly PropertyDecorator[]>;
+export const signInSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
-export const signInValidationSchema = {
-  email: [IsString(), IsEmail(), IsNotEmpty()],
-  password: [IsString(), IsNotEmpty()],
-} as const satisfies AuthValidationSchema;
+export const signUpSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(80, "Name must be at most 80 characters"),
+  email: z.string().trim().email("Enter a valid email address"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100, "Password must be at most 100 characters"),
+  phone: z
+    .union([
+      z.string().trim().max(20, "Phone number must be at most 20 characters"),
+      z.literal(""),
+      z.null(),
+    ])
+    .optional()
+    .transform((value) => {
+      if (value === "" || value == null) {
+        return undefined;
+      }
+      return value;
+    }),
+});
 
-export const signUpValidationSchema = {
-  name: [IsString(), IsNotEmpty(), MinLength(2), MaxLength(80)],
-  email: [IsString(), IsEmail(), IsNotEmpty()],
-  password: [IsString(), IsNotEmpty(), MinLength(8), MaxLength(100)],
-  phone: [IsOptional(), IsString(), MaxLength(20)],
-} as const satisfies AuthValidationSchema;
+export type SignInDto = z.infer<typeof signInSchema>;
+export type SignupDto = z.infer<typeof signUpSchema>;
 
-export function applyValidationRules(
-  ...decorators: readonly PropertyDecorator[]
-): PropertyDecorator {
-  return function (target: object, propertyKey: string | symbol) {
-    for (const decorator of decorators) {
-      decorator(target, propertyKey);
+export function formatZodError(error: z.ZodError): Record<string, string> {
+  const fieldErrors: Record<string, string> = {};
+
+  for (const issue of error.issues) {
+    const key = issue.path[0];
+    if (typeof key === "string" && !fieldErrors[key]) {
+      fieldErrors[key] = issue.message;
     }
-  };
+  }
+
+  return fieldErrors;
 }

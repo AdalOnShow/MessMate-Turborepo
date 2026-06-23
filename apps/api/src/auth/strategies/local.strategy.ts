@@ -6,6 +6,7 @@ import {
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 import { AuthService } from '../auth.service';
+import { formatZodError, signInSchema } from '@repo/shared';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
@@ -14,10 +15,19 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(email: string, password: string) {
-    if (!email || !password)
-      throw new BadRequestException('Email and password are required');
+    const parsed = signInSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      const fieldErrors = formatZodError(parsed.error);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: fieldErrors,
+      });
+    }
 
-    const user = await this.authService.validateUser(email, password);
+    const user = await this.authService.validateUser(
+      parsed.data.email,
+      parsed.data.password,
+    );
     if (!user) throw new UnauthorizedException('Invalid credentials');
     return user;
   }

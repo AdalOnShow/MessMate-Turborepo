@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
-import { ChangePasswordRequest, UpdateProfileRequest } from '@repo/shared';
+import type { ChangePasswordRequest, UpdateProfileRequest } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
 import { UsersService } from './users.service';
 

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSignup } from "../hooks/use-auth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { formatZodError, signUpSchema } from "@repo/shared";
 
 function getErrorMessage(error: string): string {
   switch (error) {
@@ -27,6 +28,7 @@ export default function SignUpForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,7 +44,15 @@ export default function SignUpForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    signup.mutate({ name, email, password });
+    const validation = signUpSchema.safeParse({ name, email, password });
+
+    if (!validation.success) {
+      setFieldErrors(formatZodError(validation.error));
+      return;
+    }
+
+    setFieldErrors({});
+    signup.mutate(validation.data);
   };
 
   return (
@@ -113,6 +123,9 @@ export default function SignUpForm() {
                   autoComplete="name"
                   className="w-full h-11 px-3.5 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
                 />
+                {fieldErrors.name && (
+                  <p className="text-xs text-destructive">{fieldErrors.name}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -132,6 +145,9 @@ export default function SignUpForm() {
                   autoComplete="email"
                   className="w-full h-11 px-3.5 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
                 />
+                {fieldErrors.email && (
+                  <p className="text-xs text-destructive">{fieldErrors.email}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -164,6 +180,11 @@ export default function SignUpForm() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {fieldErrors.password && (
+                  <p className="text-xs text-destructive">
+                    {fieldErrors.password}
+                  </p>
+                )}
                 <p className="text-xs text-foreground-muted/70">
                   Must be at least 8 characters
                 </p>

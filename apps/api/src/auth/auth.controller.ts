@@ -14,7 +14,7 @@ import { Throttle } from '@nestjs/throttler';
 import type { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { SignupDto } from '@repo/shared';
+import { signUpSchema, type SignupDto } from '@repo/shared';
 import { AuthService, AuthTokens, AuthUser } from './auth.service';
 import { Public } from './guards/public.decorator';
 
@@ -51,12 +51,13 @@ export class AuthController {
     @Body() signupDto: SignupDto,
     @Res() res: Response,
   ): Promise<void> {
-    this.logger.log(`📝 POST /auth/signup - email: ${signupDto.email}`);
+    const parsedSignup = signUpSchema.parse(signupDto);
+    this.logger.log(`📝 POST /auth/signup - email: ${parsedSignup.email}`);
 
-    const tokens: AuthTokens = await this.authService.register(signupDto);
+    const tokens: AuthTokens = await this.authService.register(parsedSignup);
 
     this.setRefreshCookie(res, tokens.refreshToken);
-    this.logger.log(`✅ Signup completed for: ${signupDto.email}`);
+    this.logger.log(`✅ Signup completed for: ${parsedSignup.email}`);
     res.status(201).json({
       success: true,
       message: 'Signup successful',

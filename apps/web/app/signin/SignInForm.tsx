@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSignin } from "../hooks/use-auth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { formatZodError, signInSchema } from "@repo/shared";
 
 function getErrorMessage(error: string): string {
   switch (error) {
@@ -26,6 +27,7 @@ export default function SignInForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,7 +44,15 @@ export default function SignInForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    signin.mutate({ email, password });
+    const validation = signInSchema.safeParse({ email, password });
+
+    if (!validation.success) {
+      setFieldErrors(formatZodError(validation.error));
+      return;
+    }
+
+    setFieldErrors({});
+    signin.mutate(validation.data);
   };
 
   return (
@@ -113,6 +123,9 @@ export default function SignInForm() {
                   autoComplete="email"
                   className="w-full h-11 px-3.5 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
                 />
+                {fieldErrors.email && (
+                  <p className="text-xs text-destructive">{fieldErrors.email}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -144,6 +157,11 @@ export default function SignInForm() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {fieldErrors.password && (
+                  <p className="text-xs text-destructive">
+                    {fieldErrors.password}
+                  </p>
+                )}
               </div>
 
               {(signin.error || oauthError) && (
