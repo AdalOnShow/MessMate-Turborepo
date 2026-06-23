@@ -24,7 +24,7 @@ import {
 } from "../hooks/use-profile";
 import { useRouter } from "next/navigation";
 
-function AvatarUpload({
+function CompactAvatarUpload({
   currentAvatarUrl,
   userName,
 }: {
@@ -87,56 +87,49 @@ function AvatarUpload({
   const isBusy = uploadAvatar.isPending || deleteAvatar.isPending;
 
   return (
-    <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
-      <h2 className="text-xl font-semibold text-foreground">Profile photo</h2>
-      <div className="mt-5 flex flex-col items-center gap-4">
-        {/* Avatar preview */}
-        <div className="relative group">
-          <div className="h-24 w-24 rounded-full overflow-hidden ring-4 ring-primary/20 ring-offset-2 ring-offset-surface transition-all duration-300 group-hover:ring-primary/40">
-            {displaySrc ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={displaySrc}
-                alt={`${userName}'s avatar`}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center bg-primary/15 text-primary text-2xl font-bold">
-                {initials}
-              </div>
-            )}
-          </div>
-          {/* Overlay camera icon on hover */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isBusy}
-            aria-label="Change avatar"
-            className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center disabled:cursor-not-allowed"
-          >
-            <Camera size={22} className="text-white" />
-          </button>
+    <div className="mt-2 flex items-center gap-4">
+      <div className="relative shrink-0">
+        <div className="h-16 w-16 rounded-full overflow-hidden ring-4 ring-primary/20 ring-offset-2 ring-offset-surface">
+          {displaySrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={displaySrc}
+              alt={`${userName}'s avatar`}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center bg-primary/15 text-primary text-xl font-bold">
+              {initials}
+            </div>
+          )}
         </div>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isBusy}
+          aria-label="Change avatar"
+          className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-background transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Camera size={16} />
+        </button>
+      </div>
 
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="hidden"
-          onChange={handleFileChange}
-          aria-label="Upload avatar"
-        />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+        aria-label="Upload avatar"
+      />
 
-        {/* File validation error */}
+      <div className="flex-1 min-w-0">
         {fileError && (
           <p className="flex items-center gap-1.5 text-xs text-destructive">
             <AlertCircle size={13} />
             {fileError}
           </p>
         )}
-
-        {/* Upload/delete API errors */}
         {uploadAvatar.error && !fileError && (
           <p className="flex items-center gap-1.5 text-xs text-destructive">
             <AlertCircle size={13} />
@@ -149,8 +142,6 @@ function AvatarUpload({
             {deleteAvatar.error.message}
           </p>
         )}
-
-        {/* Success messages */}
         {uploadAvatar.isSuccess && !selectedFile && (
           <p className="flex items-center gap-1.5 text-xs text-success">
             <CheckCircle2 size={13} />
@@ -164,16 +155,14 @@ function AvatarUpload({
           </p>
         )}
 
-        {/* Action buttons */}
-        <div className="flex flex-wrap gap-2 justify-center">
+        <div className="flex flex-wrap items-center gap-2">
           {selectedFile ? (
             <>
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={isBusy}
-                id="save-avatar-btn"
-                className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-background transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-background transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {uploadAvatar.isPending ? (
                   <Loader2 size={13} className="animate-spin" />
@@ -186,8 +175,7 @@ function AvatarUpload({
                 type="button"
                 onClick={handleDiscard}
                 disabled={isBusy}
-                id="discard-avatar-btn"
-                className="flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-4 py-2 text-xs font-medium text-foreground-muted transition-colors hover:bg-foreground-muted/10 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-3 py-1.5 text-xs font-medium text-foreground-muted transition-colors hover:bg-foreground-muted/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <X size={13} />
                 Discard
@@ -199,8 +187,7 @@ function AvatarUpload({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isBusy}
-                id="change-avatar-btn"
-                className="flex items-center gap-1.5 rounded-lg border border-primary/30 px-4 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center gap-1.5 rounded-lg border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Camera size={13} />
                 Change photo
@@ -210,8 +197,7 @@ function AvatarUpload({
                   type="button"
                   onClick={handleRemove}
                   disabled={isBusy}
-                  id="remove-avatar-btn"
-                  className="flex items-center gap-1.5 rounded-lg border border-destructive/30 px-4 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex items-center gap-1.5 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {deleteAvatar.isPending ? (
                     <Loader2 size={13} className="animate-spin" />
@@ -225,7 +211,7 @@ function AvatarUpload({
           )}
         </div>
 
-        <p className="text-xs text-foreground-muted text-center">
+        <p className="mt-1 text-xs text-foreground-muted">
           JPEG, PNG or WebP · max 5 MB
         </p>
       </div>
@@ -289,41 +275,13 @@ function ProfileContent() {
       <Sidebar />
       <main className="px-4 py-8 lg:ml-72 lg:px-8">
         <div className="mx-auto max-w-5xl">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-                Profile
-              </p>
-              <h1 className="mt-2 text-3xl font-bold text-foreground">
-                Account settings
-              </h1>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl border border-foreground-muted/15 bg-surface px-4 py-3">
-              <div className="h-12 w-12 rounded-full overflow-hidden flex-shrink-0">
-                {activeUser?.avatar ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={activeUser.avatar}
-                    alt={activeUser.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-primary/15 text-base font-bold text-primary">
-                    {(activeUser?.name || activeUser?.email || "U")
-                      .slice(0, 1)
-                      .toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div>
-                <p className="font-semibold text-foreground">
-                  {activeUser?.name || "Profile"}
-                </p>
-                <p className="text-sm text-foreground-muted">
-                  {activeUser?.email}
-                </p>
-              </div>
-            </div>
+          <div className="mb-8">
+            <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+              Profile
+            </p>
+            <h1 className="mt-2 text-3xl font-bold text-foreground">
+              Account settings
+            </h1>
           </div>
 
           {profile.isLoading ? (
@@ -332,7 +290,7 @@ function ProfileContent() {
               Loading profile
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
               <form
                 onSubmit={handleProfileSubmit}
                 className="rounded-xl border border-foreground-muted/15 bg-surface p-6"
@@ -341,6 +299,16 @@ function ProfileContent() {
                   Personal details
                 </h2>
                 <div className="mt-6 space-y-5">
+                  <label className="block">
+                    <span className="text-sm font-medium text-foreground">
+                      Profile photo
+                    </span>
+                    <CompactAvatarUpload
+                      currentAvatarUrl={activeUser?.avatar}
+                      userName={activeUser?.name ?? ""}
+                    />
+                  </label>
+
                   <label className="block">
                     <span className="text-sm font-medium text-foreground">
                       Name
@@ -406,12 +374,6 @@ function ProfileContent() {
               </form>
 
               <div className="space-y-6">
-                {/* Avatar upload card */}
-                <AvatarUpload
-                  currentAvatarUrl={activeUser?.avatar}
-                  userName={activeUser?.name ?? ""}
-                />
-
                 <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
                   <h2 className="flex items-center gap-2 text-xl font-semibold text-foreground">
                     <Shield size={20} className="text-primary" />
