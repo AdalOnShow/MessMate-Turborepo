@@ -25,6 +25,37 @@ async function callNestJSAPI<T>(
   return response.json();
 }
 
+async function callNestJSAPIWithResponse<T>(
+  endpoint: string,
+  options?: RequestInit,
+): Promise<{ data: T; headers: Headers }> {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+  const response = await fetch(`${baseUrl}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return { data, headers: response.headers };
+}
+
+function extractRefreshCookie(headers: Headers): string | null {
+  const setCookie = headers.get("set-cookie");
+  if (!setCookie) return null;
+
+  // Parse: refresh_token=value; Path=/auth/refresh; HttpOnly; Secure; SameSite=Strict
+  const match = setCookie.match(/refresh_token=([^;]+)/);
+  return match && match[1] ? match[1] : null;
+}
+
 interface SigninPayload {
   email: string;
   password: string;
@@ -86,7 +117,7 @@ export async function signup(payload: SignupPayload): Promise<{
   user: ProfileUser;
 }> {
   try {
-    const response = await callNestJSAPI<{
+    const { data, headers } = await callNestJSAPIWithResponse<{
       success: boolean;
       message: string;
       data: { accessToken: string };
@@ -95,7 +126,7 @@ export async function signup(payload: SignupPayload): Promise<{
       body: JSON.stringify(payload),
     });
 
-    const accessToken = response.data.accessToken;
+    const accessToken = data.data.accessToken;
     const decoded = decodeJwt(accessToken);
     if (!decoded) {
       throw new Error("Failed to decode token");
@@ -110,6 +141,16 @@ export async function signup(payload: SignupPayload): Promise<{
       maxAge: 604800, // 7 days
       path: "/",
     });
+
+    const refreshToken = extractRefreshCookie(headers);
+    if (refreshToken) {
+      cookieStore.set("refresh_token", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+      });
+    }
 
     return {
       success: true,
@@ -136,7 +177,7 @@ export async function signin(payload: SigninPayload): Promise<{
   user: ProfileUser;
 }> {
   try {
-    const response = await callNestJSAPI<{
+    const { data, headers } = await callNestJSAPIWithResponse<{
       success: boolean;
       message: string;
       data: { accessToken: string };
@@ -145,7 +186,7 @@ export async function signin(payload: SigninPayload): Promise<{
       body: JSON.stringify(payload),
     });
 
-    const accessToken = response.data.accessToken;
+    const accessToken = data.data.accessToken;
     const decoded = decodeJwt(accessToken);
     if (!decoded) {
       throw new Error("Failed to decode token");
@@ -160,6 +201,16 @@ export async function signin(payload: SigninPayload): Promise<{
       maxAge: 604800, // 7 days
       path: "/",
     });
+
+    const refreshToken = extractRefreshCookie(headers);
+    if (refreshToken) {
+      cookieStore.set("refresh_token", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+      });
+    }
 
     const user = await getProfileWithToken(accessToken, {
       id: decoded.sub,
@@ -180,14 +231,25 @@ export async function signin(payload: SigninPayload): Promise<{
 
 export async function logout(): Promise<{ success: true }> {
   try {
-    // Call NestJS logout API
-    await callNestJSAPI("/auth/logout", {
-      method: "POST",
-    });
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get?.("access_token")?.value;
+
+    if (accessToken) {
+      // Call NestJS logout API
+      await callAuthenticatedNestJSAPI("/auth/logout", accessToken, {
+        method: "POST",
+      });
+    }
 
     // Clear cookies
-    const cookieStore = await cookies();
     cookieStore.set("access_token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 0,
+      path: "/",
+    });
+    cookieStore.set("refresh_token", "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -201,6 +263,13 @@ export async function logout(): Promise<{ success: true }> {
     // Still clear cookies even if API call fails
     const cookieStore = await cookies();
     cookieStore.set("access_token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 0,
+      path: "/",
+    });
+    cookieStore.set("refresh_token", "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -260,5 +329,75 @@ async function getProfileWithToken(
     return response.data ?? fallback;
   } catch {
     return fallback;
+  }
+}
+
+export async function refreshAccessToken(): Promise<string | null> {
+  try {
+    const cookieStore = await cookies();
+    const refreshToken = cookieStore.get("refresh_token")?.value;
+    if (!refreshToken) {
+      return null;
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const response = await fetch(`${baseUrl}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `refresh_token=${refreshToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      // Clear both tokens on failed refresh (expired token, etc.)
+      cookieStore.set("access_token", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 0,
+        path: "/",
+      });
+      cookieStore.set("refresh_token", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 0,
+        path: "/",
+      });
+      return null;
+    }
+
+    const json = (await response.json()) as {
+      success: boolean;
+      data: { accessToken: string };
+    };
+
+    const newAccessToken = json.data.accessToken;
+
+    // Set new access token cookie
+    cookieStore.set("access_token", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 604800, // 7 days
+      path: "/",
+    });
+
+    // Also forward any new refresh token returned in headers
+    const newRefreshToken = extractRefreshCookie(response.headers);
+    if (newRefreshToken) {
+      cookieStore.set("refresh_token", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+      });
+    }
+
+    return newAccessToken;
+  } catch (error) {
+    console.error("Refresh token error in server action:", error);
+    return null;
   }
 }

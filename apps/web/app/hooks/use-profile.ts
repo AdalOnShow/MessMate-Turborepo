@@ -6,12 +6,10 @@ import {
   changePassword,
   getProfile,
   updateProfile,
+  uploadAvatar,
+  deleteAvatar,
   type UpdateProfilePayload,
 } from "../actions/profile";
-import {
-  uploadAvatarClientApi,
-  deleteAvatarClientApi,
-} from "../actions/avatar.client";
 
 export function useGetProfile(enabled = true) {
   const setSession = useSessionStore((state) => state.setSession);
@@ -57,7 +55,11 @@ export function useUploadAvatar() {
   const setSession = useSessionStore((state) => state.setSession);
 
   return useMutation({
-    mutationFn: (file: File) => uploadAvatarClientApi(file),
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      return uploadAvatar(formData);
+    },
     onSuccess: (profile) => {
       setSession(profile);
       queryClient.setQueryData(["profile"], profile);
@@ -70,7 +72,7 @@ export function useDeleteAvatar() {
   const setSession = useSessionStore((state) => state.setSession);
 
   return useMutation({
-    mutationFn: () => deleteAvatarClientApi(),
+    mutationFn: () => deleteAvatar(),
     onSuccess: (profile) => {
       setSession(profile);
       queryClient.setQueryData(["profile"], profile);

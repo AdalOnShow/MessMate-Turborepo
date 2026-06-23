@@ -1,7 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import type { Request } from 'express';
 
-type MulterFileFilterCallback = (error: Error | null, acceptFile: boolean) => void;
+type MulterFileFilterCallback = (
+  error: Error | null,
+  acceptFile: boolean,
+) => void;
 
 /**
  * Multer memory storage options with:
@@ -31,4 +34,3 @@ export const avatarUploadOptions = {
     }
   },
 };
-

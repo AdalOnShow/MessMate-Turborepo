@@ -142,6 +142,7 @@ export class AuthController {
     this.logger.log('🔐 GET /auth/google - initiating Google OAuth');
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('logout')
   async logout(
     @Req() req: Request & { user?: { id?: string } },
@@ -158,7 +159,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      path: '/auth/refresh',
+      path: '/',
     });
 
     this.logger.log(`✅ Logout completed for user: ${userId}`);
@@ -212,7 +213,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      path: '/auth/refresh',
+      path: '/',
     });
   }
 
