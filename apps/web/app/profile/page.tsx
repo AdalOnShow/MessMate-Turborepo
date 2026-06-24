@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { AuthInitializer } from "../components/AuthInitializer";
 import { Sidebar } from "../components/dashboard/Sidebar";
+import { BottomNav } from "../components/dashboard/BottomNav";
 import { useSessionStore } from "../store";
 import {
   useChangePassword,
@@ -271,7 +272,7 @@ function ProfileContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       <Sidebar />
       <main className="px-4 py-8 lg:ml-72 lg:px-8">
         <div className="mx-auto max-w-5xl">
@@ -461,6 +462,8 @@ function ProfileContent() {
           )}
         </div>
       </main>
+
+      <BottomNav />
     </div>
   );
 }

@@ -6,15 +6,15 @@ import { useRouter } from "next/navigation";
 import { useSessionStore } from "../store";
 import { AuthInitializer } from "../components/AuthInitializer";
 import { Sidebar } from "../components/dashboard/Sidebar";
+import { BottomNav } from "../components/dashboard/BottomNav";
 import { useGetMyMess } from "../hooks/use-messes";
 
 function DashboardContent() {
   const { user, isAuthenticated } = useSessionStore();
   const router = useRouter();
 
-  const { data: myMess, isLoading: messLoading } = useGetMyMess(
-    isAuthenticated,
-  );
+  const { data: myMess, isLoading: messLoading } =
+    useGetMyMess(isAuthenticated);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -27,9 +27,9 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 lg:ml-72 lg:pb-8">
       <Sidebar />
-      <main className="px-4 py-8 lg:ml-72 lg:px-8">
+      <main className="px-4 py-8 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="mb-8">
             <p className="text-sm font-semibold uppercase tracking-wide text-primary">
@@ -107,6 +107,8 @@ function DashboardContent() {
           </div>
         </div>
       </main>
+
+      <BottomNav />
     </div>
   );
 }

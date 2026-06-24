@@ -3,17 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BarChart3,
   Home,
   LogOut,
-  Menu,
   ReceiptText,
   User,
   Utensils,
   WalletCards,
-  X,
 } from "lucide-react";
-import { useState } from "react";
 import { useSessionStore } from "../../store";
 import { useLogout } from "../../hooks/use-auth";
 
@@ -22,7 +18,6 @@ const navItems = [
   { href: "/meals", label: "Meals", icon: Utensils },
   { href: "/expenses", label: "Expenses", icon: ReceiptText },
   { href: "/deposits", label: "Deposits", icon: WalletCards },
-  { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
@@ -35,20 +30,19 @@ function initials(name?: string | null, email?: string | null) {
     .join("");
 }
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+export function Sidebar() {
   const pathname = usePathname();
   const user = useSessionStore((state) => state.user);
   const logout = useLogout();
 
   return (
-    <aside className="flex h-full w-72 flex-col border-r border-foreground-muted/15 bg-surface">
+    <aside className="hidden lg:flex lg:fixed lg:inset-y-0 lg:left-0 lg:w-72 lg:flex-col">
       <div className="flex h-16 items-center gap-3 border-b border-foreground-muted/10 px-5">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-lg font-bold text-primary">
           M
         </div>
         <Link
           href="/dashboard"
-          onClick={onNavigate}
           className="text-xl font-bold tracking-tight text-foreground"
         >
           Mess<span className="text-primary">Mate</span>
@@ -64,7 +58,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             <Link
               key={item.href}
               href={item.href}
-              onClick={onNavigate}
               className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition-colors ${
                 active
                   ? "bg-primary text-background"
@@ -112,53 +105,5 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </button>
       </div>
     </aside>
-  );
-}
-
-export function Sidebar() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <div className="hidden lg:block lg:fixed lg:inset-y-0 lg:left-0">
-        <SidebarContent />
-      </div>
-
-      <div className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-foreground-muted/15 bg-background/95 px-4 backdrop-blur lg:hidden">
-        <Link href="/dashboard" className="text-lg font-bold text-foreground">
-          Mess<span className="text-primary">Mate</span>
-        </Link>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-foreground-muted/15 text-foreground"
-          aria-label="Open navigation"
-        >
-          <Menu size={20} />
-        </button>
-      </div>
-
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-background/80"
-            onClick={() => setOpen(false)}
-            aria-label="Close navigation"
-          />
-          <div className="absolute inset-y-0 left-0 shadow-2xl shadow-black/40">
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-lg text-foreground-muted hover:bg-surface-raised hover:text-foreground"
-              aria-label="Close navigation"
-            >
-              <X size={18} />
-            </button>
-            <SidebarContent onNavigate={() => setOpen(false)} />
-          </div>
-        </div>
-      )}
-    </>
   );
 }
