@@ -5,7 +5,7 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (Phase 1-2)
+Status: Active Development (Phase 2 Complete, Phase 3 Next)
 
 Frontend:
 Next.js 16
@@ -13,14 +13,17 @@ TypeScript
 Tailwind CSS v4
 TanStack Query
 Zustand + Immer
-shadcn/ui (Lucide icons)
+Lucide icons
+Custom design system (CSS variables, no shadcn/ui)
 
 Backend:
 NestJS 11
 Prisma ORM 7.8
-PostgreSQL (Neon)
+PostgreSQL (Neon serverless)
 JWT Authentication (Access + Refresh Tokens)
-Passport (Local + JWT)
+Passport (Local + JWT + Google OAuth)
+Cloudinary (avatar uploads)
+Multer (file uploads)
 
 Architecture:
 Turborepo Monorepo
@@ -31,35 +34,38 @@ pnpm Workspace
 
 # Phase 0 - Project Foundation
 
-## Monorepo Setupww
+## Monorepo Setup
 
 - [x] Initialize Turborepo
 - [x] Configure pnpm workspace
 - [x] Create apps/web (Next.js 16)
 - [x] Create apps/api (NestJS 11)
 - [x] Create packages/database (Prisma + Neon)
-- [x] Create packages/shared (DTOs, types, API response)
+- [x] Create packages/shared (DTOs, types, API response, Zod validations)
 - [ ] Create packages/shared-types
 - [ ] Create packages/shared-utils
 - [ ] Create packages/validation
 - [ ] Create packages/constants
 
 > **Note:** Docs specify 5 separate packages but only `database` and `shared`
-> exist. `shared` is a catch-all with DTOs, types, and API response utilities.
+> exist. `shared` is a catch-all with DTOs, types, API response utilities, and
+> Zod validations.
 
 ---
 
 ## Tooling Setup
 
-- [x] ESLint (configured per app/package, but lint fails in database due to
-      v8→flat config mismatch)
+- [x] ESLint (configured per app/package)
 - [x] Prettier (root config exists)
-- [ ] Husky (not configured)
+- [x] Husky (`.husky/` directory exists)
+- [ ] Husky hooks configured (pre-commit, commit-msg not verified)
 - [ ] Commitlint (not configured)
 - [ ] Environment Validation (not implemented)
 - [x] API response envelope (middleware active on all routes)
 - [x] Global validation pipe (whitelist + forbidNonWhitelisted + transform)
-- [ ] Path Aliases (not configured)
+- [x] Global exception filter (ApiExceptionFilter)
+- [x] Logging interceptor (dev mode only)
+- [ ] Path Aliases (not configured in any tsconfig)
 
 ---
 
@@ -78,18 +84,36 @@ pnpm Workspace
 ## Frontend Foundation
 
 - [x] Next.js 16 app with App Router
-- [x] Tailwind CSS v4 with design system tokens
+- [x] Tailwind CSS v4 with design system tokens (CSS variables)
 - [x] Custom dark/light/system theme store with localStorage persistence
+- [x] ThemeToggle component
 - [x] TanStack Query client singleton with optimized defaults
 - [x] Zustand stores: Session (auth state) + Theme (dark/light/system)
-- [x] API client with Bearer token injection and ApiResponse unwrapping
+- [x] API client with Bearer token injection, auto-refresh on 401, ApiResponse
+      unwrapping
+- [x] Server actions for auth (signup, signin, logout, getCurrentUser,
+      refreshAccessToken)
+- [x] Server actions for profile (getProfile, updateProfile, changePassword,
+      uploadAvatar, deleteAvatar)
 - [x] Google Fonts: Plus Jakarta Sans + Alkatra (Bengali)
 - [x] Landing page: Navbar, Hero, Stats, Features, How It Works, Pricing, Footer
-- [x] Auth pages: /signin, /signup
+- [x] Auth pages: /signin (with Google OAuth button + error handling), /signup
 - [x] Auth hooks: useSignin, useSignup, useLogout (React Query mutations)
-- [ ] Dashboard pages (not started)
-- [ ] Protected route layout (not implemented)
-- [ ] Loading/error/empty state components (not implemented)
+- [x] Profile hooks: useGetProfile, useUpdateProfile, useChangePassword,
+      useUploadAvatar, useDeleteAvatar
+- [x] AuthInitializer component (session restoration on mount)
+- [x] ProtectedPage component (client-side redirect guard)
+- [x] Dashboard page (placeholder with user profile info + Quick Actions list)
+- [x] Profile page (full: personal details, avatar upload/delete, change
+      password, account status)
+- [x] Sidebar component (responsive: desktop fixed + mobile drawer, nav links,
+      user info, logout)
+- [x] Bundle analyzer configured (Next.js)
+- [x] Root layout with metadata, SEO, OpenGraph
+- [ ] shadcn/ui setup (not installed — using custom Tailwind components)
+- [ ] Loading/error/empty state components (not yet extracted as reusable)
+- [ ] Protected route layout group (not using Next.js middleware or layout
+      group)
 
 ---
 
@@ -110,8 +134,12 @@ pnpm Workspace
 
 - [x] users (with refresh_token support)
 - [x] oauth_accounts
+
+### Mess System
+
 - [x] messes
 - [x] mess_members
+- [x] join_requests
 
 ### Month System
 
@@ -145,10 +173,6 @@ pnpm Workspace
 
 - [x] activity_logs
 
-### Join Request System
-
-- [x] join_requests
-
 ---
 
 ## Database Tasks
@@ -160,6 +184,7 @@ pnpm Workspace
 - [ ] Seed Initial Data (not done)
 - [x] Generate Prisma Client
 - [ ] Redis setup (not configured - needed for join verification codes)
+- [ ] Remove meal_entry_items table (ADR-021 specifies JSONB-based meal storage)
 
 > **Issue:** Schema still includes `meal_entry_items` table, but ADR-021
 > specifies JSONB-based meal storage which eliminates this table. Requires
@@ -171,25 +196,52 @@ pnpm Workspace
 
 ## Backend
 
-- [x] Register API (POST /auth/signup)
-- [x] Login API (POST /auth/signin)
-- [x] Refresh Token API (POST /auth/refresh)
-- [x] Logout API (POST /auth/logout)
+- [x] Register API (POST /auth/signup) — Zod validation via @repo/shared, hashed
+      password, tokens issued
+- [x] Login API (POST /auth/signin) — Passport local strategy, bcrypt compare,
+      tokens issued
+- [x] Refresh Token API (POST /auth/refresh) — cookie-based refresh, bcrypt hash
+      comparison, token rotation
+- [x] Logout API (POST /auth/logout) — clears refresh_token in DB, clears
+      httpOnly cookie
 
 > All 4 auth endpoints use httpOnly cookies for refresh tokens. Access tokens
 > via Bearer header. Refresh tokens are hashed with bcrypt and stored in
 > `users.refresh_token`.
 
-## OAuth
+## OAuth (Google)
 
-- [ ] Google Login (not implemented)
+- [x] Google Login — Full flow implemented:
+  - [x] GoogleStrategy with email verification check
+  - [x] findOrCreateGoogleUser (creates new user or links existing OAuth
+        account)
+  - [x] GET /auth/google (initiates OAuth redirect)
+  - [x] GET /auth/google/callback (handles callback, sets cookies, redirects to
+        /dashboard)
+  - [x] Error handling (NO_EMAIL, EMAIL_NOT_VERIFIED, ACCOUNT_EXISTS)
+  - [x] GoogleSignInButton component on /signin and /signup pages
+  - [x] OAuth error display from URL query params
 
 ## Profile
 
 - [x] Get Profile (GET /users/me)
-- [x] Update Profile (PATCH /users/me)
-- [x] Update Password (PATCH /users/me/password)
-- [ ] Upload Avatar (not implemented)
+- [x] Update Profile (PATCH /users/me) — name, phone
+- [x] Update Password (PATCH /users/me/password) — current password verification
+- [x] Upload Avatar (POST /users/me/avatar) — Cloudinary upload with face-crop,
+      old avatar cleanup
+- [x] Delete Avatar (DELETE /users/me/avatar) — Cloudinary deletion + DB cleanup
+
+## Frontend Auth Pages
+
+- [x] /signin — Full page with Google OAuth button, email/password form, Zod
+      validation, error display
+- [x] /signup — Full page with Google OAuth button, name/email/password form,
+      Zod validation, error display
+- [x] /dashboard — Auth-gated with AuthInitializer, Sidebar layout, user profile
+      display
+- [x] /profile — Full profile management: personal details form, avatar upload
+      (CompactAvatarUpload component), change password form, account status
+      display
 
 ## Manager Created Account
 
@@ -204,7 +256,8 @@ pnpm Workspace
 
 ## Mess
 
-- [ ] Create Mess
+- [x] Create Mess (backend module + controller + service + DTOs)
+- [x] Create Mess UI (dashboard Create Mess button + modal)
 - [ ] Update Mess
 - [ ] View Mess
 
@@ -515,20 +568,22 @@ A task can be marked complete only if:
 - [x] JWT tokens stored in httpOnly cookies only (removed from Zustand)
 - [x] CORS hardened (explicit methods/headers, no fallback)
 - [x] Environment variables documented (.env.example files)
+- [x] Cloudinary configured for avatar uploads
+- [x] Multer configured with file size/type limits for avatar uploads
 
 ## CI/CD Pipeline
 
-- [x] GitHub Actions workflow created
-- [x] Turborepo remote caching configured
+- [x] GitHub Actions workflow created (.github/workflows/ci.yml)
+- [x] Turborepo remote caching configured (TURBO_TOKEN/TURBO_TEAM)
 - [x] Selective builds (--filter=[origin/main])
 - [x] Frozen lockfile in CI (--frozen-lockfile)
 
 ## Deployment
 
 - [x] Vercel deployment guide (web app)
-- [x] Vercel deployment guide (API - serverless)
+- [x] Vercel deployment guide (API - serverless via @vendia/serverless-express)
 - [x] Neon database setup guide
-- [x] Environment variables configuration
+- [x] Environment variables configuration (.env + .env.example)
 
 ## Performance
 
@@ -542,16 +597,22 @@ A task can be marked complete only if:
 
 ```text
 Current Phase:
-Phase 1-2 (Active)
+Phase 3 - Mess Management (In Progress)
 
-Current Priority:
-Complete Phase 3 (Mess Management)
-- Create Mess API + UI
-- Member Management (Add/Remove/List)
-- Manager Assignment
-- Join Request with Redis verification
+Completed:
+- Create Mess Module (POST, GET /messes)
 
-Next Up:
+Next Priority:
+- Member Management (Add/Remove/List with mess_members table)
+- Manager Assignment (enforce max 2 managers rule)
+- Join Request with Redis verification (generate code, store, verify)
+
+Prerequisites for Phase 3:
+- [ ] Redis setup (required for join request verification codes)
+- [ ] Remove meal_entry_items table (ADR-021 cleanup)
+- [ ] Optional: Protected route layout group for dashboard pages
+
+After Phase 3:
 Phase 4 - Month Management
 - Active month creation
 - Month closing and archiving

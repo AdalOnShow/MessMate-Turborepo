@@ -1,14 +1,20 @@
 "use client";
 
-import { useSessionStore } from "../store";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSessionStore } from "../store";
 import { AuthInitializer } from "../components/AuthInitializer";
 import { Sidebar } from "../components/dashboard/Sidebar";
+import { useGetMyMess } from "../hooks/use-messes";
 
 function DashboardContent() {
   const { user, isAuthenticated } = useSessionStore();
   const router = useRouter();
+
+  const { data: myMess, isLoading: messLoading } = useGetMyMess(
+    isAuthenticated,
+  );
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -17,7 +23,7 @@ function DashboardContent() {
   }, [isAuthenticated, router]);
 
   if (!isAuthenticated) {
-    return null; // Will redirect via useEffect
+    return null;
   }
 
   return (
@@ -61,12 +67,42 @@ function DashboardContent() {
               <h2 className="mb-4 text-xl font-semibold text-foreground">
                 Quick Actions
               </h2>
-              <ul className="space-y-3 text-sm text-foreground-muted">
-                <li>View your messes</li>
-                <li>Manage meals</li>
-                <li>Check balances</li>
-                <li>View reports</li>
-              </ul>
+
+              {messLoading ? (
+                <p className="text-sm text-foreground-muted">Loading...</p>
+              ) : myMess ? (
+                <div className="space-y-4">
+                  <div className="rounded-lg border border-primary/30 bg-primary/10 p-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-primary">
+                      Current Mess
+                    </p>
+                    <p className="mt-1 font-semibold text-foreground">
+                      {myMess.name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-foreground-muted">
+                      You are a manager
+                    </p>
+                  </div>
+                  <ul className="space-y-2 text-sm text-foreground-muted">
+                    <li>Manage meals</li>
+                    <li>Check balances</li>
+                    <li>View reports</li>
+                    <li>Manage members</li>
+                  </ul>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-foreground-muted">
+                    Create a mess to get started.
+                  </p>
+                  <Link
+                    href="/dashboard/create-mess"
+                    className="flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+                  >
+                    Create Mess
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

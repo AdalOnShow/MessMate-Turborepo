@@ -72,11 +72,13 @@ Features:
 
 ## Create Mess
 
-Managers can:
+Features:
 
-- Create a mess
-- Configure initial settings
-- Become first manager automatically
+- User creates a mess
+- User becomes first manager automatically
+- `POST /messes` creates mess + assigns creator as `MANAGER`
+- `GET /messes/me` returns current mess
+- No initial meal config
 
 ---
 
