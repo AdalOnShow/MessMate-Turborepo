@@ -5,6 +5,7 @@ import {
   Get,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -31,6 +32,11 @@ export class UsersController {
   @Get('me')
   getProfile(@Req() req: AuthenticatedRequest) {
     return this.usersService.getProfile(req.user!.id);
+  }
+
+  @Get('search')
+  searchUsers(@Query('q') query: string) {
+    return this.usersService.searchUsers(query ?? '');
   }
 
   @Patch('me')

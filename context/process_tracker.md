@@ -5,7 +5,7 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (Phase 2 Complete, Phase 3 Next)
+Status: Active Development (Phase 3 In Progress — Members Complete)
 
 Frontend:
 Next.js 16
@@ -42,6 +42,7 @@ pnpm Workspace
 - [x] Create apps/api (NestJS 11)
 - [x] Create packages/database (Prisma + Neon)
 - [x] Create packages/shared (DTOs, types, API response, Zod validations)
+- [x] Shared Zod schemas + DTOs for members (packages/shared/src/messes/members.*)
 - [ ] Create packages/shared-types
 - [ ] Create packages/shared-utils
 - [ ] Create packages/validation
@@ -65,6 +66,7 @@ pnpm Workspace
 - [x] Global validation pipe (whitelist + forbidNonWhitelisted + transform)
 - [x] Global exception filter (ApiExceptionFilter)
 - [x] Logging interceptor (dev mode only)
+- [x] @Roles decorator + RolesGuard (role-based access control for mess endpoints)
 - [ ] Path Aliases (not configured in any tsconfig)
 
 ---
@@ -95,12 +97,16 @@ pnpm Workspace
       refreshAccessToken)
 - [x] Server actions for profile (getProfile, updateProfile, changePassword,
       uploadAvatar, deleteAvatar)
+- [x] Server actions for members (getMembers, addMember, removeMember,
+      updateMemberRole, searchUsers)
 - [x] Google Fonts: Plus Jakarta Sans + Alkatra (Bengali)
 - [x] Landing page: Navbar, Hero, Stats, Features, How It Works, Pricing, Footer
 - [x] Auth pages: /signin (with Google OAuth button + error handling), /signup
 - [x] Auth hooks: useSignin, useSignup, useLogout (React Query mutations)
 - [x] Profile hooks: useGetProfile, useUpdateProfile, useChangePassword,
       useUploadAvatar, useDeleteAvatar
+- [x] Member hooks: useMembers, useAddMember, useRemoveMember, useUpdateMemberRole,
+      useSearchUsers
 - [x] AuthInitializer component (session restoration on mount)
 - [x] ProtectedPage component (client-side redirect guard)
 - [x] Dashboard page (placeholder with user profile info + Quick Actions list)
@@ -108,6 +114,7 @@ pnpm Workspace
       password, account status)
 - [x] Sidebar component (responsive: desktop fixed + mobile drawer, nav links,
       user info, logout)
+- [x] Members page (/dashboard/members — table, filters, manager actions, dialogs)
 - [x] Bundle analyzer configured (Next.js)
 - [x] Root layout with metadata, SEO, OpenGraph
 - [ ] shadcn/ui setup (not installed — using custom Tailwind components)
@@ -230,6 +237,7 @@ pnpm Workspace
 - [x] Upload Avatar (POST /users/me/avatar) — Cloudinary upload with face-crop,
       old avatar cleanup
 - [x] Delete Avatar (DELETE /users/me/avatar) — Cloudinary deletion + DB cleanup
+- [x] Search Users (GET /users/search?q=...) — name/email search for Add Member flow
 
 ## Frontend Auth Pages
 
@@ -265,18 +273,23 @@ pnpm Workspace
 
 ## Members
 
-- [ ] Add Member
-- [ ] Remove Member
-- [ ] Active Members List
-- [ ] Removed Members List
+- [x] Add Member (backend: POST /messes/:messId/members, frontend: AddMemberDialog with user search)
+- [x] Remove Member (backend: DELETE /messes/:messId/members/:userId, frontend: RemoveMemberDialog with confirmation)
+- [x] Active Members List (backend: GET /messes/:messId/members?status=ACTIVE, frontend: table with filters)
+- [x] Removed Members List (backend: GET /messes/:messId/members?status=REMOVED, frontend: table with filters)
+- [x] Search Users (backend: GET /users/search?q=..., frontend: user search in AddMemberDialog)
+- [x] Members page with table, search, role/status filters, permission branching
+- [x] Loading skeletons, empty states, inline success/error messages
+- [x] Shared Zod schemas + DTOs in packages/shared/src/messes/members.schemas.ts
 
 ---
 
 ## Manager Assignment
 
-- [ ] Assign Manager
-- [ ] Remove Manager
-- [ ] Enforce Max Two Managers
+- [x] Assign Manager (backend: PATCH /messes/:messId/members/:userId/role, frontend: RoleChangeDialog)
+- [x] Remove Manager (same endpoint, demotes to MEMBER)
+- [x] Enforce Max Two Managers (backend validation + frontend disables MANAGER option when limit reached)
+- [x] Prevent Demoting Last Manager (backend validation + frontend disables MEMBER option)
 
 ---
 
@@ -467,8 +480,8 @@ pnpm Workspace
 
 ## Logging
 
-- [ ] Member Added
-- [ ] Member Removed
+- [x] Member Added
+- [x] Member Removed
 - [ ] Meal Added
 - [ ] Meal Updated
 - [ ] Expense Added
@@ -477,7 +490,7 @@ pnpm Workspace
 - [ ] Deposit Updated
 - [ ] Bazaar Submitted
 - [ ] Bazaar Approved
-- [ ] Manager Assigned
+- [x] Manager Assigned
 - [ ] Manager Removed
 
 ---
@@ -601,11 +614,15 @@ Phase 3 - Mess Management (In Progress)
 
 Completed:
 - Create Mess Module (POST, GET /messes)
+- Member Management (Add/Remove/List with mess_members table)
+- Manager Assignment (enforce max 2 managers, prevent demoting last manager)
+- Members page with table, search, filters, role/status, permission branching
+- Roles decorator + RolesGuard for backend RBAC
+- User search endpoint for Add Member flow
 
 Next Priority:
-- Member Management (Add/Remove/List with mess_members table)
-- Manager Assignment (enforce max 2 managers rule)
 - Join Request with Redis verification (generate code, store, verify)
+- Mess settings (update mess details)
 
 Prerequisites for Phase 3:
 - [ ] Redis setup (required for join request verification codes)

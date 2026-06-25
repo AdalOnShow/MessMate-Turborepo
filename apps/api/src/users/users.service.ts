@@ -166,6 +166,35 @@ export class UsersService {
     return user;
   }
 
+  async searchUsers(query: string): Promise<UserProfile[]> {
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+
+    const users = await prisma.users.findMany({
+      where: {
+        deleted_at: null,
+        OR: [
+          { name: { contains: query.trim(), mode: 'insensitive' } },
+          { email: { contains: query.trim(), mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        manager_created: true,
+        email_verified: true,
+      },
+      take: 20,
+      orderBy: { name: 'asc' },
+    });
+
+    return users;
+  }
+
   async deleteAvatar(userId: string): Promise<UserProfile> {
     const existing = await prisma.users.findUnique({
       where: { id: userId },
