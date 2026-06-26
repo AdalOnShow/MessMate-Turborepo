@@ -1,17 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../../store";
 import { useGetMyMess } from "../../../hooks/use-messes";
 import {
   useMembers,
-  useAddMember,
   useRemoveMember,
   useUpdateMemberRole,
   type MemberData,
   type MemberFilters,
 } from "../../../hooks/use-members";
+import { useInviteUser } from "../../../hooks/use-invites";
 import { Sidebar } from "../Sidebar";
 import { BottomNav } from "../BottomNav";
 import { MemberFiltersBar } from "./MemberFiltersBar";
@@ -43,12 +44,7 @@ export function MembersContent() {
     filters,
   );
 
-  const existingMemberIds = useMemo(
-    () => members.map((m) => m.user_id),
-    [members],
-  );
-
-  const addMember = useAddMember(messId ?? "");
+  const inviteUser = useInviteUser();
   const removeMember = useRemoveMember(messId ?? "");
   const updateMemberRole = useUpdateMemberRole(messId ?? "");
 
@@ -100,13 +96,21 @@ export function MembersContent() {
               </h1>
             </div>
             {isManager && (
-              <button
-                type="button"
-                onClick={() => setAddDialogOpen(true)}
-                className="self-start rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
-              >
-                Add Member
-              </button>
+              <div className="flex gap-3 self-start">
+                <button
+                  type="button"
+                  onClick={() => setAddDialogOpen(true)}
+                  className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+                >
+                  Invite Member
+                </button>
+                <Link
+                  href="/dashboard/members/create-account"
+                  className="rounded-lg border border-foreground-muted/20 px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+                >
+                  Create Member
+                </Link>
+              </div>
             )}
           </div>
 
@@ -142,13 +146,21 @@ export function MembersContent() {
                         ? "No members match your filters. Try adjusting your search."
                         : "Add members to your mess to get started."}
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => setAddDialogOpen(true)}
-                      className="mt-4 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
-                    >
-                      Add Member
-                    </button>
+                    <div className="mt-4 flex justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setAddDialogOpen(true)}
+                        className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+                      >
+                        Invite Member
+                      </button>
+                      <Link
+                        href="/dashboard/members/create-account"
+                        className="rounded-lg border border-foreground-muted/20 px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+                      >
+                        Create Member
+                      </Link>
+                    </div>
                   </div>
                 </>
               )}
@@ -188,19 +200,18 @@ export function MembersContent() {
 
       <MembersDialogs
         addDialogOpen={addDialogOpen}
-        existingMemberIds={existingMemberIds}
-        onAddMember={(userId) =>
-          addMember.mutate(userId, {
+        onInviteMember={(email) =>
+          inviteUser.mutate(email, {
             onSuccess: () => {
               setAddDialogOpen(false);
-              setSuccessMessage("Member added successfully");
+              setSuccessMessage("Invite sent successfully");
             },
             onError: () => {
-              setErrorMessage("Failed to add member. Please try again.");
+              setErrorMessage("Failed to send invite. Please try again.");
             },
           })
         }
-        addMemberPending={addMember.isPending}
+        inviteMemberPending={inviteUser.isPending}
         onCloseAddDialog={() => setAddDialogOpen(false)}
         roleDialogMember={roleDialogMember}
         managerCount={

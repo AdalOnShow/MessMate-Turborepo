@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -193,6 +194,90 @@ export class UsersService {
     });
 
     return users;
+  }
+
+  async createMemberAccount(
+    data: {
+      name: string;
+      email: string;
+      password: string;
+      phone?: string;
+      messId: string;
+    },
+    managerId: string,
+  ): Promise<UserProfile> {
+    const membership = await prisma.mess_members.findFirst({
+      where: {
+        mess_id: data.messId,
+        user_id: managerId,
+        removed_at: null,
+        deleted_at: null,
+      },
+      select: { mess_role: true },
+    });
+
+    if (!membership || membership.mess_role !== 'MANAGER') {
+      throw new ForbiddenException('Only managers can create member accounts');
+    }
+
+    const existing = await prisma.users.findFirst({
+      where: { email: data.email.trim().toLowerCase(), deleted_at: null },
+    });
+
+    if (existing) {
+      throw new BadRequestException(
+        'An account with this email already exists',
+      );
+    }
+
+    const saltRounds = Number(
+      this.configService.get('BCRYPT_SALT_ROUNDS') ?? 10,
+    );
+    const hashedPassword = await bcrypt.hash(data.password, saltRounds);
+
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.users.create({
+        data: {
+          name: data.name.trim(),
+          email: data.email.trim().toLowerCase(),
+          password: hashedPassword,
+          phone: data.phone?.trim() || null,
+          manager_created: true,
+          email_verified: false,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          avatar: true,
+          manager_created: true,
+          email_verified: true,
+        },
+      });
+
+      await tx.mess_members.create({
+        data: {
+          mess_id: data.messId,
+          user_id: newUser.id,
+          mess_role: 'MEMBER',
+        },
+      });
+
+      await tx.activity_logs.create({
+        data: {
+          mess_id: data.messId,
+          actor_id: managerId,
+          action: 'MEMBER_ADDED',
+          entity_type: 'mess_members',
+          entity_id: newUser.id,
+        },
+      });
+
+      return newUser;
+    });
+
+    return user;
   }
 
   async deleteAvatar(userId: string): Promise<UserProfile> {

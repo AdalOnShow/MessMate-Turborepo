@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useDebounce } from "../../../hooks/use-debounce";
 import { useSearchUsers } from "../../../hooks/use-members";
@@ -14,14 +15,12 @@ function initials(name?: string | null, email?: string | null) {
 }
 
 export function AddMemberDialog({
-  existingMemberIds,
   onClose,
-  onAdd,
+  onInvite,
   isPending,
 }: {
-  existingMemberIds: string[];
   onClose: () => void;
-  onAdd: (userId: string) => void;
+  onInvite: (email: string) => void;
   isPending: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,9 +36,10 @@ export function AddMemberDialog({
   const { data: searchResults = [], isLoading: searching } =
     useSearchUsers(debouncedQuery);
 
-  const filteredResults = searchResults.filter(
-    (u) => !existingMemberIds.includes(u.id),
-  );
+  const isEmail = searchQuery.includes("@") && searchQuery.length >= 3;
+
+  const showNotFound =
+    !searching && debouncedQuery.length >= 2 && searchResults.length === 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -61,9 +61,9 @@ export function AddMemberDialog({
               <p className="text-sm text-foreground-muted">Searching...</p>
             )}
 
-            {!searching && filteredResults.length > 0 && (
+            {!searching && searchResults.length > 0 && (
               <div className="mb-4 max-h-60 overflow-y-auto">
-                {filteredResults.map((u) => (
+                {searchResults.map((u) => (
                   <button
                     key={u.id}
                     type="button"
@@ -98,15 +98,31 @@ export function AddMemberDialog({
               </div>
             )}
 
-            {!searching &&
-              debouncedQuery.length >= 2 &&
-              filteredResults.length === 0 && (
-                <p className="mb-4 text-sm text-foreground-muted">
-                  {searchResults.length > 0
-                    ? "All matching users are already members"
-                    : "No users found"}
+            {showNotFound && isEmail && (
+              <div className="mb-4 rounded-lg border border-accent-warm/30 bg-accent-warm/10 p-4">
+                <p className="text-sm font-medium text-foreground">
+                  No account found for{" "}
+                  <span className="font-semibold">{searchQuery}</span>
                 </p>
-              )}
+                <p className="mt-1 text-xs text-foreground-muted">
+                  Would you like to create an account for this person?
+                </p>
+                <Link
+                  href={`/dashboard/members/create-account?email=${encodeURIComponent(searchQuery)}`}
+                  className="mt-3 inline-flex rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-hover"
+                >
+                  Create Account
+                </Link>
+              </div>
+            )}
+
+            {showNotFound && !isEmail && (
+              <p className="mb-4 text-sm text-foreground-muted">
+                {searchResults.length > 0
+                  ? "All matching users are already members"
+                  : "No users found"}
+              </p>
+            )}
           </>
         ) : (
           <div className="mb-4 flex items-center gap-3 rounded-lg bg-surface p-3">
@@ -150,11 +166,11 @@ export function AddMemberDialog({
           </button>
           <button
             type="button"
-            onClick={() => selectedUser && onAdd(selectedUser.id)}
+            onClick={() => selectedUser && onInvite(selectedUser.email)}
             disabled={!selectedUser || isPending}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isPending ? "Adding..." : "Add Member"}
+            {isPending ? "Sending..." : "Send Invite"}
           </button>
         </div>
       </div>

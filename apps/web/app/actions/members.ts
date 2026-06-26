@@ -41,14 +41,11 @@ export async function getMembers(
   const query = params.toString();
   const path = `/messes/${messId}/members${query ? `?${query}` : ""}`;
 
-  return api.get<{ success: boolean; data: MemberData[] }>(path);
+  return api.get<MemberData[]>(path);
 }
 
 export async function addMember(messId: string, userId: string) {
-  return api.post<{ success: boolean; data: MemberData }>(
-    `/messes/${messId}/members`,
-    { userId },
-  );
+  return api.post<MemberData>(`/messes/${messId}/members`, { userId });
 }
 
 export async function removeMember(messId: string, userId: string) {
@@ -62,14 +59,24 @@ export async function updateMemberRole(
   userId: string,
   role: "MANAGER" | "MEMBER",
 ) {
-  return api.patch<{ success: boolean; data: MemberData }>(
+  return api.patch<MemberData>(
     `/messes/${messId}/members/${userId}/role`,
     { role },
   );
 }
 
 export async function searchUsers(query: string) {
-  return api.get<{ success: boolean; data: UserSearchResult[] }>(
+  return api.get<UserSearchResult[]>(
     `/users/search?q=${encodeURIComponent(query)}`,
   );
+}
+
+export async function createMemberAccount(data: {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+  messId: string;
+}) {
+  return api.post<UserSearchResult>("/users/create-member", data);
 }

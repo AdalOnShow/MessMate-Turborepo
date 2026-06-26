@@ -10,6 +10,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ApiResponseMiddleware } from './common/api-response/api-response.middleware';
+import { InvitesModule } from './invites/invites.module';
 import { MessesModule } from './messes/messes.module';
 import { UsersModule } from './users/users.module';
 
@@ -28,6 +29,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
     MessesModule,
+    InvitesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

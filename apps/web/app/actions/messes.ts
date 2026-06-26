@@ -19,9 +19,9 @@ export interface MessInfo {
 }
 
 export async function getMyMess() {
-  return api.get<{ success: boolean; data: MessInfo | null }>("/messes/me");
+  return api.get<MessInfo | null>("/messes/me");
 }
 
 export async function createMess(data: CreateMessPayload) {
-  return api.post<{ success: boolean; data: MessInfo }>("/messes", data);
+  return api.post<MessInfo>("/messes", data);
 }

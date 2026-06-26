@@ -62,6 +62,7 @@ export class MessesController {
   @Get('me')
   async getMyMess(@Req() req: AuthenticatedRequest): Promise<{
     success: true;
+    message: string;
     data: import('@repo/shared').MessResponse | null;
   }> {
     const userId = req.user!.id;
@@ -71,6 +72,7 @@ export class MessesController {
 
     return {
       success: true,
+      message: 'Request completed successfully',
       data,
     };
   }
@@ -84,6 +86,7 @@ export class MessesController {
     @Query('status') status?: 'ACTIVE' | 'REMOVED',
   ): Promise<{
     success: true;
+    message: string;
     data: import('@repo/shared').MessMemberWithUser[];
   }> {
     const userId = req.user!.id;
@@ -98,6 +101,7 @@ export class MessesController {
 
     return {
       success: true,
+      message: 'Request completed successfully',
       data,
     };
   }

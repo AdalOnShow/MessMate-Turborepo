@@ -23,7 +23,7 @@ export function useMembers(messId: string | undefined, filters?: MemberFilters) 
     queryFn: async () => {
       if (!messId) return [];
       const result = await getMembers(messId, filters);
-      return result.data;
+      return result;
     },
     enabled: !!messId,
   });
@@ -35,7 +35,7 @@ export function useAddMember(messId: string) {
   return useMutation({
     mutationFn: async (userId: string) => {
       const result = await addMember(messId, userId);
-      return result.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members", messId] });
@@ -68,7 +68,7 @@ export function useUpdateMemberRole(messId: string) {
       role: "MANAGER" | "MEMBER";
     }) => {
       const result = await updateMemberRole(messId, userId, role);
-      return result.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members", messId] });
@@ -82,7 +82,7 @@ export function useSearchUsers(query: string) {
     queryFn: async () => {
       if (!query || query.length < 2) return [];
       const result = await searchUsers(query);
-      return result.data;
+      return result;
     },
     enabled: query.length >= 2,
     initialData: [],

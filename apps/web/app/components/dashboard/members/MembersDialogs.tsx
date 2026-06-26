@@ -7,9 +7,8 @@ import { RemoveMemberDialog } from "./RemoveMemberDialog";
 
 export function MembersDialogs({
   addDialogOpen,
-  existingMemberIds,
-  onAddMember,
-  addMemberPending,
+  onInviteMember,
+  inviteMemberPending,
   onCloseAddDialog,
   roleDialogMember,
   managerCount,
@@ -22,9 +21,8 @@ export function MembersDialogs({
   onCloseRemoveDialog,
 }: {
   addDialogOpen: boolean;
-  existingMemberIds: string[];
-  onAddMember: (userId: string) => void;
-  addMemberPending: boolean;
+  onInviteMember: (email: string) => void;
+  inviteMemberPending: boolean;
   onCloseAddDialog: () => void;
   roleDialogMember: MemberData | null;
   managerCount: number;
@@ -40,10 +38,9 @@ export function MembersDialogs({
     <>
       {addDialogOpen && (
         <AddMemberDialog
-          existingMemberIds={existingMemberIds}
           onClose={onCloseAddDialog}
-          onAdd={onAddMember}
-          isPending={addMemberPending}
+          onInvite={onInviteMember}
+          isPending={inviteMemberPending}
         />
       )}
 

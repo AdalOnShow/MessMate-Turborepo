@@ -8,7 +8,7 @@ export function useGetMyMess(enabled = true) {
     queryKey: ["my-mess"],
     queryFn: async () => {
       const result = await getMyMess();
-      return result.data;
+      return result;
     },
     enabled,
   });
@@ -20,7 +20,7 @@ export function useCreateMess() {
   return useMutation({
     mutationFn: async (payload: { name: string; description?: string }) => {
       const result = await createMess(payload);
-      return result.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-mess"] });

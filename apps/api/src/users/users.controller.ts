@@ -72,4 +72,19 @@ export class UsersController {
   deleteAvatar(@Req() req: AuthenticatedRequest) {
     return this.usersService.deleteAvatar(req.user!.id);
   }
+
+  @Post('create-member')
+  createMember(
+    @Req() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      name: string;
+      email: string;
+      password: string;
+      phone?: string;
+      messId: string;
+    },
+  ) {
+    return this.usersService.createMemberAccount(body, req.user!.id);
+  }
 }
