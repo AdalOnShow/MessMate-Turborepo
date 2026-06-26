@@ -73,29 +73,31 @@ Managers can create users directly.
 Required fields:
 
 - Name
-- Email
-
-System generates:
-
-```text
-Temporary Password
-```
-
-Example:
-
-```text
-Password: X8mK4Pq2
-```
-
-Manager can see this password only until the user updates their account.
-
-After the user updates:
-
+- Email (must not already exist)
 - Password
-- Email
-- Profile
+- Phone (optional)
 
-Manager loses access to the generated password.
+Flow:
+
+```text
+Manager
+ ↓
+Create Account Page (/dashboard/members/create-account)
+ ↓
+Fills: Name, Email, Password, Phone
+ ↓
+POST /users/create-member
+ ↓
+Backend:
+  1. Validates manager role
+  2. Creates user (manager_created: true)
+  3. Auto-adds to mess as MEMBER
+  4. Logs activity: MEMBER_ADDED
+ ↓
+Redirect to /dashboard/members
+```
+
+The created user can then log in with the email/password set by the manager.
 
 ---
 
@@ -130,6 +132,7 @@ Authenticated users can manage their profile via:
 - GET /users/me - Get current user profile
 - PATCH /users/me - Update profile (name, phone)
 - PATCH /users/me/password - Change password
+- POST /users/create-member - Manager creates member account (MANAGER only)
 
 Profile response includes:
 
@@ -251,8 +254,9 @@ There is no owner hierarchy.
 
 Managers can:
 
-- Add members
+- Add/invite members
 - Remove members
+- Create member accounts
 - Add meals
 - Update meals
 - Add deposits
@@ -267,48 +271,86 @@ Managers can:
 
 # Member Joining Flow
 
-## Existing User Flow
+## Existing User Flow (Invite System)
 
-Manager searches for a user.
+Manager searches for a user by email.
 
 ```text
-Search User
+Manager opens Add Member dialog
  ↓
-Select User
+Types email in search
  ↓
-Send Join Request
+User found?
+  YES → Show user card → Manager clicks "Send Invite"
+           ↓
+      POST /invites { email }
+           ↓
+      Backend:
+        1. Validates manager role
+        2. Checks: not already member, no pending invite, not previously removed
+        3. Creates join_requests row (status: PENDING)
+        4. Logs activity: MEMBER_ADDED
+           ↓
+      Close dialog, show "Invite sent" success
+
+  NO → Show "No account found" message
+           ↓
+      Link: "Create Account" → /dashboard/members/create-account?email=...
 ```
 
-System generates:
+## Invited User Accepts
 
 ```text
-6 Digit Verification Code
-```
-
-Stored in Redis.
-
-Example:
-
-```text
-583214
-```
-
-User sees:
-
-```text
-Pending Join Request
-Verification Code:
-583214
-```
-
-User sends code to manager.
-
-Manager enters code.
-
-```text
-Verification Success
+User logs in
  ↓
-Member Added
+Dashboard loads
+ ↓
+usePendingInvites() → GET /invites/pending
+ ↓
+Backend auto-expires invites older than 7 days
+ ↓
+Returns remaining PENDING invites
+ ↓
+InviteBanner renders with Accept/Reject buttons
+ ↓
+User clicks "Accept"
+ ↓
+POST /invites/:id/accept
+ ↓
+Backend transaction:
+  1. CREATE mess_members (user → MEMBER)
+  2. UPDATE join_requests SET status = ACCEPTED, verified_at = now()
+  3. CREATE activity_logs MEMBER_ADDED
+ ↓
+Invalidate ['members', 'invites'] queries
+ ↓
+Banner disappears, member appears in table
+```
+
+## Invited User Rejects
+
+```text
+User clicks "Reject"
+ ↓
+POST /invites/:id/reject
+ ↓
+UPDATE join_requests SET status = REJECTED, verified_at = now()
+ ↓
+Invalidate ['invites'] query
+ ↓
+Banner disappears
+```
+
+## 7-Day Expiry
+
+```text
+getPendingInvites(userId) called
+ ↓
+Find invites WHERE user_id = me AND status = PENDING AND created_at < now() - 7 days
+ ↓
+UPDATE join_requests SET status = EXPIRED (bulk update)
+ ↓
+Return remaining PENDING invites
 ```
 
 ---

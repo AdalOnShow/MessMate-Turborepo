@@ -5,7 +5,7 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (Phase 3 In Progress — Members Complete)
+Status: Active Development (Phase 3 In Progress — Members + Invite System Complete)
 
 Frontend:
 Next.js 16
@@ -98,7 +98,8 @@ pnpm Workspace
 - [x] Server actions for profile (getProfile, updateProfile, changePassword,
       uploadAvatar, deleteAvatar)
 - [x] Server actions for members (getMembers, addMember, removeMember,
-      updateMemberRole, searchUsers)
+      updateMemberRole, searchUsers, createMemberAccount)
+- [x] Server actions for invites (inviteUser, getPendingInvites, acceptInvite, rejectInvite)
 - [x] Google Fonts: Plus Jakarta Sans + Alkatra (Bengali)
 - [x] Landing page: Navbar, Hero, Stats, Features, How It Works, Pricing, Footer
 - [x] Auth pages: /signin (with Google OAuth button + error handling), /signup
@@ -107,6 +108,7 @@ pnpm Workspace
       useUploadAvatar, useDeleteAvatar
 - [x] Member hooks: useMembers, useAddMember, useRemoveMember, useUpdateMemberRole,
       useSearchUsers
+- [x] Invite hooks: usePendingInvites, useInviteUser, useAcceptInvite, useRejectInvite
 - [x] AuthInitializer component (session restoration on mount)
 - [x] ProtectedPage component (client-side redirect guard)
 - [x] Dashboard page (placeholder with user profile info + Quick Actions list)
@@ -114,7 +116,8 @@ pnpm Workspace
       password, account status)
 - [x] Sidebar component (responsive: desktop fixed + mobile drawer, nav links,
       user info, logout)
-- [x] Members page (/dashboard/members — table, filters, manager actions, dialogs)
+- [x] Members page (/dashboard/members — table, filters, manager actions, dialogs, invite flow)
+- [x] Create Account page (/dashboard/members/create-account — manager creates member account)
 - [x] Bundle analyzer configured (Next.js)
 - [x] Root layout with metadata, SEO, OpenGraph
 - [ ] shadcn/ui setup (not installed — using custom Tailwind components)
@@ -190,7 +193,7 @@ pnpm Workspace
 - [x] Configure Soft Deletes (deleted_at on all major entities)
 - [ ] Seed Initial Data (not done)
 - [x] Generate Prisma Client
-- [ ] Redis setup (not configured - needed for join verification codes)
+- [ ] Redis setup (no longer needed for join requests — invite system uses DB-only join_requests table)
 - [ ] Remove meal_entry_items table (ADR-021 specifies JSONB-based meal storage)
 
 > **Issue:** Schema still includes `meal_entry_items` table, but ADR-021
@@ -253,8 +256,9 @@ pnpm Workspace
 
 ## Manager Created Account
 
-- [ ] Create Member Account (not implemented)
-- [ ] Temporary Password Flow (not implemented)
+- [x] Create Member Account (POST /users/create-member — manager creates user + auto-adds to mess)
+- [x] Create Member Account Page (/dashboard/members/create-account — form with name, email, password, phone)
+- [ ] Temporary Password Flow (not implemented — manager manually sets password)
 - [ ] First Time Setup Flow (not implemented)
 - [ ] One Time Email Update Logic (not implemented)
 
@@ -274,6 +278,11 @@ pnpm Workspace
 ## Members
 
 - [x] Add Member (backend: POST /messes/:messId/members, frontend: AddMemberDialog with user search)
+- [x] Invite Member (backend: POST /invites, frontend: AddMemberDialog → search → "Send Invite")
+- [x] Accept/Reject Invite (backend: POST /invites/:id/accept|reject, frontend: InviteBanner on dashboard)
+- [x] Pending Invites (backend: GET /invites/pending, frontend: usePendingInvites hook)
+- [x] Invite Expiry (7-day automatic expiry in getPendingInvites)
+- [x] Create Member Account (backend: POST /users/create-member, frontend: /dashboard/members/create-account page)
 - [x] Remove Member (backend: DELETE /messes/:messId/members/:userId, frontend: RemoveMemberDialog with confirmation)
 - [x] Active Members List (backend: GET /messes/:messId/members?status=ACTIVE, frontend: table with filters)
 - [x] Removed Members List (backend: GET /messes/:messId/members?status=REMOVED, frontend: table with filters)
@@ -293,12 +302,19 @@ pnpm Workspace
 
 ---
 
-## Join Request
+## Join Request (Invite System)
 
-- [ ] Generate Verification Code
-- [ ] Redis Storage
-- [ ] Verify Join Request
-- [ ] Join Request History
+- [x] Invite User (POST /invites — manager sends invite to existing user via email)
+- [x] Get Pending Invites (GET /invites/pending — user sees pending invites on dashboard)
+- [x] Accept Invite (POST /invites/:id/accept — user becomes member, join_requests status = ACCEPTED)
+- [x] Reject Invite (POST /invites/:id/reject — invite cancelled, join_requests status = REJECTED)
+- [x] 7-Day Expiry (auto-expires PENDING invites older than 7 days in getPendingInvites)
+- [x] Duplicate Prevention (ensureCanInvite checks: already member, already pending, previously removed)
+- [x] Activity Logging (invite sends MEMBER_ADDED log, accept creates mess_members + log)
+- [x] Dashboard Notification Banner (InviteBanner with Accept/Reject buttons)
+- [x] AddMemberDialog → Invite Flow (search → select → "Send Invite" instead of direct add)
+- [x] Not-Found User → Create Account Link (shows "Create Account" when email not registered)
+- [ ] Redis Verification Code (not needed — replaced by DB-only invite flow)
 
 ---
 
@@ -619,13 +635,15 @@ Completed:
 - Members page with table, search, filters, role/status, permission branching
 - Roles decorator + RolesGuard for backend RBAC
 - User search endpoint for Add Member flow
+- Invite System (invite/accept/reject/expiry using existing join_requests table)
+- Manager Created Account (POST /users/create-member + create-account page)
+- Dashboard Invite Notification Banner
 
 Next Priority:
-- Join Request with Redis verification (generate code, store, verify)
 - Mess settings (update mess details)
+- Month Management (Phase 4)
 
 Prerequisites for Phase 3:
-- [ ] Redis setup (required for join request verification codes)
 - [ ] Remove meal_entry_items table (ADR-021 cleanup)
 - [ ] Optional: Protected route layout group for dashboard pages
 

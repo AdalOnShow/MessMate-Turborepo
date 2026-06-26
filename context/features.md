@@ -60,11 +60,14 @@ Managers can create accounts for members.
 
 Features:
 
-- Create member account
-- Generate temporary password
-- Share credentials with member
-- First-time profile completion
-- One-time email update
+- [x] Create member account (POST /users/create-member)
+- [x] Manager fills name, email, password, phone
+- [x] User created with `manager_created: true`
+- [x] Auto-added to manager's mess as MEMBER
+- [ ] Generate temporary password (manager sets password manually)
+- [ ] Share credentials with member
+- [ ] First-time profile completion
+- [ ] One-time email update
 
 ---
 
@@ -94,15 +97,20 @@ Features:
 
 ---
 
-## Join Verification
+## Join Verification (Invite System)
 
 Features:
 
-- Search existing user
-- Send join request
-- Generate 6-digit verification code
-- Redis verification flow
-- Join request history
+- [x] Search existing user
+- [x] Send invite (POST /invites — uses existing join_requests table)
+- [x] Pending invites shown on dashboard (InviteBanner with Accept/Reject)
+- [x] Accept invite → becomes member (creates mess_members row)
+- [x] Reject invite → invite cancelled
+- [x] 7-day auto-expiry for pending invites
+- [x] Duplicate prevention (already member, already pending, previously removed)
+- [x] Manager-created accounts: manager can create user + auto-add to mess
+- [ ] 6-digit verification code (replaced by DB-only invite flow)
+- [ ] Redis verification flow (not needed)
 
 ---
 
