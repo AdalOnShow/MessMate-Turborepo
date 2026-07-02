@@ -85,7 +85,7 @@ export function useSearchUsers(query: string) {
       return result;
     },
     enabled: query.length >= 2,
-    initialData: [],
+    retry: false,
   });
 }
 
