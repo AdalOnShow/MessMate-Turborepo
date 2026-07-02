@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../store";
-import { AuthInitializer } from "../../components/AuthInitializer";
 import { useGetMyMess, useCreateMess } from "../../hooks/use-messes";
 
 function CreateMessForm() {
@@ -170,11 +169,5 @@ function CreateMessContent() {
 }
 
 export default function CreateMessPage() {
-  return (
-    <AuthInitializer>
-      <div className="min-h-screen bg-background px-4 py-8 md:px-6 md:py-10 lg:px-8">
-        <CreateMessContent />
-      </div>
-    </AuthInitializer>
-  );
+  return <CreateMessContent />;
 }

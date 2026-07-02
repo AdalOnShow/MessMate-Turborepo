@@ -19,10 +19,10 @@ import { useGetMyMess } from "../../hooks/use-messes";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/dashboard/members", label: "Members", icon: Users },
-  { href: "/meals", label: "Meals", icon: Utensils },
-  { href: "/expenses", label: "Expenses", icon: ReceiptText },
-  { href: "/deposits", label: "Deposits", icon: WalletCards },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/dashboard/meals", label: "Meals", icon: Utensils },
+  { href: "/dashboard/expenses", label: "Expenses", icon: ReceiptText },
+  { href: "/dashboard/deposits", label: "Deposits", icon: WalletCards },
+  { href: "/dashboard/profile", label: "Profile", icon: User },
 ];
 
 function initials(name?: string | null, email?: string | null) {
@@ -58,7 +58,9 @@ export function Sidebar() {
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = pathname === item.href;
+          const active =
+            pathname === item.href ||
+            (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
 
           return (
             <Link

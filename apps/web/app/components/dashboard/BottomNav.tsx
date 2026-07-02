@@ -14,10 +14,10 @@ import {
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/dashboard/members", label: "Members", icon: Users },
-  { href: "/meals", label: "Meals", icon: Utensils },
-  { href: "/expenses", label: "Expenses", icon: ReceiptText },
-  { href: "/deposits", label: "Deposits", icon: WalletCards },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/dashboard/meals", label: "Meals", icon: Utensils },
+  { href: "/dashboard/expenses", label: "Expenses", icon: ReceiptText },
+  { href: "/dashboard/deposits", label: "Deposits", icon: WalletCards },
+  { href: "/dashboard/profile", label: "Profile", icon: User },
 ];
 
 export function BottomNav() {
@@ -28,7 +28,10 @@ export function BottomNav() {
       <div className="flex items-stretch justify-around gap-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = pathname === item.href;
+          const active =
+            pathname === item.href ||
+            (item.href !== "/dashboard" &&
+              pathname.startsWith(item.href + "/"));
 
           return (
             <Link

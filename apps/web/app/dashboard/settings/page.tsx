@@ -3,9 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../store";
-import { AuthInitializer } from "../../components/AuthInitializer";
-import { Sidebar } from "../../components/dashboard/Sidebar";
-import { BottomNav } from "../../components/dashboard/BottomNav";
 import {
   useGetMyMess,
   useGetDefaultMeals,
@@ -189,117 +186,78 @@ function SettingsContent() {
     useGetMyMess(isAuthenticated);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/signin");
-    }
-  }, [isAuthenticated, router]);
-
-  useEffect(() => {
     if (!messLoading && myMess && myMess.current_user_role !== "MANAGER") {
       router.push("/dashboard");
     }
   }, [messLoading, myMess, router]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
   if (messLoading) {
     return (
-      <div className="min-h-screen bg-background pb-20 lg:ml-72 lg:pb-8">
-        <Sidebar />
-        <main className="px-4 py-8 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            </div>
-          </div>
-        </main>
-        <BottomNav />
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!myMess) {
     return (
-      <div className="min-h-screen bg-background pb-20 lg:ml-72 lg:pb-8">
-        <Sidebar />
-        <main className="px-4 py-8 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <p className="text-sm text-foreground-muted">
-              You need to be part of a mess to access settings.
-            </p>
-          </div>
-        </main>
-        <BottomNav />
-      </div>
+      <p className="text-sm text-foreground-muted">
+        You need to be part of a mess to access settings.
+      </p>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 lg:ml-72 lg:pb-8">
-      <Sidebar />
-      <main className="px-4 py-8 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8">
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-              Settings
-            </p>
-            <h1 className="mt-2 text-3xl font-bold text-foreground">
-              Mess Settings
-            </h1>
-          </div>
+    <>
+      <div className="mb-8">
+        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+          Settings
+        </p>
+        <h1 className="mt-2 text-3xl font-bold text-foreground">
+          Mess Settings
+        </h1>
+      </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
-              <div className="mb-4 flex items-center gap-2">
-                <Settings size={18} className="text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">
-                  Mess Info
-                </h2>
-              </div>
-              <dl className="space-y-3 text-sm">
-                <div>
-                  <dt className="text-foreground-muted">Name</dt>
-                  <dd className="font-medium text-foreground">{myMess.name}</dd>
-                </div>
-                <div>
-                  <dt className="text-foreground-muted">Slug</dt>
-                  <dd className="font-medium text-foreground">{myMess.slug}</dd>
-                </div>
-                <div>
-                  <dt className="text-foreground-muted">Description</dt>
-                  <dd className="font-medium text-foreground">
-                    {myMess.description || "No description"}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-
-            <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Default Meals
-                </h2>
-                <p className="mt-1 text-xs text-foreground-muted">
-                  Configure which meals are included by default each day
-                </p>
-              </div>
-              <DefaultMealsConfig />
-            </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Settings size={18} className="text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Mess Info</h2>
           </div>
+          <dl className="space-y-3 text-sm">
+            <div>
+              <dt className="text-foreground-muted">Name</dt>
+              <dd className="font-medium text-foreground">{myMess.name}</dd>
+            </div>
+            <div>
+              <dt className="text-foreground-muted">Slug</dt>
+              <dd className="font-medium text-foreground">{myMess.slug}</dd>
+            </div>
+            <div>
+              <dt className="text-foreground-muted">Description</dt>
+              <dd className="font-medium text-foreground">
+                {myMess.description || "No description"}
+              </dd>
+            </div>
+          </dl>
         </div>
-      </main>
 
-      <BottomNav />
-    </div>
+        <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-foreground">
+              Default Meals
+            </h2>
+            <p className="mt-1 text-xs text-foreground-muted">
+              Configure which meals are included by default each day
+            </p>
+          </div>
+          <DefaultMealsConfig />
+        </div>
+      </div>
+    </>
   );
 }
 
 export default function SettingsPage() {
-  return (
-    <AuthInitializer>
-      <SettingsContent />
-    </AuthInitializer>
-  );
+  return <SettingsContent />;
 }

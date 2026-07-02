@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../../store";
 import { useGetMyMess } from "../../../hooks/use-messes";
 import {
@@ -13,8 +12,6 @@ import {
   type MemberFilters,
 } from "../../../hooks/use-members";
 import { useInviteUser } from "../../../hooks/use-invites";
-import { Sidebar } from "../Sidebar";
-import { BottomNav } from "../BottomNav";
 import { MemberFiltersBar } from "./MemberFiltersBar";
 import { MembersTable } from "./MembersTable";
 import { MembersDialogs } from "./MembersDialogs";
@@ -22,7 +19,6 @@ import { MembersFeedback } from "./MembersFeedback";
 
 export function MembersContent() {
   const { user, isAuthenticated } = useSessionStore();
-  const router = useRouter();
   const { data: myMess, isLoading: messLoading } =
     useGetMyMess(isAuthenticated);
 
@@ -63,12 +59,6 @@ export function MembersContent() {
   );
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/signin");
-    }
-  }, [isAuthenticated, router]);
-
-  useEffect(() => {
     if (!successMessage && !errorMessage) return;
     const timer = setTimeout(() => {
       setSuccessMessage(null);
@@ -77,126 +67,112 @@ export function MembersContent() {
     return () => clearTimeout(timer);
   }, [successMessage, errorMessage]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen bg-background pb-20 lg:ml-72 lg:pb-8">
-      <Sidebar />
-      <main className="px-4 py-8 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-                Members
-              </p>
-              <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">
-                Mess Members
-              </h1>
-            </div>
-            {isManager && (
-              <div className="flex gap-3 self-start">
-                <button
-                  type="button"
-                  onClick={() => setAddDialogOpen(true)}
-                  className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
-                >
-                  Invite Member
-                </button>
-                <Link
-                  href="/dashboard/members/create-account"
-                  className="rounded-lg border border-foreground-muted/20 px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
-                >
-                  Create Member
-                </Link>
-              </div>
-            )}
+    <>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+            Members
+          </p>
+          <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">
+            Mess Members
+          </h1>
+        </div>
+        {isManager && (
+          <div className="flex gap-3 self-start">
+            <button
+              type="button"
+              onClick={() => setAddDialogOpen(true)}
+              className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+            >
+              Invite Member
+            </button>
+            <Link
+              href="/dashboard/members/create-account"
+              className="rounded-lg border border-foreground-muted/20 px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+            >
+              Create Member
+            </Link>
           </div>
+        )}
+      </div>
 
-          <MembersFeedback
-            successMessage={successMessage}
-            errorMessage={errorMessage}
-          />
+      <MembersFeedback
+        successMessage={successMessage}
+        errorMessage={errorMessage}
+      />
 
-          {messLoading || membersLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-16 animate-pulse rounded-lg bg-surface"
-                />
-              ))}
-            </div>
-          ) : members.length === 0 ? (
-            <div className="space-y-4">
-              {isManager && (
-                <>
-                  <MemberFiltersBar
-                    onSearchChange={handleSearchChange}
-                    filters={filters}
-                    onFilterChange={handleFilterChange}
-                  />
-                  <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center sm:p-12">
-                    <p className="text-lg font-semibold text-foreground">
-                      No members found
-                    </p>
-                    <p className="mt-2 text-sm text-foreground-muted">
-                      {filters.search || filters.role || filters.status
-                        ? "No members match your filters. Try adjusting your search."
-                        : "Add members to your mess to get started."}
-                    </p>
-                    <div className="mt-4 flex justify-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setAddDialogOpen(true)}
-                        className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
-                      >
-                        Invite Member
-                      </button>
-                      <Link
-                        href="/dashboard/members/create-account"
-                        className="rounded-lg border border-foreground-muted/20 px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
-                      >
-                        Create Member
-                      </Link>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {!isManager && (
-                <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center sm:p-12">
-                  <p className="text-lg font-semibold text-foreground">
-                    No members found
-                  </p>
-                  <p className="mt-2 text-sm text-foreground-muted">
-                    No members in this mess yet.
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
+      {messLoading || membersLoading ? (
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 animate-pulse rounded-lg bg-surface" />
+          ))}
+        </div>
+      ) : members.length === 0 ? (
+        <div className="space-y-4">
+          {isManager && (
+            <>
               <MemberFiltersBar
                 onSearchChange={handleSearchChange}
                 filters={filters}
                 onFilterChange={handleFilterChange}
               />
+              <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center sm:p-12">
+                <p className="text-lg font-semibold text-foreground">
+                  No members found
+                </p>
+                <p className="mt-2 text-sm text-foreground-muted">
+                  {filters.search || filters.role || filters.status
+                    ? "No members match your filters. Try adjusting your search."
+                    : "Add members to your mess to get started."}
+                </p>
+                <div className="mt-4 flex justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setAddDialogOpen(true)}
+                    className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+                  >
+                    Invite Member
+                  </button>
+                  <Link
+                    href="/dashboard/members/create-account"
+                    className="rounded-lg border border-foreground-muted/20 px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+                  >
+                    Create Member
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
 
-              <MembersTable
-                members={members}
-                isManager={isManager}
-                currentUserId={user?.id}
-                onRoleClick={setRoleDialogMember}
-                onRemoveClick={setRemoveDialogMember}
-              />
+          {!isManager && (
+            <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center sm:p-12">
+              <p className="text-lg font-semibold text-foreground">
+                No members found
+              </p>
+              <p className="mt-2 text-sm text-foreground-muted">
+                No members in this mess yet.
+              </p>
             </div>
           )}
         </div>
-      </main>
+      ) : (
+        <div className="space-y-4">
+          <MemberFiltersBar
+            onSearchChange={handleSearchChange}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+          />
 
-      <BottomNav />
+          <MembersTable
+            members={members}
+            isManager={isManager}
+            currentUserId={user?.id}
+            onRoleClick={setRoleDialogMember}
+            onRemoveClick={setRemoveDialogMember}
+          />
+        </div>
+      )}
 
       <MembersDialogs
         addDialogOpen={addDialogOpen}
@@ -249,6 +225,6 @@ export function MembersContent() {
         removeMemberPending={removeMember.isPending}
         onCloseRemoveDialog={() => setRemoveDialogMember(null)}
       />
-    </div>
+    </>
   );
 }
