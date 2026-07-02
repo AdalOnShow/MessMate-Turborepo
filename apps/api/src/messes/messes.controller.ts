@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -21,6 +22,7 @@ import type {
   AddMemberInput,
   MemberFilters,
   UpdateMemberRoleInput,
+  UpdateDefaultMealsDto,
 } from '@repo/shared';
 
 type AuthenticatedRequest = Request & {
@@ -186,6 +188,86 @@ export class MessesController {
     return {
       success: true,
       message: 'Member role updated successfully',
+      data,
+    };
+  }
+
+  @Get(':messId/default-meals')
+  async getDefaultMeals(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').DefaultMealResponse[];
+  }> {
+    const userId = req.user!.id;
+    this.logger.log(`📮 GET /messes/${messId}/default-meals - user: ${userId}`);
+
+    const data = await this.messesService.getDefaultMeals(messId);
+
+    return {
+      success: true,
+      message: 'Default meals retrieved successfully',
+      data,
+    };
+  }
+
+  @Put(':messId/default-meals')
+  @UseGuards(RolesGuard)
+  @Roles('MANAGER')
+  async updateDefaultMeals(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Body() body: UpdateDefaultMealsDto,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').DefaultMealResponse[];
+  }> {
+    const actorId = req.user!.id;
+    this.logger.log(
+      `📮 PUT /messes/${messId}/default-meals - actor: ${actorId}`,
+    );
+
+    const data = await this.messesService.updateDefaultMeals(
+      messId,
+      actorId,
+      body,
+    );
+
+    return {
+      success: true,
+      message: 'Default meals updated successfully',
+      data,
+    };
+  }
+
+  @Get(':messId/meal-types')
+  async getMealTypes(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: {
+      id: string;
+      mess_id: string;
+      name: string;
+      value: number;
+      is_active: boolean;
+      created_at: string;
+      updated_at: string;
+    }[];
+  }> {
+    const userId = req.user!.id;
+    this.logger.log(`📮 GET /messes/${messId}/meal-types - user: ${userId}`);
+
+    const data = await this.messesService.getMealTypes(messId);
+
+    return {
+      success: true,
+      message: 'Meal types retrieved successfully',
       data,
     };
   }

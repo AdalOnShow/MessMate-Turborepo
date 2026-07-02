@@ -6,6 +6,7 @@ import {
   Home,
   LogOut,
   ReceiptText,
+  Settings,
   User,
   Users,
   Utensils,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { useSessionStore } from "../../store";
 import { useLogout } from "../../hooks/use-auth";
+import { useGetMyMess } from "../../hooks/use-messes";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -36,6 +38,8 @@ export function Sidebar() {
   const pathname = usePathname();
   const user = useSessionStore((state) => state.user);
   const logout = useLogout();
+  const { data: myMess } = useGetMyMess();
+  const isManager = myMess?.current_user_role === "MANAGER";
 
   return (
     <aside className="hidden lg:flex lg:fixed lg:inset-y-0 lg:left-0 lg:w-72 lg:flex-col">
@@ -71,6 +75,20 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {isManager && (
+          <Link
+            href="/dashboard/settings"
+            className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition-colors ${
+              pathname === "/dashboard/settings"
+                ? "bg-primary text-background"
+                : "text-foreground-muted hover:bg-surface-raised hover:text-foreground"
+            }`}
+          >
+            <Settings size={18} aria-hidden="true" />
+            Settings
+          </Link>
+        )}
       </nav>
 
       <div className="border-t border-foreground-muted/10 p-4">

@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, prisma } from '@repo/database';
-import { type CreateMessDto } from '@repo/shared';
+import { type CreateMessDto, type UpdateDefaultMealsDto } from '@repo/shared';
 import type { MemberFilters, MessMemberWithUser } from '@repo/shared';
 
 export type MessWithMembership = {
@@ -365,5 +365,110 @@ export class MessesService {
       removed_at: updated.removed_at?.toISOString() ?? null,
       user: updated.user,
     };
+  }
+
+  async getDefaultMeals(messId: string) {
+    const defaults = await prisma.meal_entry_items.findMany({
+      where: { mess_id: messId },
+      include: {
+        meal_type: {
+          select: {
+            id: true,
+            name: true,
+            value: true,
+            is_active: true,
+          },
+        },
+      },
+      orderBy: { meal_type: { name: 'asc' } },
+    });
+
+    return defaults.map((d) => ({
+      id: d.id,
+      mess_id: d.mess_id,
+      meal_type_id: d.meal_type_id,
+      meal_value: Number(d.meal_value),
+      created_at: d.created_at.toISOString(),
+      meal_type: {
+        id: d.meal_type.id,
+        name: d.meal_type.name,
+        value: Number(d.meal_type.value),
+        is_active: d.meal_type.is_active,
+      },
+    }));
+  }
+
+  async updateDefaultMeals(
+    messId: string,
+    actorId: string,
+    data: UpdateDefaultMealsDto,
+  ) {
+    // Verify all meal type IDs belong to this mess and are active
+    const mealTypeIds = data.meals.map((m) => m.mealTypeId);
+    const validMealTypes = await prisma.meal_types.findMany({
+      where: {
+        id: { in: mealTypeIds },
+        mess_id: messId,
+        is_active: true,
+        deleted_at: null,
+      },
+    });
+
+    if (validMealTypes.length !== mealTypeIds.length) {
+      throw new BadRequestException(
+        'One or more meal types are invalid or do not belong to this mess',
+      );
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Delete existing defaults
+      await tx.meal_entry_items.deleteMany({
+        where: { mess_id: messId },
+      });
+
+      // Insert new defaults
+      await tx.meal_entry_items.createMany({
+        data: data.meals.map((m) => ({
+          mess_id: messId,
+          meal_type_id: m.mealTypeId,
+          meal_value: m.mealValue,
+        })),
+      });
+
+      // Log activity
+      await tx.activity_logs.create({
+        data: {
+          mess_id: messId,
+          actor_id: actorId,
+          action: 'DEFAULT_MEALS_UPDATED',
+          entity_type: 'meal_entry_items',
+          entity_id: messId,
+        },
+      });
+    });
+
+    this.logger.log(`✅ Default meals updated for mess ${messId}`);
+
+    return this.getDefaultMeals(messId);
+  }
+
+  async getMealTypes(messId: string) {
+    const mealTypes = await prisma.meal_types.findMany({
+      where: {
+        mess_id: messId,
+        deleted_at: null,
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    return mealTypes.map((mt) => ({
+      id: mt.id,
+      mess_id: mt.mess_id,
+      name: mt.name,
+      value: Number(mt.value),
+      is_active: mt.is_active,
+      created_at: mt.created_at.toISOString(),
+      updated_at: mt.updated_at.toISOString(),
+    }));
   }
 }
