@@ -55,7 +55,7 @@ export class InvitesService {
       );
     }
 
-    await this.ensureCanInvite(messId, actorId, user.id);
+    await this.ensureCanInvite(messId, user.id);
 
     const request = await prisma.join_requests.create({
       data: {
@@ -104,8 +104,20 @@ export class InvitesService {
       throw new BadRequestException('Invite not found or already processed');
     }
 
+    const existingMembership = await prisma.mess_members.findFirst({
+      where: {
+        mess_id: invite.mess_id,
+        user_id: userId,
+        deleted_at: null,
+      },
+    });
+
+    if (existingMembership) {
+      throw new ConflictException('You are already a member of this mess');
+    }
+
     await prisma.$transaction(async (tx) => {
-      await tx.mess_members.create({
+      const member = await tx.mess_members.create({
         data: {
           mess_id: invite.mess_id,
           user_id: userId,
@@ -121,10 +133,10 @@ export class InvitesService {
       await tx.activity_logs.create({
         data: {
           mess_id: invite.mess_id,
-          actor_id: userId,
+          actor_id: invite.requested_by,
           action: 'MEMBER_ADDED',
           entity_type: 'mess_members',
-          entity_id: invite.mess_id,
+          entity_id: member.id,
         },
       });
     });
@@ -185,11 +197,7 @@ export class InvitesService {
     }));
   }
 
-  async ensureCanInvite(
-    messId: string,
-    _actorId: string,
-    targetUserId: string,
-  ) {
+  async ensureCanInvite(messId: string, targetUserId: string) {
     const membership = await prisma.mess_members.findFirst({
       where: {
         mess_id: messId,
