@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -14,7 +15,12 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
-import type { ChangePasswordRequest, UpdateProfileRequest } from '@repo/shared';
+import {
+  createMemberSchema,
+  formatZodError,
+  type UpdateProfileRequest,
+  type ChangePasswordRequest,
+} from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
 import { UsersService } from './users.service';
 import { avatarUploadOptions } from '../common/upload/avatar-upload.options';
@@ -74,17 +80,16 @@ export class UsersController {
   }
 
   @Post('create-member')
-  createMember(
-    @Req() req: AuthenticatedRequest,
-    @Body()
-    body: {
-      name: string;
-      email: string;
-      password: string;
-      phone?: string;
-      messId: string;
-    },
-  ) {
-    return this.usersService.createMemberAccount(body, req.user!.id);
+  createMember(@Req() req: AuthenticatedRequest, @Body() body: unknown) {
+    const parsed = createMemberSchema.safeParse(body);
+    if (!parsed.success) {
+      const fieldErrors = formatZodError(parsed.error);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: fieldErrors,
+      });
+    }
+
+    return this.usersService.createMemberAccount(parsed.data, req.user!.id);
   }
 }

@@ -8,7 +8,11 @@ import {
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { prisma } from '@repo/database';
-import type { UpdateProfileRequest } from '@repo/shared';
+import {
+  updateProfileSchema,
+  changePasswordSchema,
+  formatZodError,
+} from '@repo/shared';
 import { CloudinaryService } from '../common/services/cloudinary.service';
 import type { MulterFile } from '../common/upload/multer.types';
 
@@ -50,10 +54,16 @@ export class UsersService {
     return user;
   }
 
-  async updateProfile(
-    userId: string,
-    data: UpdateProfileRequest,
-  ): Promise<UserProfile> {
+  async updateProfile(userId: string, data: unknown): Promise<UserProfile> {
+    const parsed = updateProfileSchema.safeParse(data);
+    if (!parsed.success) {
+      const fieldErrors = formatZodError(parsed.error);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: fieldErrors,
+      });
+    }
+
     const updateData: {
       name?: string;
       phone?: string | null;
@@ -62,14 +72,12 @@ export class UsersService {
       updated_at: new Date(),
     };
 
-    if (data.name !== undefined) {
-      const name = data.name.trim();
-      if (!name) throw new BadRequestException('Name cannot be empty');
-      updateData.name = name;
+    if (parsed.data.name !== undefined) {
+      updateData.name = parsed.data.name;
     }
 
-    if (data.phone !== undefined) {
-      updateData.phone = data.phone?.trim() || null;
+    if (parsed.data.phone !== undefined) {
+      updateData.phone = parsed.data.phone ?? null;
     }
 
     const user = await prisma.users.update({
@@ -94,6 +102,18 @@ export class UsersService {
     currentPassword: string,
     newPassword: string,
   ): Promise<{ success: true }> {
+    const parsed = changePasswordSchema.safeParse({
+      currentPassword,
+      newPassword,
+    });
+    if (!parsed.success) {
+      const fieldErrors = formatZodError(parsed.error);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: fieldErrors,
+      });
+    }
+
     const user = await prisma.users.findUnique({
       where: { id: userId },
       select: { id: true, password: true },
@@ -107,7 +127,10 @@ export class UsersService {
       throw new BadRequestException('Password sign-in is not enabled');
     }
 
-    const matches = await bcrypt.compare(currentPassword, user.password);
+    const matches = await bcrypt.compare(
+      parsed.data.currentPassword,
+      user.password,
+    );
     if (!matches) {
       throw new UnauthorizedException('Current password is incorrect');
     }
@@ -115,7 +138,7 @@ export class UsersService {
     const saltRounds = Number(
       this.configService.get('BCRYPT_SALT_ROUNDS') ?? 10,
     );
-    const password = await bcrypt.hash(newPassword, saltRounds);
+    const password = await bcrypt.hash(parsed.data.newPassword, saltRounds);
 
     await prisma.users.update({
       where: { id: user.id },
@@ -130,41 +153,47 @@ export class UsersService {
       throw new BadRequestException('No file provided');
     }
 
-    // Get current avatar URL so we can delete the old one from Cloudinary
-    const existing = await prisma.users.findUnique({
-      where: { id: userId },
-      select: { avatar: true },
-    });
-
-    // Upload new avatar to Cloudinary
+    // Upload new avatar to Cloudinary first
     const result = await this.cloudinaryService.uploadAvatar(
       file.buffer,
       userId,
     );
 
-    // Delete old Cloudinary asset if it exists
-    if (existing?.avatar) {
-      const publicId = this.cloudinaryService.extractPublicId(existing.avatar);
+    // Atomically update DB and get old avatar URL
+    const user = await prisma.$transaction(async (tx) => {
+      // Lock the user row and get current avatar
+      const current = await tx.users.findUnique({
+        where: { id: userId },
+        select: { avatar: true },
+      });
+
+      // Update with new avatar
+      const updated = await tx.users.update({
+        where: { id: userId },
+        data: { avatar: result.secure_url, updated_at: new Date() },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          avatar: true,
+          manager_created: true,
+          email_verified: true,
+        },
+      });
+
+      return { user: updated, oldAvatar: current?.avatar };
+    });
+
+    // Delete old Cloudinary asset after transaction commits
+    if (user.oldAvatar) {
+      const publicId = this.cloudinaryService.extractPublicId(user.oldAvatar);
       if (publicId) {
         await this.cloudinaryService.deleteByPublicId(publicId);
       }
     }
 
-    const user = await prisma.users.update({
-      where: { id: userId },
-      data: { avatar: result.secure_url, updated_at: new Date() },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        avatar: true,
-        manager_created: true,
-        email_verified: true,
-      },
-    });
-
-    return user;
+    return user.user;
   }
 
   async searchUsers(query: string): Promise<UserProfile[]> {
