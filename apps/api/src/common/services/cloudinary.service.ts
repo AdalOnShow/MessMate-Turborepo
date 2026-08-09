@@ -24,7 +24,7 @@ export class CloudinaryService {
    */
   async uploadAvatar(
     buffer: Buffer,
-    userId: string,
+    userId: string, // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -40,7 +40,11 @@ export class CloudinaryService {
         (error, result) => {
           if (error || !result) {
             this.logger.error('Cloudinary upload failed', error);
-            reject(error ?? new Error('Cloudinary upload returned no result'));
+            reject(
+              error instanceof Error
+                ? error
+                : new Error('Cloudinary upload returned no result'),
+            );
           } else {
             resolve(result);
           }
