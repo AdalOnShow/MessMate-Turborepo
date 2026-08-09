@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -14,20 +15,35 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
+import {
+  createMessSchema,
+  addMemberSchema,
+  updateMemberRoleSchema,
+  formatZodError,
+  type UpdateDefaultMealsDto,
+  type MemberFilters,
+} from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
 import { Roles } from '../auth/guards/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { MessesService } from './messes.service';
-import type {
-  AddMemberInput,
-  MemberFilters,
-  UpdateMemberRoleInput,
-  UpdateDefaultMealsDto,
-} from '@repo/shared';
 
 type AuthenticatedRequest = Request & {
   user?: AuthUser;
 };
+
+const uuidRegex =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function validateUuid(value: string, fieldName: string): string {
+  if (!uuidRegex.test(value)) {
+    throw new BadRequestException({
+      message: 'Validation failed',
+      details: { [fieldName]: `Invalid ${fieldName} format` },
+    });
+  }
+  return value;
+}
 
 @Controller('messes')
 @UseGuards(AuthGuard('jwt'))
@@ -39,19 +55,25 @@ export class MessesController {
   @Post()
   async createMess(
     @Req() req: AuthenticatedRequest,
-    @Body() body: { name: string; description?: string },
+    @Body() body: unknown,
   ): Promise<{
     success: true;
     message: string;
     data: import('@repo/shared').MessResponse;
   }> {
+    const parsed = createMessSchema.safeParse(body);
+    if (!parsed.success) {
+      const fieldErrors = formatZodError(parsed.error);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: fieldErrors,
+      });
+    }
+
     const userId = req.user!.id;
     this.logger.log(`📮 POST /messes - user: ${userId}`);
 
-    const data = await this.messesService.createMess(userId, {
-      name: body.name,
-      description: body.description,
-    });
+    const data = await this.messesService.createMess(userId, parsed.data);
 
     this.logger.log(`✅ Mess created response: ${data.id}`);
     return {
@@ -91,6 +113,8 @@ export class MessesController {
     message: string;
     data: import('@repo/shared').MessMemberWithUser[];
   }> {
+    validateUuid(messId, 'messId');
+
     const userId = req.user!.id;
     this.logger.log(`📮 GET /messes/${messId}/members - user: ${userId}`);
 
@@ -114,19 +138,30 @@ export class MessesController {
   async addMember(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
-    @Body() body: AddMemberInput,
+    @Body() body: unknown,
   ): Promise<{
     success: true;
     message: string;
     data: import('@repo/shared').MessMemberWithUser;
   }> {
+    validateUuid(messId, 'messId');
+
+    const parsed = addMemberSchema.safeParse(body);
+    if (!parsed.success) {
+      const fieldErrors = formatZodError(parsed.error);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: fieldErrors,
+      });
+    }
+
     const actorId = req.user!.id;
     this.logger.log(`📮 POST /messes/${messId}/members - actor: ${actorId}`);
 
     const data = await this.messesService.addMember(
       messId,
       actorId,
-      body.userId,
+      parsed.data.userId,
     );
 
     return {
@@ -147,6 +182,9 @@ export class MessesController {
     success: true;
     message: string;
   }> {
+    validateUuid(messId, 'messId');
+    validateUuid(userId, 'userId');
+
     const actorId = req.user!.id;
     this.logger.log(
       `📮 DELETE /messes/${messId}/members/${userId} - actor: ${actorId}`,
@@ -167,12 +205,24 @@ export class MessesController {
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
     @Param('userId') userId: string,
-    @Body() body: UpdateMemberRoleInput,
+    @Body() body: unknown,
   ): Promise<{
     success: true;
     message: string;
     data: import('@repo/shared').MessMemberWithUser;
   }> {
+    validateUuid(messId, 'messId');
+    validateUuid(userId, 'userId');
+
+    const parsed = updateMemberRoleSchema.safeParse(body);
+    if (!parsed.success) {
+      const fieldErrors = formatZodError(parsed.error);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: fieldErrors,
+      });
+    }
+
     const actorId = req.user!.id;
     this.logger.log(
       `📮 PATCH /messes/${messId}/members/${userId}/role - actor: ${actorId}`,
@@ -182,7 +232,7 @@ export class MessesController {
       messId,
       actorId,
       userId,
-      body.role,
+      parsed.data.role,
     );
 
     return {
@@ -201,6 +251,8 @@ export class MessesController {
     message: string;
     data: import('@repo/shared').DefaultMealResponse[];
   }> {
+    validateUuid(messId, 'messId');
+
     const userId = req.user!.id;
     this.logger.log(`📮 GET /messes/${messId}/default-meals - user: ${userId}`);
 
@@ -225,6 +277,8 @@ export class MessesController {
     message: string;
     data: import('@repo/shared').DefaultMealResponse[];
   }> {
+    validateUuid(messId, 'messId');
+
     const actorId = req.user!.id;
     this.logger.log(
       `📮 PUT /messes/${messId}/default-meals - actor: ${actorId}`,
@@ -260,6 +314,8 @@ export class MessesController {
       updated_at: string;
     }[];
   }> {
+    validateUuid(messId, 'messId');
+
     const userId = req.user!.id;
     this.logger.log(`📮 GET /messes/${messId}/meal-types - user: ${userId}`);
 

@@ -245,47 +245,51 @@ export class MessesService {
       throw new BadRequestException('You cannot remove yourself from the mess');
     }
 
-    const member = await prisma.mess_members.findFirst({
-      where: {
-        mess_id: messId,
-        user_id: userId,
-        removed_at: null,
-        deleted_at: null,
-      },
-    });
-
-    if (!member) {
-      throw new NotFoundException('Member not found');
-    }
-
-    if (member.mess_role === 'MANAGER') {
-      const managerCount = await prisma.mess_members.count({
+    await prisma.$transaction(async (tx) => {
+      const member = await tx.mess_members.findFirst({
         where: {
           mess_id: messId,
-          mess_role: 'MANAGER',
+          user_id: userId,
           removed_at: null,
           deleted_at: null,
         },
       });
 
-      if (managerCount <= 1) {
-        throw new BadRequestException('Cannot remove the last manager');
+      if (!member) {
+        throw new NotFoundException('Member not found');
       }
-    }
 
-    await prisma.mess_members.update({
-      where: { id: member.id },
-      data: { removed_at: new Date() },
-    });
+      if (member.mess_role === 'MANAGER') {
+        const managerCount = await tx.mess_members.count({
+          where: {
+            mess_id: messId,
+            mess_role: 'MANAGER',
+            removed_at: null,
+            deleted_at: null,
+          },
+        });
 
-    await prisma.activity_logs.create({
-      data: {
-        mess_id: messId,
-        actor_id: actorId,
-        action: 'MEMBER_REMOVED',
-        entity_type: 'mess_members',
-        entity_id: member.id,
-      },
+        if (managerCount <= 1) {
+          throw new BadRequestException('Cannot remove the last manager');
+        }
+      }
+
+      await tx.mess_members.update({
+        where: { id: member.id },
+        data: { removed_at: new Date() },
+      });
+
+      await tx.activity_logs.create({
+        data: {
+          mess_id: messId,
+          actor_id: actorId,
+          action: 'MEMBER_REMOVED',
+          entity_type: 'mess_members',
+          entity_id: member.id,
+        },
+      });
+
+      return member;
     });
 
     this.logger.log(`✅ Member removed: ${userId} from mess ${messId}`);
