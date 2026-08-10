@@ -10,6 +10,7 @@ import {
   type MemberData,
   type UserSearchResult,
 } from "../actions/members";
+import { useDebounce } from "./use-debounce";
 
 export interface MemberFilters {
   search?: string;
@@ -77,14 +78,16 @@ export function useUpdateMemberRole(messId: string) {
 }
 
 export function useSearchUsers(query: string) {
+  const debouncedQuery = useDebounce(query, 300);
+
   return useQuery({
-    queryKey: ["users", "search", query],
+    queryKey: ["users", "search", debouncedQuery],
     queryFn: async () => {
-      if (!query || query.length < 2) return [];
-      const result = await searchUsers(query);
+      if (!debouncedQuery || debouncedQuery.length < 2) return [];
+      const result = await searchUsers(debouncedQuery);
       return result;
     },
-    enabled: query.length >= 2,
+    enabled: debouncedQuery.length >= 2,
     retry: false,
   });
 }

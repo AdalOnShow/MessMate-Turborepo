@@ -116,7 +116,7 @@ export default function DashboardPage() {
                   {myMess.name}
                 </p>
                 <p className="mt-0.5 text-xs text-foreground-muted">
-                  You are a manager
+                  You are a {myMess.current_user_role === "MANAGER" ? "manager" : "member"}
                 </p>
               </div>
               <ul className="space-y-2 text-sm text-foreground-muted">

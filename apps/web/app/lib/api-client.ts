@@ -21,7 +21,7 @@ interface ApiResponse<T> {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const cookieStore = await cookies();
-  let accessToken = cookieStore.get("access_token")?.value;
+  const accessToken = cookieStore.get("access_token")?.value;
 
   const headers: Record<string, string> = {
     ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),

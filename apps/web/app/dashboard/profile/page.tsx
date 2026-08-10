@@ -311,7 +311,7 @@ function ProfileContent() {
                 <input
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
-                  maxLength={30}
+                  maxLength={20}
                   className="mt-2 h-11 w-full rounded-lg border border-foreground-muted/15 bg-background px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-foreground-muted/50 focus:border-primary/60"
                   placeholder="Add a phone number"
                 />

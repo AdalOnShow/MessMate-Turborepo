@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../store";
 
@@ -64,16 +64,19 @@ export function useSignup() {
 export function useLogout() {
   const router = useRouter();
   const clearSession = useSessionStore((s) => s.clearSession);
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
       await serverLogout();
     },
     onSuccess: () => {
+      queryClient.clear();
       clearSession();
       router.push("/");
     },
     onError: () => {
+      queryClient.clear();
       clearSession();
       router.push("/");
     },
