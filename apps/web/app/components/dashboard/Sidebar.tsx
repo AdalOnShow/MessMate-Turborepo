@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Calendar,
   Home,
   LogOut,
   ReceiptText,
@@ -19,6 +20,7 @@ import { useGetMyMess } from "../../hooks/use-messes";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/dashboard/members", label: "Members", icon: Users },
+  { href: "/dashboard/months", label: "Months", icon: Calendar },
   { href: "/dashboard/meals", label: "Meals", icon: Utensils },
   { href: "/dashboard/expenses", label: "Expenses", icon: ReceiptText },
   { href: "/dashboard/deposits", label: "Deposits", icon: WalletCards },

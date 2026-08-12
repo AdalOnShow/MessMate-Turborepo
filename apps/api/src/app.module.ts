@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { ApiResponseMiddleware } from './common/api-response/api-response.middleware';
 import { InvitesModule } from './invites/invites.module';
 import { MessesModule } from './messes/messes.module';
+import { MonthsModule } from './months/months.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -30,6 +31,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     MessesModule,
     InvitesModule,
+    MonthsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

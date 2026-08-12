@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useSessionStore } from "../store";
 import { useGetMyMess } from "../hooks/use-messes";
+import { useGetActiveMonth, useCreateMonth } from "../hooks/use-months";
 import {
   usePendingInvites,
   useAcceptInvite,
   useRejectInvite,
 } from "../hooks/use-invites";
+import { Calendar, Loader2, Plus } from "lucide-react";
 
 function InviteBanner() {
   const { data: invites } = usePendingInvites();
@@ -58,6 +61,204 @@ function InviteBanner() {
   );
 }
 
+function ActiveMonthCard() {
+  const { data: myMess } = useGetMyMess();
+  const messId = myMess?.id;
+  const isManager = myMess?.current_user_role === "MANAGER";
+  const { data: activeMonth, isLoading } = useGetActiveMonth(messId);
+  const createMonth = useCreateMonth(messId);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [title, setTitle] = useState("");
+
+  const generateTitle = () => {
+    const now = new Date();
+    return now.toLocaleString("en-US", { month: "long", year: "numeric" });
+  };
+
+  const handleCreateMonth = () => {
+    const monthTitle = title.trim() || generateTitle();
+    createMonth.mutate(
+      { title: monthTitle },
+      {
+        onSuccess: () => {
+          setShowCreateForm(false);
+          setTitle("");
+        },
+      },
+    );
+  };
+
+  const handleOpenCreate = () => {
+    setTitle(generateTitle());
+    setShowCreateForm(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (showCreateForm) {
+    return (
+      <div className="rounded-xl border border-primary/30 bg-primary/5 p-6">
+        <h3 className="mb-4 text-lg font-semibold text-foreground">
+          {activeMonth
+            ? "Close Current & Start New Month"
+            : "Start New Month"}
+        </h3>
+
+        {activeMonth && (
+          <div className="mb-4 rounded-lg border border-foreground-muted/15 bg-background p-3">
+            <p className="text-xs text-foreground-muted">Current month</p>
+            <p className="text-sm font-semibold text-foreground">
+              {activeMonth.title}
+            </p>
+            <p className="mt-1 text-xs text-foreground-muted">
+              Will be closed and archived automatically
+            </p>
+          </div>
+        )}
+
+        <div className="mb-4">
+          <label
+            htmlFor="month-title"
+            className="mb-1.5 block text-sm font-medium text-foreground"
+          >
+            Month Title
+          </label>
+          <input
+            id="month-title"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. August 2026"
+            className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
+            disabled={createMonth.isPending}
+          />
+        </div>
+
+        {createMonth.isError && (
+          <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+            <p className="text-sm text-destructive">
+              {(createMonth.error as Error)?.message ||
+                "Failed to create month."}
+            </p>
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setShowCreateForm(false);
+              setTitle("");
+            }}
+            disabled={createMonth.isPending}
+            className="rounded-lg border border-foreground-muted/20 px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleCreateMonth}
+            disabled={createMonth.isPending}
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
+          >
+            {createMonth.isPending ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Plus size={14} />
+                Create Month
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activeMonth) {
+    return (
+      <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar size={18} className="text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">
+            Active Month
+          </h3>
+        </div>
+        <p className="mb-4 text-sm text-foreground-muted">
+          No active month. Start a new month to begin tracking meals and
+          expenses.
+        </p>
+        {isManager && (
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+          >
+            <Plus size={16} />
+            Start Month
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const startedDate = new Date(activeMonth.started_at).toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    },
+  );
+
+  return (
+    <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Calendar size={18} className="text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">
+            Active Month
+          </h3>
+        </div>
+        <span className="rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-semibold text-green-500">
+          Active
+        </span>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <p className="text-xl font-bold text-foreground">
+            {activeMonth.title}
+          </p>
+          <p className="text-xs text-foreground-muted">Started {startedDate}</p>
+        </div>
+
+        {isManager && (
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-foreground-muted/20 px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+          >
+            <Plus size={16} />
+            Start New Month
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, isAuthenticated } = useSessionStore();
   const { data: myMess, isLoading: messLoading } =
@@ -77,27 +278,7 @@ export default function DashboardPage() {
       <InviteBanner />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
-          <h2 className="mb-4 text-xl font-semibold text-foreground">
-            User Profile
-          </h2>
-          <dl className="space-y-3 text-sm">
-            <div>
-              <dt className="text-foreground-muted">Name</dt>
-              <dd className="font-medium text-foreground">{user?.name}</dd>
-            </div>
-            <div>
-              <dt className="text-foreground-muted">Email</dt>
-              <dd className="font-medium text-foreground">{user?.email}</dd>
-            </div>
-            <div>
-              <dt className="text-foreground-muted">Phone</dt>
-              <dd className="font-medium text-foreground">
-                {user?.phone || "Not added"}
-              </dd>
-            </div>
-          </dl>
-        </div>
+        <ActiveMonthCard />
 
         <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
           <h2 className="mb-4 text-xl font-semibold text-foreground">
@@ -116,7 +297,10 @@ export default function DashboardPage() {
                   {myMess.name}
                 </p>
                 <p className="mt-0.5 text-xs text-foreground-muted">
-                  You are a {myMess.current_user_role === "MANAGER" ? "manager" : "member"}
+                  You are a{" "}
+                  {myMess.current_user_role === "MANAGER"
+                    ? "manager"
+                    : "member"}
                 </p>
               </div>
               <ul className="space-y-2 text-sm text-foreground-muted">
@@ -144,4 +328,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
