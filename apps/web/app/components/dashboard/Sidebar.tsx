@@ -88,7 +88,7 @@ export function Sidebar() {
             }`}
           >
             <Settings size={18} aria-hidden="true" />
-            Settings
+            Mess Settings
           </Link>
         )}
       </nav>

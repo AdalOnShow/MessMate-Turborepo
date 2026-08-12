@@ -1,12 +1,17 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, prisma } from '@repo/database';
-import { type CreateMessDto, type UpdateDefaultMealsDto } from '@repo/shared';
+import {
+  type CreateMessDto,
+  type UpdateMessDto,
+  type UpdateMealTypeDto,
+} from '@repo/shared';
 import type { MemberFilters, MessMemberWithUser } from '@repo/shared';
 
 export type MessWithMembership = {
@@ -371,91 +376,6 @@ export class MessesService {
     };
   }
 
-  async getDefaultMeals(messId: string) {
-    const defaults = await prisma.meal_entry_items.findMany({
-      where: { mess_id: messId },
-      include: {
-        meal_type: {
-          select: {
-            id: true,
-            name: true,
-            value: true,
-            is_active: true,
-          },
-        },
-      },
-      orderBy: { meal_type: { name: 'asc' } },
-    });
-
-    return defaults.map((d) => ({
-      id: d.id,
-      mess_id: d.mess_id,
-      meal_type_id: d.meal_type_id,
-      meal_value: Number(d.meal_value),
-      created_at: d.created_at.toISOString(),
-      meal_type: {
-        id: d.meal_type.id,
-        name: d.meal_type.name,
-        value: Number(d.meal_type.value),
-        is_active: d.meal_type.is_active,
-      },
-    }));
-  }
-
-  async updateDefaultMeals(
-    messId: string,
-    actorId: string,
-    data: UpdateDefaultMealsDto,
-  ) {
-    // Verify all meal type IDs belong to this mess and are active
-    const mealTypeIds = data.meals.map((m) => m.mealTypeId);
-    const validMealTypes = await prisma.meal_types.findMany({
-      where: {
-        id: { in: mealTypeIds },
-        mess_id: messId,
-        is_active: true,
-        deleted_at: null,
-      },
-    });
-
-    if (validMealTypes.length !== mealTypeIds.length) {
-      throw new BadRequestException(
-        'One or more meal types are invalid or do not belong to this mess',
-      );
-    }
-
-    await prisma.$transaction(async (tx) => {
-      // Delete existing defaults
-      await tx.meal_entry_items.deleteMany({
-        where: { mess_id: messId },
-      });
-
-      // Insert new defaults
-      await tx.meal_entry_items.createMany({
-        data: data.meals.map((m) => ({
-          mess_id: messId,
-          meal_type_id: m.mealTypeId,
-          meal_value: m.mealValue,
-        })),
-      });
-
-      // Log activity
-      await tx.activity_logs.create({
-        data: {
-          mess_id: messId,
-          actor_id: actorId,
-          action: 'DEFAULT_MEALS_UPDATED',
-          entity_type: 'meal_entry_items',
-          entity_id: messId,
-        },
-      });
-    });
-
-    this.logger.log(`✅ Default meals updated for mess ${messId}`);
-
-    return this.getDefaultMeals(messId);
-  }
-
   async getMealTypes(messId: string) {
     const mealTypes = await prisma.meal_types.findMany({
       where: {
@@ -474,5 +394,128 @@ export class MessesService {
       created_at: mt.created_at.toISOString(),
       updated_at: mt.updated_at.toISOString(),
     }));
+  }
+
+  async updateMess(
+    messId: string,
+    actorId: string,
+    data: UpdateMessDto,
+  ): Promise<MessWithMembership> {
+    const membership = await prisma.mess_members.findFirst({
+      where: {
+        mess_id: messId,
+        user_id: actorId,
+        mess_role: 'MANAGER',
+        removed_at: null,
+        deleted_at: null,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('Only managers can update mess details');
+    }
+
+    const mess = await prisma.messes.findFirst({
+      where: { id: messId, deleted_at: null },
+    });
+
+    if (!mess) {
+      throw new NotFoundException('Mess not found');
+    }
+
+    if (data.slug && data.slug !== mess.slug) {
+      const existingSlug = await prisma.messes.findFirst({
+        where: { slug: data.slug, deleted_at: null, id: { not: messId } },
+      });
+
+      if (existingSlug) {
+        throw new BadRequestException(
+          'A mess with this slug already exists. Please choose a different slug.',
+        );
+      }
+    }
+
+    const updated = await prisma.messes.update({
+      where: { id: messId },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.description !== undefined && {
+          description: data.description,
+        }),
+        ...(data.slug !== undefined && { slug: data.slug }),
+        updated_at: new Date(),
+      },
+    });
+
+    this.logger.log(`✅ Mess updated: ${messId} by ${actorId}`);
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      slug: updated.slug,
+      description: updated.description ?? undefined,
+      created_at: updated.created_at.toISOString(),
+      updated_at: updated.updated_at.toISOString(),
+      current_user_role: 'MANAGER',
+      member_id: membership.id,
+    };
+  }
+
+  async updateMealType(
+    messId: string,
+    mealTypeId: string,
+    actorId: string,
+    data: UpdateMealTypeDto,
+  ) {
+    const membership = await prisma.mess_members.findFirst({
+      where: {
+        mess_id: messId,
+        user_id: actorId,
+        mess_role: 'MANAGER',
+        removed_at: null,
+        deleted_at: null,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        'Only managers can update meal types',
+      );
+    }
+
+    const mealType = await prisma.meal_types.findFirst({
+      where: {
+        id: mealTypeId,
+        mess_id: messId,
+        deleted_at: null,
+      },
+    });
+
+    if (!mealType) {
+      throw new NotFoundException('Meal type not found');
+    }
+
+    const updated = await prisma.meal_types.update({
+      where: { id: mealTypeId },
+      data: {
+        ...(data.value !== undefined && { value: data.value }),
+        ...(data.is_active !== undefined && { is_active: data.is_active }),
+        updated_at: new Date(),
+      },
+    });
+
+    this.logger.log(
+      `✅ Meal type updated: ${mealTypeId} by ${actorId}`,
+    );
+
+    return {
+      id: updated.id,
+      mess_id: updated.mess_id,
+      name: updated.name,
+      value: Number(updated.value),
+      is_active: updated.is_active,
+      created_at: updated.created_at.toISOString(),
+      updated_at: updated.updated_at.toISOString(),
+    };
   }
 }

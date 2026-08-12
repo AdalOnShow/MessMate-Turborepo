@@ -8,7 +8,6 @@ import {
   Param,
   Patch,
   Post,
-  Put,
   Query,
   Req,
   UseGuards,
@@ -17,10 +16,11 @@ import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
 import {
   createMessSchema,
+  updateMessSchema,
+  updateMealTypeSchema,
   addMemberSchema,
   updateMemberRoleSchema,
   formatZodError,
-  type UpdateDefaultMealsDto,
   type MemberFilters,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
@@ -242,61 +242,6 @@ export class MessesController {
     };
   }
 
-  @Get(':messId/default-meals')
-  async getDefaultMeals(
-    @Req() req: AuthenticatedRequest,
-    @Param('messId') messId: string,
-  ): Promise<{
-    success: true;
-    message: string;
-    data: import('@repo/shared').DefaultMealResponse[];
-  }> {
-    validateUuid(messId, 'messId');
-
-    const userId = req.user!.id;
-    this.logger.log(`📮 GET /messes/${messId}/default-meals - user: ${userId}`);
-
-    const data = await this.messesService.getDefaultMeals(messId);
-
-    return {
-      success: true,
-      message: 'Default meals retrieved successfully',
-      data,
-    };
-  }
-
-  @Put(':messId/default-meals')
-  @UseGuards(RolesGuard)
-  @Roles('MANAGER')
-  async updateDefaultMeals(
-    @Req() req: AuthenticatedRequest,
-    @Param('messId') messId: string,
-    @Body() body: UpdateDefaultMealsDto,
-  ): Promise<{
-    success: true;
-    message: string;
-    data: import('@repo/shared').DefaultMealResponse[];
-  }> {
-    validateUuid(messId, 'messId');
-
-    const actorId = req.user!.id;
-    this.logger.log(
-      `📮 PUT /messes/${messId}/default-meals - actor: ${actorId}`,
-    );
-
-    const data = await this.messesService.updateDefaultMeals(
-      messId,
-      actorId,
-      body,
-    );
-
-    return {
-      success: true,
-      message: 'Default meals updated successfully',
-      data,
-    };
-  }
-
   @Get(':messId/meal-types')
   async getMealTypes(
     @Req() req: AuthenticatedRequest,
@@ -324,6 +269,97 @@ export class MessesController {
     return {
       success: true,
       message: 'Meal types retrieved successfully',
+      data,
+    };
+  }
+
+  @Patch(':messId')
+  @UseGuards(RolesGuard)
+  @Roles('MANAGER')
+  async updateMess(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Body() body: unknown,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').MessResponse;
+  }> {
+    validateUuid(messId, 'messId');
+
+    const parsed = updateMessSchema.safeParse(body);
+    if (!parsed.success) {
+      const fieldErrors = formatZodError(parsed.error);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: fieldErrors,
+      });
+    }
+
+    if (Object.keys(parsed.data).length === 0) {
+      throw new BadRequestException('No fields to update');
+    }
+
+    const actorId = req.user!.id;
+    this.logger.log(`📮 PATCH /messes/${messId} - actor: ${actorId}`);
+
+    const data = await this.messesService.updateMess(
+      messId,
+      actorId,
+      parsed.data,
+    );
+
+    return {
+      success: true,
+      message: 'Mess updated successfully',
+      data,
+    };
+  }
+
+  @Patch(':messId/meal-types/:mealTypeId')
+  @UseGuards(RolesGuard)
+  @Roles('MANAGER')
+  async updateMealType(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('mealTypeId') mealTypeId: string,
+    @Body() body: unknown,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').MealTypeResponse;
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(mealTypeId, 'mealTypeId');
+
+    const parsed = updateMealTypeSchema.safeParse(body);
+    if (!parsed.success) {
+      const fieldErrors = formatZodError(parsed.error);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: fieldErrors,
+      });
+    }
+
+    if (Object.keys(parsed.data).length === 0) {
+      throw new BadRequestException('No fields to update');
+    }
+
+    const actorId = req.user!.id;
+    this.logger.log(
+      `📮 PATCH /messes/${messId}/meal-types/${mealTypeId} - actor: ${actorId}`,
+    );
+
+    const data = await this.messesService.updateMealType(
+      messId,
+      mealTypeId,
+      actorId,
+      parsed.data,
+    );
+
+    return {
+      success: true,
+      message: 'Meal type updated successfully',
       data,
     };
   }

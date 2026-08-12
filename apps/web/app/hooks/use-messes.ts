@@ -4,13 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createMess,
   getMyMess,
-  getDefaultMeals,
-  updateDefaultMeals,
+  updateMess,
   getMealTypes,
+  updateMealType,
   type MessInfo,
-  type DefaultMealInfo,
-  type UpdateDefaultMealsPayload,
   type MealTypeInfo,
+  type UpdateMessPayload,
+  type UpdateMealTypePayload,
 } from "../actions/messes";
 
 export function useGetMyMess(enabled = true) {
@@ -38,15 +38,18 @@ export function useCreateMess() {
   });
 }
 
-export function useGetDefaultMeals(messId: string | undefined) {
-  return useQuery({
-    queryKey: ["default-meals", messId],
-    queryFn: async () => {
-      if (!messId) return [];
-      const result = await getDefaultMeals(messId);
+export function useUpdateMess(messId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: UpdateMessPayload) => {
+      if (!messId) throw new Error("No mess ID");
+      const result = await updateMess(messId, payload);
       return result;
     },
-    enabled: !!messId,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-mess"] });
+    },
   });
 }
 
@@ -62,19 +65,30 @@ export function useGetMealTypes(messId: string | undefined) {
   });
 }
 
-export function useUpdateDefaultMeals(messId: string | undefined) {
+export function useUpdateMealType(messId: string | undefined) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: UpdateDefaultMealsPayload) => {
+    mutationFn: async ({
+      mealTypeId,
+      data,
+    }: {
+      mealTypeId: string;
+      data: UpdateMealTypePayload;
+    }) => {
       if (!messId) throw new Error("No mess ID");
-      const result = await updateDefaultMeals(messId, payload);
+      const result = await updateMealType(messId, mealTypeId, data);
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["default-meals", messId] });
+      queryClient.invalidateQueries({ queryKey: ["meal-types", messId] });
     },
   });
 }
 
-export { type MessInfo, type DefaultMealInfo, type MealTypeInfo };
+export {
+  type MessInfo,
+  type MealTypeInfo,
+  type UpdateMessPayload,
+  type UpdateMealTypePayload,
+};
