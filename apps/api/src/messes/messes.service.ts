@@ -98,7 +98,7 @@ export class MessesService {
         current_user_role: 'MANAGER',
         member_id: result.member_id,
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new BadRequestException(
@@ -575,7 +575,7 @@ export class MessesService {
         created_at: created.created_at.toISOString(),
         updated_at: created.updated_at.toISOString(),
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new ConflictException(
