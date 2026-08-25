@@ -1,5 +1,19 @@
 import { z } from "zod";
 
+export const createMealTypeSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name cannot be empty")
+    .max(50, "Name must be at most 50 characters"),
+  value: z
+    .number()
+    .min(0, "Value must be at least 0")
+    .max(10, "Value must be at most 10"),
+});
+
+export type CreateMealTypeDto = z.infer<typeof createMealTypeSchema>;
+
 export const updateMealTypeSchema = z.object({
   value: z
     .number()

@@ -51,8 +51,20 @@ export interface UpdateMealTypePayload {
   is_active?: boolean;
 }
 
+export interface CreateMealTypePayload {
+  name: string;
+  value: number;
+}
+
 export async function getMealTypes(messId: string) {
   return api.get<MealTypeInfo[]>(`/messes/${messId}/meal-types`);
+}
+
+export async function createMealType(
+  messId: string,
+  data: CreateMealTypePayload,
+) {
+  return api.post<MealTypeInfo>(`/messes/${messId}/meal-types`, data);
 }
 
 export async function updateMealType(
@@ -64,4 +76,8 @@ export async function updateMealType(
     `/messes/${messId}/meal-types/${mealTypeId}`,
     data,
   );
+}
+
+export async function deleteMealType(messId: string, mealTypeId: string) {
+  return api.delete(`/messes/${messId}/meal-types/${mealTypeId}`);
 }

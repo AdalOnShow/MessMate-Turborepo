@@ -5,12 +5,13 @@ import { useState } from "react";
 import { useSessionStore } from "../store";
 import { useGetMyMess } from "../hooks/use-messes";
 import { useGetActiveMonth, useCreateMonth } from "../hooks/use-months";
+import { useGetMonthMealSummary } from "../hooks/use-meals";
 import {
   usePendingInvites,
   useAcceptInvite,
   useRejectInvite,
 } from "../hooks/use-invites";
-import { Calendar, Loader2, Plus } from "lucide-react";
+import { BarChart3, Calendar, Loader2, Plus, Utensils } from "lucide-react";
 
 function InviteBanner() {
   const { data: invites } = usePendingInvites();
@@ -259,6 +260,102 @@ function ActiveMonthCard() {
   );
 }
 
+function MealSummaryCard() {
+  const { data: myMess } = useGetMyMess();
+  const messId = myMess?.id;
+  const { data: activeMonth } = useGetActiveMonth(messId);
+  const { data: summary, isLoading } = useGetMonthMealSummary(
+    messId,
+    activeMonth?.id,
+  );
+
+  if (!activeMonth || isLoading) {
+    return (
+      <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Utensils size={18} className="text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">Meals</h3>
+        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          </div>
+        ) : (
+          <p className="text-sm text-foreground-muted">
+            No active month to display meal data.
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Utensils size={18} className="text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">
+            Meal Summary
+          </h3>
+        </div>
+        <Link
+          href="/dashboard/meals/reports"
+          className="flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+        >
+          <BarChart3 size={12} />
+          Reports
+        </Link>
+      </div>
+
+      {summary && summary.member_summaries.length > 0 ? (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg bg-background p-3">
+              <p className="text-xs text-foreground-muted">Total Meals</p>
+              <p className="text-xl font-bold text-foreground">
+                {summary.total_meals}
+              </p>
+            </div>
+            <div className="rounded-lg bg-background p-3">
+              <p className="text-xs text-foreground-muted">Active Days</p>
+              <p className="text-xl font-bold text-foreground">
+                {summary.active_days}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground-muted">
+              Top Members
+            </p>
+            <div className="space-y-2">
+              {summary.member_summaries.slice(0, 3).map((ms) => (
+                <div
+                  key={ms.member_id}
+                  className="flex items-center justify-between rounded-lg bg-background px-3 py-2"
+                >
+                  <span className="text-sm font-medium text-foreground">
+                    {ms.user.name}
+                  </span>
+                  <span className="text-sm font-bold text-foreground">
+                    {ms.total_meals % 1 === 0
+                      ? ms.total_meals
+                      : ms.total_meals.toFixed(1)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-foreground-muted">
+          No meals recorded this month yet.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, isAuthenticated } = useSessionStore();
   const { data: myMess, isLoading: messLoading } =
@@ -277,8 +374,10 @@ export default function DashboardPage() {
 
       <InviteBanner />
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <ActiveMonthCard />
+
+        <MealSummaryCard />
 
         <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
           <h2 className="mb-4 text-xl font-semibold text-foreground">

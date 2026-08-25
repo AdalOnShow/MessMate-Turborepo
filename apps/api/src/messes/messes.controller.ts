@@ -17,6 +17,7 @@ import type { Request } from 'express';
 import {
   createMessSchema,
   updateMessSchema,
+  createMealTypeSchema,
   updateMealTypeSchema,
   addMemberSchema,
   updateMemberRoleSchema,
@@ -270,6 +271,72 @@ export class MessesController {
       success: true,
       message: 'Meal types retrieved successfully',
       data,
+    };
+  }
+
+  @Post(':messId/meal-types')
+  @UseGuards(RolesGuard)
+  @Roles('MANAGER')
+  async createMealType(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Body() body: unknown,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').MealTypeResponse;
+  }> {
+    validateUuid(messId, 'messId');
+
+    const parsed = createMealTypeSchema.safeParse(body);
+    if (!parsed.success) {
+      const fieldErrors = formatZodError(parsed.error);
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: fieldErrors,
+      });
+    }
+
+    const actorId = req.user!.id;
+    this.logger.log(`📮 POST /messes/${messId}/meal-types - actor: ${actorId}`);
+
+    const data = await this.messesService.createMealType(
+      messId,
+      actorId,
+      parsed.data,
+    );
+
+    return {
+      success: true,
+      message: 'Meal type created successfully',
+      data,
+    };
+  }
+
+  @Delete(':messId/meal-types/:mealTypeId')
+  @UseGuards(RolesGuard)
+  @Roles('MANAGER')
+  async deleteMealType(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('mealTypeId') mealTypeId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(mealTypeId, 'mealTypeId');
+
+    const actorId = req.user!.id;
+    this.logger.log(
+      `📮 DELETE /messes/${messId}/meal-types/${mealTypeId} - actor: ${actorId}`,
+    );
+
+    await this.messesService.deleteMealType(messId, mealTypeId, actorId);
+
+    return {
+      success: true,
+      message: 'Meal type deleted successfully',
     };
   }
 

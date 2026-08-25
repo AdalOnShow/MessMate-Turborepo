@@ -10,6 +10,7 @@ import { Prisma, prisma } from '@repo/database';
 import {
   type CreateMessDto,
   type UpdateMessDto,
+  type CreateMealTypeDto,
   type UpdateMealTypeDto,
 } from '@repo/shared';
 import type { MemberFilters, MessMemberWithUser } from '@repo/shared';
@@ -517,5 +518,116 @@ export class MessesService {
       created_at: updated.created_at.toISOString(),
       updated_at: updated.updated_at.toISOString(),
     };
+  }
+
+  async createMealType(
+    messId: string,
+    actorId: string,
+    data: CreateMealTypeDto,
+  ) {
+    const membership = await prisma.mess_members.findFirst({
+      where: {
+        mess_id: messId,
+        user_id: actorId,
+        mess_role: 'MANAGER',
+        removed_at: null,
+        deleted_at: null,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        'Only managers can create meal types',
+      );
+    }
+
+    const existingCount = await prisma.meal_types.count({
+      where: {
+        mess_id: messId,
+        deleted_at: null,
+      },
+    });
+
+    if (existingCount >= 10) {
+      throw new BadRequestException('Maximum 10 meal types allowed per mess');
+    }
+
+    try {
+      const created = await prisma.meal_types.create({
+        data: {
+          mess_id: messId,
+          name: data.name,
+          value: data.value,
+        },
+      });
+
+      this.logger.log(
+        `✅ Meal type created: ${created.id} (${created.name}) by ${actorId}`,
+      );
+
+      return {
+        id: created.id,
+        mess_id: created.mess_id,
+        name: created.name,
+        value: Number(created.value),
+        is_active: created.is_active,
+        created_at: created.created_at.toISOString(),
+        updated_at: created.updated_at.toISOString(),
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException(
+            'A meal type with this name already exists',
+          );
+        }
+      }
+      throw error;
+    }
+  }
+
+  async deleteMealType(
+    messId: string,
+    mealTypeId: string,
+    actorId: string,
+  ): Promise<{ success: true }> {
+    const membership = await prisma.mess_members.findFirst({
+      where: {
+        mess_id: messId,
+        user_id: actorId,
+        mess_role: 'MANAGER',
+        removed_at: null,
+        deleted_at: null,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        'Only managers can delete meal types',
+      );
+    }
+
+    const mealType = await prisma.meal_types.findFirst({
+      where: {
+        id: mealTypeId,
+        mess_id: messId,
+        deleted_at: null,
+      },
+    });
+
+    if (!mealType) {
+      throw new NotFoundException('Meal type not found');
+    }
+
+    await prisma.meal_types.update({
+      where: { id: mealTypeId },
+      data: { deleted_at: new Date() },
+    });
+
+    this.logger.log(
+      `✅ Meal type deleted: ${mealTypeId} by ${actorId}`,
+    );
+
+    return { success: true };
   }
 }

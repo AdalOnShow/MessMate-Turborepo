@@ -11,6 +11,7 @@ import {
   User,
   Users,
   Utensils,
+  UtensilsCrossed,
   WalletCards,
 } from "lucide-react";
 import { useSessionStore } from "../../store";
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/dashboard/members", label: "Members", icon: Users },
   { href: "/dashboard/months", label: "Months", icon: Calendar },
+  { href: "/dashboard/meal-types", label: "Meal Types", icon: UtensilsCrossed },
   { href: "/dashboard/meals", label: "Meals", icon: Utensils },
   { href: "/dashboard/expenses", label: "Expenses", icon: ReceiptText },
   { href: "/dashboard/deposits", label: "Deposits", icon: WalletCards },

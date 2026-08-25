@@ -6,10 +6,13 @@ import {
   getMyMess,
   updateMess,
   getMealTypes,
+  createMealType,
   updateMealType,
+  deleteMealType,
   type MessInfo,
   type MealTypeInfo,
   type UpdateMessPayload,
+  type CreateMealTypePayload,
   type UpdateMealTypePayload,
 } from "../actions/messes";
 
@@ -86,9 +89,40 @@ export function useUpdateMealType(messId: string | undefined) {
   });
 }
 
+export function useCreateMealType(messId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: CreateMealTypePayload) => {
+      if (!messId) throw new Error("No mess ID");
+      const result = await createMealType(messId, payload);
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meal-types", messId] });
+    },
+  });
+}
+
+export function useDeleteMealType(messId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (mealTypeId: string) => {
+      if (!messId) throw new Error("No mess ID");
+      const result = await deleteMealType(messId, mealTypeId);
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meal-types", messId] });
+    },
+  });
+}
+
 export {
   type MessInfo,
   type MealTypeInfo,
   type UpdateMessPayload,
+  type CreateMealTypePayload,
   type UpdateMealTypePayload,
 };

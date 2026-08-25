@@ -5,8 +5,14 @@ import {
   bulkSaveMealEntries,
   getMealEntries,
   deleteMealEntry,
+  getDailyMealReport,
+  getMemberMealReport,
+  getMonthMealSummary,
   type MealEntryInfo,
   type BulkMealEntriesPayload,
+  type DailyMealReport,
+  type MemberMealReport,
+  type MonthMealSummary,
 } from "../actions/meals";
 
 export function useGetMealEntries(
@@ -60,3 +66,49 @@ export function useDeleteMealEntry(messId: string | undefined) {
 }
 
 export type { MealEntryInfo, BulkMealEntriesPayload };
+
+export function useGetDailyMealReport(
+  messId: string | undefined,
+  monthId: string | undefined,
+  date: string,
+) {
+  return useQuery({
+    queryKey: ["meal-daily-report", messId, monthId, date],
+    queryFn: async () => {
+      if (!messId || !monthId || !date) return null;
+      return getDailyMealReport(messId, monthId, date);
+    },
+    enabled: !!messId && !!monthId && !!date,
+  });
+}
+
+export function useGetMemberMealReport(
+  messId: string | undefined,
+  monthId: string | undefined,
+  memberId: string | undefined,
+) {
+  return useQuery({
+    queryKey: ["meal-member-report", messId, monthId, memberId],
+    queryFn: async () => {
+      if (!messId || !monthId || !memberId) return null;
+      return getMemberMealReport(messId, monthId, memberId);
+    },
+    enabled: !!messId && !!monthId && !!memberId,
+  });
+}
+
+export function useGetMonthMealSummary(
+  messId: string | undefined,
+  monthId: string | undefined,
+) {
+  return useQuery({
+    queryKey: ["meal-month-summary", messId, monthId],
+    queryFn: async () => {
+      if (!messId || !monthId) return null;
+      return getMonthMealSummary(messId, monthId);
+    },
+    enabled: !!messId && !!monthId,
+  });
+}
+
+export type { DailyMealReport, MemberMealReport, MonthMealSummary };

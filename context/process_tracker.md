@@ -5,7 +5,7 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (Phase 3 In Progress — Members + Invite System Complete)
+Status: Active Development (Phase 5 Complete — Meal Management Done, Next: Phase 6 Bazaar)
 
 Frontend:
 Next.js 16
@@ -194,11 +194,11 @@ pnpm Workspace
 - [ ] Seed Initial Data (not done)
 - [x] Generate Prisma Client
 - [ ] Redis setup (no longer needed for join requests — invite system uses DB-only join_requests table)
-- [ ] Remove meal_entry_items table (ADR-021 specifies JSONB-based meal storage)
+- [x] Remove meal_entry_items table (ADR-021 specifies JSONB-based meal storage)
 
-> **Issue:** Schema still includes `meal_entry_items` table, but ADR-021
+> ~~**Issue:** Schema still includes `meal_entry_items` table, but ADR-021
 > specifies JSONB-based meal storage which eliminates this table. Requires
-> schema migration to remove.
+> schema migration to remove.~~ **Resolved in Phase 5.**
 
 ---
 
@@ -348,26 +348,31 @@ pnpm Workspace
 
 ## Meal Types
 
-- [ ] Create Meal Type
-- [ ] Update Meal Type
-- [ ] Disable Meal Type
+- [x] Create Meal Type (POST /messes/:messId/meal-types)
+- [x] Update Meal Type (PATCH /messes/:messId/meal-types/:mealTypeId)
+- [x] Disable Meal Type (PATCH with is_active: false)
+- [x] Delete Meal Type (DELETE /messes/:messId/meal-types/:mealTypeId)
+- [x] Meal Types Page (/dashboard/meal-types)
 
 ---
 
 ## Meal Entry
 
-- [ ] Create Daily Meal Entry
-- [ ] Bulk Meal Entry
-- [ ] Update Meal Entry
-- [ ] Delete Meal Entry
+- [x] Create Daily Meal Entry (POST /meals/:messId/:monthId)
+- [x] Bulk Meal Entry (same endpoint, array of entries)
+- [x] Update Meal Entry (upsert via bulk save)
+- [x] Delete Meal Entry (DELETE /meals/:messId/:entryId + UI reset button)
+- [x] Activity Logging (MEAL_ADDED, MEAL_UPDATED, MEAL_DELETED)
 
 ---
 
 ## Meal Reports
 
-- [ ] Daily Meal Report
-- [ ] Member Meal Report
-- [ ] Monthly Meal Report
+- [x] Daily Meal Report (GET /meals/:messId/:monthId/daily?date=...)
+- [x] Member Meal Report (GET /meals/:messId/:monthId/member/:memberId)
+- [x] Monthly Meal Report (GET /meals/:messId/:monthId/summary)
+- [x] Reports Page (/dashboard/meals/reports — tabbed: Daily, Member, Monthly)
+- [x] Dashboard Meal Summary Card
 
 ---
 
@@ -626,30 +631,28 @@ A task can be marked complete only if:
 
 ```text
 Current Phase:
-Phase 3 - Mess Management (In Progress)
+Phase 5 - Meal Management (COMPLETED)
 
-Completed:
-- Create Mess Module (POST, GET /messes)
-- Member Management (Add/Remove/List with mess_members table)
-- Manager Assignment (enforce max 2 managers, prevent demoting last manager)
-- Members page with table, search, filters, role/status, permission branching
-- Roles decorator + RolesGuard for backend RBAC
-- User search endpoint for Add Member flow
-- Invite System (invite/accept/reject/expiry using existing join_requests table)
-- Manager Created Account (POST /users/create-member + create-account page)
-- Dashboard Invite Notification Banner
+Phase 5 Completed:
+- Removed meal_entry_items table (ADR-021 cleanup)
+- Meal Type CRUD (create, update, disable, delete)
+- Meal Types Page (/dashboard/meal-types)
+- Activity Logging (MEAL_ADDED, MEAL_UPDATED, MEAL_DELETED)
+- Delete button in meals grid UI
+- Meal Reports Backend (daily, member, monthly summary endpoints)
+- Reports Page (/dashboard/meals/reports — tabbed interface)
+- Dashboard Meal Summary Card
 
 Next Priority:
-- Mess settings (update mess details)
-- Month Management (Phase 4)
+- Phase 6 - Bazaar Management
+- Phase 7 - Expense Management
+- Phase 8 - Deposit Management
 
-Prerequisites for Phase 3:
-- [ ] Remove meal_entry_items table (ADR-021 cleanup)
-- [ ] Optional: Protected route layout group for dashboard pages
-
-After Phase 3:
-Phase 4 - Month Management
-- Active month creation
-- Month closing and archiving
-- Balance carry forward
+Completed Phases:
+- Phase 0 - Project Foundation
+- Phase 1 - Database Layer
+- Phase 2 - Authentication Module
+- Phase 3 - Mess Management
+- Phase 4 - Month Management
+- Phase 5 - Meal Management
 ```

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useMemo, useCallback } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetActiveMonth } from "../../hooks/use-months";
@@ -11,12 +12,14 @@ import {
 } from "../../hooks/use-meals";
 import type { MealEntryInfo } from "../../hooks/use-meals";
 import {
+  BarChart3,
   ChevronLeft,
   ChevronRight,
   Loader2,
   Minus,
   Plus,
   Save,
+  X,
 } from "lucide-react";
 
 function formatDate(d: Date): string {
@@ -31,11 +34,13 @@ function MealCell({
   value,
   onIncrement,
   onDecrement,
+  onReset,
   disabled,
 }: {
   value: number;
   onIncrement: () => void;
   onDecrement: () => void;
+  onReset: () => void;
   disabled?: boolean;
 }) {
   return (
@@ -59,6 +64,15 @@ function MealCell({
       >
         <Plus size={12} />
       </button>
+      {value > 0 && !disabled && (
+        <button
+          type="button"
+          onClick={onReset}
+          className="flex h-5 w-5 items-center justify-center rounded text-foreground-muted transition-colors hover:bg-destructive/10 hover:text-destructive"
+        >
+          <X size={10} />
+        </button>
+      )}
     </div>
   );
 }
@@ -157,6 +171,27 @@ export default function MealsPage() {
     [],
   );
 
+  const resetValue = useCallback(
+    (dateKey: string, memberId: string, mealTypeId: string) => {
+      setLocalGrid((prev) => {
+        const copy = { ...prev };
+        if (copy[dateKey]?.[memberId]) {
+          copy[dateKey] = { ...copy[dateKey] };
+          copy[dateKey][memberId] = { ...copy[dateKey][memberId] };
+          delete copy[dateKey][memberId][mealTypeId];
+          if (Object.keys(copy[dateKey][memberId]).length === 0) {
+            delete copy[dateKey][memberId];
+          }
+          if (Object.keys(copy[dateKey]).length === 0) {
+            delete copy[dateKey];
+          }
+        }
+        return copy;
+      });
+    },
+    [],
+  );
+
   const hasChanges = useMemo(() => {
     return Object.keys(localGrid).length > 0;
   }, [localGrid]);
@@ -247,6 +282,13 @@ export default function MealsPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/meals/reports"
+            className="flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-3 py-2 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+          >
+            <BarChart3 size={14} />
+            Reports
+          </Link>
           <button
             type="button"
             onClick={() => setPageOffset((p) => p - 1)}
@@ -405,6 +447,13 @@ export default function MealsPage() {
                                       member.user_id,
                                       mt.id,
                                       -0.5,
+                                    )
+                                  }
+                                  onReset={() =>
+                                    resetValue(
+                                      dateKey,
+                                      member.user_id,
+                                      mt.id,
                                     )
                                   }
                                   disabled={!isManager}

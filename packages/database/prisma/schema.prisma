@@ -127,7 +127,7 @@ model messes {
   mess_members       mess_members[]
   months             months[]
   meal_types         meal_types[]
-  default_meals      meal_entry_items[]
+
   bazaar_submissions bazaar_submissions[]
   expenses           expenses[]
   deposits           deposits[]
@@ -199,8 +199,7 @@ model meal_types {
   updated_at DateTime  @default(now())
   deleted_at DateTime?
 
-  mess  messes             @relation(fields: [mess_id], references: [id], onDelete: Cascade)
-  items meal_entry_items[]
+  mess messes @relation(fields: [mess_id], references: [id], onDelete: Cascade)
 
   @@unique([mess_id, name], map: "idx_meal_types_mess_name", where: raw("deleted_at IS NULL AND is_active = true"))
   @@index([is_active], map: "idx_meal_types_is_active")
@@ -225,19 +224,6 @@ model meal_entries {
   @@unique([month_id, member_id, date], map: "idx_meal_entries_unique", where: raw("deleted_at IS NULL"))
   @@index([month_id, date], map: "idx_meal_entries_month_date")
   @@index([member_id], map: "idx_meal_entries_member")
-}
-
-model meal_entry_items {
-  id            String   @id @default(uuid())
-  mess_id       String
-  meal_type_id  String
-  meal_value    Decimal  @db.Decimal(5, 2)
-  created_at    DateTime @default(now())
-
-  mess      messes      @relation(fields: [mess_id], references: [id], onDelete: Cascade)
-  meal_type meal_types  @relation(fields: [meal_type_id], references: [id])
-
-  @@unique([mess_id, meal_type_id], map: "idx_meal_entry_items_mess_type")
 }
 
 model bazaar_submissions {

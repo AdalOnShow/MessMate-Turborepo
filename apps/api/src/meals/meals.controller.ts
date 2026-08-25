@@ -13,7 +13,13 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
-import { bulkMealEntriesSchema, formatZodError } from '@repo/shared';
+import {
+  bulkMealEntriesSchema,
+  formatZodError,
+  type DailyMealReport,
+  type MemberMealReport,
+  type MonthMealSummary,
+} from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
 import { MealsService } from './meals.service';
 
@@ -143,6 +149,105 @@ export class MealsController {
     return {
       success: true,
       message: 'Meal entry deleted successfully',
+    };
+  }
+
+  @Get(':messId/:monthId/daily')
+  async getDailyMealReport(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('monthId') monthId: string,
+    @Query('date') date?: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: DailyMealReport;
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(monthId, 'monthId');
+
+    if (!date) {
+      throw new BadRequestException('date query parameter is required');
+    }
+
+    const userId = req.user!.id;
+    this.logger.log(
+      `📮 GET /meals/${messId}/${monthId}/daily?date=${date} - user: ${userId}`,
+    );
+
+    const data = await this.mealsService.getDailyMealReport(
+      messId,
+      monthId,
+      date,
+    );
+
+    return {
+      success: true,
+      message: 'Request completed successfully',
+      data,
+    };
+  }
+
+  @Get(':messId/:monthId/member/:memberId')
+  async getMemberMealReport(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('monthId') monthId: string,
+    @Param('memberId') memberId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: MemberMealReport;
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(monthId, 'monthId');
+    validateUuid(memberId, 'memberId');
+
+    const userId = req.user!.id;
+    this.logger.log(
+      `📮 GET /meals/${messId}/${monthId}/member/${memberId} - user: ${userId}`,
+    );
+
+    const data = await this.mealsService.getMemberMealReport(
+      messId,
+      monthId,
+      memberId,
+    );
+
+    return {
+      success: true,
+      message: 'Request completed successfully',
+      data,
+    };
+  }
+
+  @Get(':messId/:monthId/summary')
+  async getMonthMealSummary(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('monthId') monthId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: MonthMealSummary;
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(monthId, 'monthId');
+
+    const userId = req.user!.id;
+    this.logger.log(
+      `📮 GET /meals/${messId}/${monthId}/summary - user: ${userId}`,
+    );
+
+    const data = await this.mealsService.getMonthMealSummary(
+      messId,
+      monthId,
+    );
+
+    return {
+      success: true,
+      message: 'Request completed successfully',
+      data,
     };
   }
 }
