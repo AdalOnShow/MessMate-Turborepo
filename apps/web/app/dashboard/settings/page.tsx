@@ -10,13 +10,7 @@ import {
   useUpdateMealType,
 } from "../../hooks/use-messes";
 import type { MealTypeInfo } from "../../hooks/use-messes";
-import {
-  Check,
-  Loader2,
-  Pencil,
-  Settings,
-  X,
-} from "lucide-react";
+import { Check, Loader2, Pencil, Settings, X } from "lucide-react";
 
 function EditableMessInfo() {
   const { data: myMess } = useGetMyMess();
@@ -69,10 +63,7 @@ function EditableMessInfo() {
       newErrors.slug =
         "Slug must contain only lowercase letters, numbers, and hyphens";
     }
-    if (
-      description.trim().length > 0 &&
-      description.trim().length > 300
-    ) {
+    if (description.trim().length > 0 && description.trim().length > 300) {
       newErrors.description = "Description must be at most 300 characters";
     }
 

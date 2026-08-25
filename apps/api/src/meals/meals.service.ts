@@ -402,8 +402,7 @@ export class MealsService {
       const daysDiff = Math.max(
         1,
         Math.ceil(
-          (month.ended_at ?? new Date()).getTime() -
-            month.started_at.getTime(),
+          (month.ended_at ?? new Date()).getTime() - month.started_at.getTime(),
         ) /
           (1000 * 60 * 60 * 24),
       );

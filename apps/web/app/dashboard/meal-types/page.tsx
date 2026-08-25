@@ -9,14 +9,7 @@ import {
   useDeleteMealType,
 } from "../../hooks/use-messes";
 import type { MealTypeInfo } from "../../hooks/use-messes";
-import {
-  Check,
-  Loader2,
-  Plus,
-  Trash2,
-  UtensilsCrossed,
-  X,
-} from "lucide-react";
+import { Check, Loader2, Plus, Trash2, UtensilsCrossed, X } from "lucide-react";
 
 function CreateMealTypeForm({
   messId,
@@ -129,9 +122,7 @@ function CreateMealTypeForm({
         </div>
       </div>
 
-      {error && (
-        <p className="mt-2 text-sm text-destructive">{error}</p>
-      )}
+      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
     </div>
   );
 }
@@ -263,8 +254,7 @@ export default function MealTypesPage() {
   const messId = myMess?.id;
   const isManager = myMess?.current_user_role === "MANAGER";
 
-  const { data: mealTypes, isLoading: typesLoading } =
-    useGetMealTypes(messId);
+  const { data: mealTypes, isLoading: typesLoading } = useGetMealTypes(messId);
 
   const [showCreate, setShowCreate] = useState(false);
 

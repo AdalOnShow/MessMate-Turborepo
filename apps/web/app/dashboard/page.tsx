@@ -108,9 +108,7 @@ function ActiveMonthCard() {
     return (
       <div className="rounded-xl border border-primary/30 bg-primary/5 p-6">
         <h3 className="mb-4 text-lg font-semibold text-foreground">
-          {activeMonth
-            ? "Close Current & Start New Month"
-            : "Start New Month"}
+          {activeMonth ? "Close Current & Start New Month" : "Start New Month"}
         </h3>
 
         {activeMonth && (

@@ -80,10 +80,11 @@ export function PricingSection() {
           {plans.map((plan, idx) => (
             <div
               key={idx}
-              className={`relative p-8 rounded-2xl flex flex-col justify-between transition-all duration-300 ${plan.highlight
-                ? "bg-surface-raised border-2 border-primary"
-                : "bg-surface border border-foreground-muted/10 hover:-translate-y-1 hover:border-foreground-muted/20"
-                }`}
+              className={`relative p-8 rounded-2xl flex flex-col justify-between transition-all duration-300 ${
+                plan.highlight
+                  ? "bg-surface-raised border-2 border-primary"
+                  : "bg-surface border border-foreground-muted/10 hover:-translate-y-1 hover:border-foreground-muted/20"
+              }`}
             >
               {/* Highlight Badge */}
               {plan.highlight && (
@@ -151,10 +152,11 @@ export function PricingSection() {
               {/* CTA button */}
               <a
                 href={plan.href}
-                className={`w-full py-3.5 px-6 rounded-xl font-bold text-center active:scale-[0.98] transition-all duration-200 cursor-pointer ${plan.highlight
-                  ? "bg-primary text-background hover:bg-primary-hover"
-                  : "bg-surface-raised border border-primary/30 text-primary hover:bg-primary/5"
-                  }`}
+                className={`w-full py-3.5 px-6 rounded-xl font-bold text-center active:scale-[0.98] transition-all duration-200 cursor-pointer ${
+                  plan.highlight
+                    ? "bg-primary text-background hover:bg-primary-hover"
+                    : "bg-surface-raised border border-primary/30 text-primary hover:bg-primary/5"
+                }`}
               >
                 {plan.cta}
               </a>

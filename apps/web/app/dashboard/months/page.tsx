@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
-import {
-  useGetMonthHistory,
-  useGetMonthSummary,
-} from "../../hooks/use-months";
+import { useGetMonthHistory, useGetMonthSummary } from "../../hooks/use-months";
 import type { MonthInfo } from "../../hooks/use-months";
 import { Calendar, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 
@@ -153,8 +150,7 @@ function MonthSummary({ month }: { month: MonthInfo }) {
 export default function MonthsPage() {
   const { data: myMess, isLoading: messLoading } = useGetMyMess();
   const messId = myMess?.id;
-  const { data: months, isLoading: monthsLoading } =
-    useGetMonthHistory(messId);
+  const { data: months, isLoading: monthsLoading } = useGetMonthHistory(messId);
 
   if (messLoading || monthsLoading) {
     return (

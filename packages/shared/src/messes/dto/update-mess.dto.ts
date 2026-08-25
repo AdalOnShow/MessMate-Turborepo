@@ -9,10 +9,7 @@ export const updateMessSchema = z.object({
     .optional(),
   description: z
     .union([
-      z
-        .string()
-        .trim()
-        .max(300, "Description must be at most 300 characters"),
+      z.string().trim().max(300, "Description must be at most 300 characters"),
       z.literal(""),
       z.null(),
     ])

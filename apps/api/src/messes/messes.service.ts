@@ -76,6 +76,13 @@ export class MessesService {
           },
         });
 
+        await tx.meal_types.createMany({
+          data: [
+            { mess_id: mess.id, name: 'Lunch', value: 1, is_active: true },
+            { mess_id: mess.id, name: 'Dinner', value: 1, is_active: true },
+          ],
+        });
+
         return { mess, member_id: member.id };
       });
 
@@ -479,9 +486,7 @@ export class MessesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'Only managers can update meal types',
-      );
+      throw new ForbiddenException('Only managers can update meal types');
     }
 
     const mealType = await prisma.meal_types.findFirst({
@@ -505,9 +510,7 @@ export class MessesService {
       },
     });
 
-    this.logger.log(
-      `✅ Meal type updated: ${mealTypeId} by ${actorId}`,
-    );
+    this.logger.log(`✅ Meal type updated: ${mealTypeId} by ${actorId}`);
 
     return {
       id: updated.id,
@@ -536,9 +539,7 @@ export class MessesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'Only managers can create meal types',
-      );
+      throw new ForbiddenException('Only managers can create meal types');
     }
 
     const existingCount = await prisma.meal_types.count({
@@ -602,9 +603,7 @@ export class MessesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'Only managers can delete meal types',
-      );
+      throw new ForbiddenException('Only managers can delete meal types');
     }
 
     const mealType = await prisma.meal_types.findFirst({
@@ -624,9 +623,7 @@ export class MessesService {
       data: { deleted_at: new Date() },
     });
 
-    this.logger.log(
-      `✅ Meal type deleted: ${mealTypeId} by ${actorId}`,
-    );
+    this.logger.log(`✅ Meal type deleted: ${mealTypeId} by ${actorId}`);
 
     return { success: true };
   }

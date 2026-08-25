@@ -18,10 +18,11 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-        ? "bg-surface/80 backdrop-blur-md border-b border-[rgba(148,163,184,0.1)] py-4 shadow-lg shadow-black/20"
-        : "bg-transparent py-6"
-        }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-surface/80 backdrop-blur-md border-b border-[rgba(148,163,184,0.1)] py-4 shadow-lg shadow-black/20"
+          : "bg-transparent py-6"
+      }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav className="flex items-center justify-between">
@@ -132,10 +133,11 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       <div
-        className={`md:hidden fixed inset-x-0 top-18.25 bottom-0 z-40 bg-background/95 backdrop-blur-lg border-t border-[rgba(148,163,184,0.1)] transition-all duration-300 ease-in-out ${isMobileMenuOpen
-          ? "translate-x-0 opacity-100"
-          : "translate-x-full opacity-0 pointer-events-none"
-          }`}
+        className={`md:hidden fixed inset-x-0 top-18.25 bottom-0 z-40 bg-background/95 backdrop-blur-lg border-t border-[rgba(148,163,184,0.1)] transition-all duration-300 ease-in-out ${
+          isMobileMenuOpen
+            ? "translate-x-0 opacity-100"
+            : "translate-x-full opacity-0 pointer-events-none"
+        }`}
       >
         <div className="flex flex-col p-6 space-y-6">
           <a

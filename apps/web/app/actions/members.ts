@@ -59,10 +59,9 @@ export async function updateMemberRole(
   userId: string,
   role: "MANAGER" | "MEMBER",
 ) {
-  return api.patch<MemberData>(
-    `/messes/${messId}/members/${userId}/role`,
-    { role },
-  );
+  return api.patch<MemberData>(`/messes/${messId}/members/${userId}/role`, {
+    role,
+  });
 }
 
 export async function searchUsers(query: string) {

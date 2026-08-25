@@ -7,7 +7,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, prisma } from '@repo/database';
-import type { MonthResponse, MonthSummaryResponse, MemberMonthSummary } from '@repo/shared';
+import type {
+  MonthResponse,
+  MonthSummaryResponse,
+  MemberMonthSummary,
+} from '@repo/shared';
 
 @Injectable()
 export class MonthsService {
@@ -172,18 +176,14 @@ export class MonthsService {
       const memberSharedCost = expenses
         .filter((e) => e.type === 'SHARED' || e.type === 'BAZAAR')
         .reduce((sum, expense) => {
-          const alloc = expense.members.find(
-            (m) => m.member_id === memberId,
-          );
+          const alloc = expense.members.find((m) => m.member_id === memberId);
           return sum + (alloc ? Number(alloc.allocated_amount) : 0);
         }, 0);
 
       const memberIndividualCost = expenses
         .filter((e) => e.type === 'INDIVIDUAL')
         .reduce((sum, expense) => {
-          const alloc = expense.members.find(
-            (m) => m.member_id === memberId,
-          );
+          const alloc = expense.members.find((m) => m.member_id === memberId);
           return sum + (alloc ? Number(alloc.allocated_amount) : 0);
         }, 0);
 
@@ -191,7 +191,8 @@ export class MonthsService {
         .filter((d) => d.member_id === memberId)
         .reduce((sum, d) => sum + Number(d.amount), 0);
 
-      const finalBill = memberMealCost + memberSharedCost + memberIndividualCost;
+      const finalBill =
+        memberMealCost + memberSharedCost + memberIndividualCost;
       const finalBalance = memberDeposits - finalBill;
 
       const summary = await prisma.member_month_summaries.create({
@@ -241,9 +242,7 @@ export class MonthsService {
               member_id: summary.member_id,
               amount: Math.abs(summary.final_balance),
               carry_forward_type:
-                summary.final_balance > 0
-                  ? 'PREVIOUS_BALANCE'
-                  : 'PREVIOUS_DUE',
+                summary.final_balance > 0 ? 'PREVIOUS_BALANCE' : 'PREVIOUS_DUE',
             },
           });
         }

@@ -35,17 +35,19 @@ export function ThemeToggle() {
     >
       <span className="sr-only">{isDark ? "Light" : "Dark"} mode</span>
       <Sun
-        className={`absolute h-5 w-5 transition-all duration-300 ${isDark
-          ? "opacity-0 rotate-90 scale-0"
-          : "opacity-100 rotate-0 scale-100"
-          }`}
+        className={`absolute h-5 w-5 transition-all duration-300 ${
+          isDark
+            ? "opacity-0 rotate-90 scale-0"
+            : "opacity-100 rotate-0 scale-100"
+        }`}
         size={20}
       />
       <Moon
-        className={`absolute h-5 w-5 transition-all duration-300 ${isDark
-          ? "opacity-100 rotate-0 scale-100"
-          : "opacity-0 -rotate-90 scale-0"
-          }`}
+        className={`absolute h-5 w-5 transition-all duration-300 ${
+          isDark
+            ? "opacity-100 rotate-0 scale-100"
+            : "opacity-0 -rotate-90 scale-0"
+        }`}
         size={20}
       />
     </button>

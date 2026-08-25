@@ -146,7 +146,9 @@ export default function SignUpForm() {
                   className="w-full h-11 px-3.5 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
                 />
                 {fieldErrors.email && (
-                  <p className="text-xs text-destructive">{fieldErrors.email}</p>
+                  <p className="text-xs text-destructive">
+                    {fieldErrors.email}
+                  </p>
                 )}
               </div>
 

@@ -71,9 +71,7 @@ export class MealsController {
     }
 
     const actorId = req.user!.id;
-    this.logger.log(
-      `📮 POST /meals/${messId}/${monthId} - actor: ${actorId}`,
-    );
+    this.logger.log(`📮 POST /meals/${messId}/${monthId} - actor: ${actorId}`);
 
     const data = await this.mealsService.bulkSaveMealEntries(
       messId,
@@ -239,10 +237,7 @@ export class MealsController {
       `📮 GET /meals/${messId}/${monthId}/summary - user: ${userId}`,
     );
 
-    const data = await this.mealsService.getMonthMealSummary(
-      messId,
-      monthId,
-    );
+    const data = await this.mealsService.getMonthMealSummary(messId, monthId);
 
     return {
       success: true,

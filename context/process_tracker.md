@@ -42,7 +42,7 @@ pnpm Workspace
 - [x] Create apps/api (NestJS 11)
 - [x] Create packages/database (Prisma + Neon)
 - [x] Create packages/shared (DTOs, types, API response, Zod validations)
-- [x] Shared Zod schemas + DTOs for members (packages/shared/src/messes/members.*)
+- [x] Shared Zod schemas + DTOs for members (packages/shared/src/messes/members.\*)
 - [ ] Create packages/shared-types
 - [ ] Create packages/shared-utils
 - [ ] Create packages/validation

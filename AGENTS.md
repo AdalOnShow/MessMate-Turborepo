@@ -10,6 +10,7 @@ pnpm turbo check-types --filter=[origin/main]  # typecheck changed packages
 ```
 
 Dev servers (run in separate terminals):
+
 ```bash
 pnpm turbo dev --filter=web     # Next.js on :3000
 pnpm turbo dev --filter=api     # NestJS on :4000
@@ -39,10 +40,12 @@ Error responses: `{ success: false, message, statusCode, error, path, details? }
 ### RBAC Pattern
 
 Manager-only endpoints use:
+
 ```typescript
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Roles('MANAGER')
 ```
+
 `RolesGuard` looks up `mess_members` by `messId` route param. The `:messId` param must be present in the route.
 
 ### Frontend Data Flow
@@ -52,21 +55,25 @@ Server actions (`apps/web/app/actions/*.ts`) call the API via `api-client.ts` (w
 ### Database Client
 
 `@repo/database` exports a lazy `prisma` proxy — do NOT import `PrismaClient` directly. Use:
+
 ```typescript
-import { prisma } from '@repo/database';
+import { prisma } from "@repo/database";
 ```
+
 The proxy initializes on first use via `DATABASE_URL` from env.
 
 ### Shared Package
 
 `@repo/shared` exports DTOs, interfaces, Zod schemas, and `ApiResponse`/`isApiResponse`. Import from the package root:
+
 ```typescript
-import { CreateMessDto, MessResponse } from '@repo/shared';
+import { CreateMessDto, MessResponse } from "@repo/shared";
 ```
 
 ## Env Setup
 
 Root `.env` is the source of truth for `DATABASE_URL`. Each app/package has its own `.env.example`. Key vars:
+
 - `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` — random 64-char hex strings
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — for OAuth
 - `CORS_ORIGIN` — must match frontend URL (`http://localhost:3000` in dev)
@@ -77,6 +84,7 @@ Root `.env` is the source of truth for `DATABASE_URL`. Each app/package has its 
 PostgreSQL on Neon (serverless). Prisma 7.8 with Neon adapter. Migrations in `packages/database/prisma/migrations/`.
 
 Run migrations:
+
 ```bash
 cd packages/database && pnpm migrate    # prisma migrate dev
 cd packages/database && pnpm generate  # prisma generate
@@ -99,6 +107,7 @@ GitHub Actions on push/PR to main: `build → lint → check-types`. Uses Turbor
 ## Important ADRs
 
 Read `context/architecture-decisions.md` before changing core logic. Key decisions:
+
 - **ADR-003:** One active mess per user (business validation)
 - **ADR-004:** Max 2 managers per mess, equal permissions
 - **ADR-005:** Dynamic meal types (configurable per mess)

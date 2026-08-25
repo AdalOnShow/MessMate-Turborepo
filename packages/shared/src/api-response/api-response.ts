@@ -13,11 +13,11 @@ export interface ApiErrorResponse extends ApiResponse<never> {
 }
 
 export function isApiResponse(value: unknown): value is ApiResponse {
-  if (typeof value !== 'object' || value === null) return false;
+  if (typeof value !== "object" || value === null) return false;
 
   const response = value as Partial<ApiResponse>;
   return (
-    typeof response.success === 'boolean' &&
-    typeof response.message === 'string'
+    typeof response.success === "boolean" &&
+    typeof response.message === "string"
   );
 }

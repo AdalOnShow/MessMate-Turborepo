@@ -18,7 +18,10 @@ export interface MemberFilters {
   status?: "ACTIVE" | "REMOVED";
 }
 
-export function useMembers(messId: string | undefined, filters?: MemberFilters) {
+export function useMembers(
+  messId: string | undefined,
+  filters?: MemberFilters,
+) {
   return useQuery({
     queryKey: ["members", messId, filters],
     queryFn: async () => {

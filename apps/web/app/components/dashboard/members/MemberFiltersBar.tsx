@@ -24,7 +24,9 @@ export const MemberFiltersBar = React.memo(function MemberFiltersBar({
 }: {
   onSearchChange: (value: string) => void;
   filters: MemberFilters;
-  onFilterChange: (updates: Partial<Pick<MemberFilters, "role" | "status">>) => void;
+  onFilterChange: (
+    updates: Partial<Pick<MemberFilters, "role" | "status">>,
+  ) => void;
 }) {
   const [localSearch, setLocalSearch] = useState(filters.search ?? "");
   const debouncedSearch = useDebounce(localSearch, 300);

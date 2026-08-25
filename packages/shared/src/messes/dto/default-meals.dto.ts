@@ -9,7 +9,9 @@ export const defaultMealItemSchema = z.object({
 });
 
 export const updateDefaultMealsSchema = z.object({
-  meals: z.array(defaultMealItemSchema).min(1, "At least one meal type is required"),
+  meals: z
+    .array(defaultMealItemSchema)
+    .min(1, "At least one meal type is required"),
 });
 
 export type UpdateDefaultMealsDto = z.infer<typeof updateDefaultMealsSchema>;

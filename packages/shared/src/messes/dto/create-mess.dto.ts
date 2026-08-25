@@ -8,10 +8,7 @@ export const createMessSchema = z.object({
     .max(80, "Name must be at most 80 characters"),
   description: z
     .union([
-      z
-        .string()
-        .trim()
-        .max(300, "Description must be at most 300 characters"),
+      z.string().trim().max(300, "Description must be at most 300 characters"),
       z.literal(""),
       z.null(),
     ])

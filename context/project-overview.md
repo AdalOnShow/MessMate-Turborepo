@@ -12,15 +12,15 @@ The platform is being designed with a SaaS-ready architecture, allowing future e
 
 ## Core Objectives
 
-* Simplify meal management.
-* Automate monthly bill calculation.
-* Track deposits and balances.
-* Manage shared and individual expenses.
-* Maintain transparent accounting.
-* Keep a complete activity history.
-* Provide role-based management.
-* Support future mobile applications.
-* Support future SaaS expansion.
+- Simplify meal management.
+- Automate monthly bill calculation.
+- Track deposits and balances.
+- Manage shared and individual expenses.
+- Maintain transparent accounting.
+- Keep a complete activity history.
+- Provide role-based management.
+- Support future mobile applications.
+- Support future SaaS expansion.
 
 ---
 
@@ -32,10 +32,10 @@ System administrators are responsible for managing the overall SaaS platform.
 
 Responsibilities:
 
-* Manage platform settings.
-* Manage global configurations.
-* Monitor platform usage.
-* Manage future subscription plans.
+- Manage platform settings.
+- Manage global configurations.
+- Monitor platform usage.
+- Manage future subscription plans.
 
 > System Admin does not participate in day-to-day mess operations.
 
@@ -47,15 +47,15 @@ Mess managers are responsible for operating a specific mess.
 
 Responsibilities:
 
-* Create and manage a mess.
-* Add and remove members.
-* Assign or remove manager permissions.
-* Record meals.
-* Manage expenses.
-* Manage deposits.
-* Start a new month.
-* Configure meal settings.
-* Review activity history.
+- Create and manage a mess.
+- Add and remove members.
+- Assign or remove manager permissions.
+- Record meals.
+- Manage expenses.
+- Manage deposits.
+- Start a new month.
+- Configure meal settings.
+- Review activity history.
 
 Each mess can have a maximum of **two managers**.
 
@@ -69,12 +69,12 @@ Members are regular users of a mess.
 
 Responsibilities:
 
-* View meals.
-* View expenses.
-* View deposits.
-* View balances.
-* View monthly reports.
-* View activity history.
+- View meals.
+- View expenses.
+- View deposits.
+- View balances.
+- View monthly reports.
+- View activity history.
 
 Members cannot modify accounting data.
 
@@ -84,31 +84,31 @@ Members cannot modify accounting data.
 
 ### Authentication
 
-* Email & Password Login
-* Google Login
-* JWT Authentication
-* Refresh Token Support
+- Email & Password Login
+- Google Login
+- JWT Authentication
+- Refresh Token Support
 
 ---
 
 ### Mess Management
 
-* Create Mess
-* Join Mess
-* Member Management
-* Manager Management
-* Active Member Tracking
-* Member History Tracking
+- Create Mess
+- Join Mess
+- Member Management
+- Manager Management
+- Active Member Tracking
+- Member History Tracking
 
 ---
 
 ### Meal Management
 
-* Daily Meal Entry
-* Custom Meal Types
-* Bulk Meal Entry
-* Meal Updates
-* Meal History
+- Daily Meal Entry
+- Custom Meal Types
+- Bulk Meal Entry
+- Meal Updates
+- Meal History
 
 ---
 
@@ -116,19 +116,19 @@ Members cannot modify accounting data.
 
 #### Bazaar Expenses
 
-* Bazaar Submission
-* Structured Item List (JSONB)
-* Bazaar Approval Workflow
-* Bazaar History
+- Bazaar Submission
+- Structured Item List (JSONB)
+- Bazaar Approval Workflow
+- Bazaar History
 
 #### Shared Expenses
 
 Examples:
 
-* Gas
-* Electricity
-* Internet
-* Utility Bills
+- Gas
+- Electricity
+- Internet
+- Utility Bills
 
 Managers can choose which members will share a specific expense.
 
@@ -136,9 +136,9 @@ Managers can choose which members will share a specific expense.
 
 Examples:
 
-* Previous Due
-* Personal Purchases
-* Custom Charges
+- Previous Due
+- Personal Purchases
+- Custom Charges
 
 Expenses can be assigned to specific members.
 
@@ -146,20 +146,20 @@ Expenses can be assigned to specific members.
 
 ### Deposit Management
 
-* Member Deposit Tracking
-* Deposit History
-* Balance Calculation
-* Carry Forward Support
+- Member Deposit Tracking
+- Deposit History
+- Balance Calculation
+- Carry Forward Support
 
 ---
 
 ### Monthly Accounting
 
-* Automatic Meal Rate Calculation
-* Automatic Bill Calculation
-* Member-wise Summary
-* Monthly Report
-* Balance Carry Forward
+- Automatic Meal Rate Calculation
+- Automatic Bill Calculation
+- Member-wise Summary
+- Monthly Report
+- Balance Carry Forward
 
 Formula:
 
@@ -169,8 +169,8 @@ Member Bill =
 
 (Member Meals × Meal Rate)
 
-* Shared Expenses
-* Individual Expenses
+- Shared Expenses
+- Individual Expenses
 
 ---
 
@@ -180,15 +180,15 @@ Every important action will be recorded.
 
 Examples:
 
-* Member Joined
-* Member Removed
-* Meal Added
-* Meal Updated
-* Expense Added
-* Expense Updated
-* Deposit Added
-* Manager Assigned
-* Manager Removed
+- Member Joined
+- Member Removed
+- Meal Added
+- Meal Updated
+- Expense Added
+- Expense Updated
+- Deposit Added
+- Manager Assigned
+- Manager Removed
 
 Each activity will store the responsible user.
 
@@ -196,12 +196,12 @@ Each activity will store the responsible user.
 
 ### Reports
 
-* Active Month Report
-* Previous Month Reports
-* Member Summary
-* Expense Summary
-* Deposit Summary
-* Balance Summary
+- Active Month Report
+- Previous Month Reports
+- Member Summary
+- Expense Summary
+- Deposit Summary
+- Balance Summary
 
 ---
 
@@ -209,19 +209,19 @@ Each activity will store the responsible user.
 
 ### Phase 2
 
-* Real-time Group Chat
-* Push Notifications
-* File Sharing
-* PDF Export
-* Excel Export
+- Real-time Group Chat
+- Push Notifications
+- File Sharing
+- PDF Export
+- Excel Export
 
 ### Phase 3
 
-* Mobile Application
-* Subscription Plans
-* Advanced Analytics
-* Smart Financial Insights
-* Multi-Language Support
+- Mobile Application
+- Subscription Plans
+- Advanced Analytics
+- Smart Financial Insights
+- Multi-Language Support
 
 ---
 
@@ -229,26 +229,26 @@ Each activity will store the responsible user.
 
 ### Frontend
 
-* Next.js 16
-* TypeScript
-* Tailwind CSS
-* TanStack Query
-* Zustand
+- Next.js 16
+- TypeScript
+- Tailwind CSS
+- TanStack Query
+- Zustand
 
 ### Backend
 
-* NestJS
-* Prisma ORM
-* PostgreSQL
-* JWT Authentication
-* Socket.IO (Future Realtime Features)
+- NestJS
+- Prisma ORM
+- PostgreSQL
+- JWT Authentication
+- Socket.IO (Future Realtime Features)
 
 ### Infrastructure
 
-* Docker
-* Cloudinary
-* Redis
-* PostgreSQL
+- Docker
+- Cloudinary
+- Redis
+- PostgreSQL
 
 ---
 

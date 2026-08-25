@@ -125,25 +125,24 @@ export function MembersTable({
               </td>
               {isManager && (
                 <td className="px-3 py-3 sm:px-4">
-                  {!member.removed_at &&
-                    member.user_id !== currentUserId && (
-                      <div className="flex gap-1.5 sm:gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onRoleClick(member)}
-                          className="rounded-lg border border-foreground-muted/20 px-2 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised hover:text-foreground sm:px-3"
-                        >
-                          Role
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onRemoveClick(member)}
-                          className="rounded-lg border border-destructive/20 px-2 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 sm:px-3"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    )}
+                  {!member.removed_at && member.user_id !== currentUserId && (
+                    <div className="flex gap-1.5 sm:gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onRoleClick(member)}
+                        className="rounded-lg border border-foreground-muted/20 px-2 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised hover:text-foreground sm:px-3"
+                      >
+                        Role
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveClick(member)}
+                        className="rounded-lg border border-destructive/20 px-2 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 sm:px-3"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
                 </td>
               )}
             </tr>
