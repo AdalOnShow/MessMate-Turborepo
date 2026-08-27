@@ -14,7 +14,7 @@ Tailwind CSS v4
 TanStack Query
 Zustand + Immer
 Lucide icons
-Custom design system (CSS variables, no shadcn/ui)
+Custom design system (CSS variables) + selected shadcn/ui primitives (Button, Popover, Calendar, DatePicker)
 
 Backend:
 NestJS 11
@@ -120,7 +120,8 @@ pnpm Workspace
 - [x] Create Account page (/dashboard/members/create-account — manager creates member account)
 - [x] Bundle analyzer configured (Next.js)
 - [x] Root layout with metadata, SEO, OpenGraph
-- [ ] shadcn/ui setup (not installed — using custom Tailwind components)
+- [~] shadcn/ui primitives (partial — user requested Button, Popover, Calendar,
+      DatePicker; rest of UI remains custom Tailwind)
 - [ ] Loading/error/empty state components (not yet extracted as reusable)
 - [ ] Protected route layout group (not using Next.js middleware or layout
       group)
@@ -400,6 +401,8 @@ pnpm Workspace
 - [x] Approved Bazaar List
 - [x] Rejected Bazaar List
 - [x] Bazaar Page UI (/dashboard/bazaar — submit form, tabs for pending/approved/rejected, approve/reject/edit/delete actions)
+- [x] shadcn DatePicker on bazaar form (replaces native date input)
+- [x] Manager dashboard Pending Bazaar Approvals card (approve/reject inline)
 - [x] Activity logging (BAZAAR_SUBMITTED, BAZAAR_UPDATED, BAZAAR_APPROVED, BAZAAR_REJECTED added to enum + migration)
 
 ---
@@ -645,6 +648,8 @@ Phase 6 Completed:
 - Bazaar history lists (pending/approved/rejected)
 - Bazaar Page UI (/dashboard/bazaar)
 - Activity logging (BAZAAR_SUBMITTED, BAZAAR_UPDATED, BAZAAR_APPROVED, BAZAAR_REJECTED)
+- shadcn DatePicker on bazaar form (replaces native date input)
+- Manager dashboard Pending Bazaar Approvals card (approve/reject inline)
 
 Next Priority:
 - Phase 7 - Expense Management

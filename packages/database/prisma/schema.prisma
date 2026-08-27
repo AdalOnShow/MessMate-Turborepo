@@ -57,6 +57,7 @@ enum activity_action {
   MEAL_DELETED
   EXPENSE_ADDED
   EXPENSE_UPDATED
+  EXPENSE_DELETED
   DEPOSIT_ADDED
   DEPOSIT_UPDATED
   MONTH_OPENED
@@ -266,6 +267,7 @@ model expenses {
   amount       Decimal     @db.Decimal(12, 2)
   created_by   String
   expense_date DateTime
+  note         String?
   created_at   DateTime    @default(now())
   updated_at   DateTime    @default(now())
 
