@@ -11,7 +11,21 @@ import {
   useAcceptInvite,
   useRejectInvite,
 } from "../hooks/use-invites";
-import { BarChart3, Calendar, Loader2, Plus, Utensils } from "lucide-react";
+import {
+  useGetBazaarHistory,
+  useApproveBazaar,
+  useRejectBazaar,
+} from "../hooks/use-bazaar";
+import {
+  BarChart3,
+  Calendar,
+  CheckCircle2,
+  Loader2,
+  Plus,
+  ShoppingCart,
+  Utensils,
+  XCircle,
+} from "lucide-react";
 
 function InviteBanner() {
   const { data: invites } = usePendingInvites();
@@ -354,6 +368,113 @@ function MealSummaryCard() {
   );
 }
 
+function PendingBazaarApprovalsCard() {
+  const { data: myMess } = useGetMyMess();
+  const messId = myMess?.id;
+  const isManager = myMess?.current_user_role === "MANAGER";
+  const { data: activeMonth } = useGetActiveMonth(messId);
+  const { data: history, isLoading } = useGetBazaarHistory(
+    messId,
+    activeMonth?.id,
+  );
+  const approve = useApproveBazaar(messId, activeMonth?.id);
+  const reject = useRejectBazaar(messId, activeMonth?.id);
+
+  if (!isManager || !activeMonth) return null;
+
+  const pending = history?.pending ?? [];
+  const isLoadingPending = isLoading;
+
+  return (
+    <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6 md:col-span-2 lg:col-span-3">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShoppingCart size={18} className="text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">
+            Bazaar Approvals
+          </h3>
+        </div>
+        {pending.length > 0 && (
+          <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-500">
+            {pending.length} pending
+          </span>
+        )}
+      </div>
+
+      {isLoadingPending ? (
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        </div>
+      ) : pending.length === 0 ? (
+        <p className="text-sm text-foreground-muted">
+          No bazaar submissions awaiting approval.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {pending.map((submission) => (
+            <div
+              key={submission.id}
+              className="rounded-lg border border-foreground-muted/15 bg-background p-4"
+            >
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {submission.submitter?.name}
+                  </p>
+                  <p className="text-xs text-foreground-muted">
+                    {submission.items.length} item
+                    {submission.items.length === 1 ? "" : "s"} ·{" "}
+                    {new Date(submission.expense_date).toLocaleDateString(
+                      "en-US",
+                      { month: "short", day: "numeric" },
+                    )}
+                  </p>
+                </div>
+                <span className="text-base font-bold text-foreground">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "BDT",
+                    maximumFractionDigits: 2,
+                  }).format(submission.total_amount)}
+                </span>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => approve.mutate(submission.id)}
+                  disabled={approve.isPending || reject.isPending}
+                  className="flex items-center gap-1.5 rounded-lg bg-green-600/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-600 disabled:opacity-60"
+                >
+                  {approve.isPending ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <CheckCircle2 size={12} />
+                  )}
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  onClick={() => reject.mutate(submission.id)}
+                  disabled={reject.isPending || approve.isPending}
+                  className="flex items-center gap-1.5 rounded-lg bg-destructive/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-destructive disabled:opacity-60"
+                >
+                  {reject.isPending ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <XCircle size={12} />
+                  )}
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, isAuthenticated } = useSessionStore();
   const { data: myMess, isLoading: messLoading } =
@@ -376,6 +497,8 @@ export default function DashboardPage() {
         <ActiveMonthCard />
 
         <MealSummaryCard />
+
+        <PendingBazaarApprovalsCard />
 
         <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
           <h2 className="mb-4 text-xl font-semibold text-foreground">

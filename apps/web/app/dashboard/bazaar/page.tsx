@@ -14,6 +14,7 @@ import {
   type BazaarItemInfo,
   type BazaarSubmissionInfo,
 } from "../../hooks/use-bazaar";
+import { DatePicker } from "../../components/ui/date-picker";
 import {
   Check,
   CheckCircle2,
@@ -25,12 +26,6 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-
-function todayDateString() {
-  const now = new Date();
-  const tzOffset = now.getTimezoneOffset() * 60000;
-  return new Date(now.getTime() - tzOffset).toISOString().slice(0, 10);
-}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -72,10 +67,10 @@ function BazaarForm({
       : [{ name: "", amount: 0 }],
   );
   const [description, setDescription] = useState(editing?.description || "");
-  const [expenseDate, setExpenseDate] = useState(
+  const [expenseDate, setExpenseDate] = useState<Date | undefined>(
     editing?.expense_date
-      ? new Date(editing.expense_date).toISOString().slice(0, 10)
-      : todayDateString(),
+      ? new Date(editing.expense_date)
+      : new Date(),
   );
   const [error, setError] = useState("");
 
@@ -116,13 +111,17 @@ function BazaarForm({
     const payload = {
       items: cleanedItems,
       description: description.trim() || undefined,
-      expense_date: new Date(`${expenseDate}T12:00:00`).toISOString(),
+      expense_date: expenseDate
+        ? new Date(
+            expenseDate.getTime() - expenseDate.getTimezoneOffset() * 60000,
+          ).toISOString()
+        : new Date().toISOString(),
     };
 
     const onSuccess = () => {
       setItems([{ name: "", amount: 0 }]);
       setDescription("");
-      setExpenseDate(todayDateString());
+      setExpenseDate(new Date());
       onDone?.();
     };
 
@@ -186,9 +185,9 @@ function BazaarForm({
             type="button"
             onClick={addItem}
             disabled={isPending}
-            className="mt-2 flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-hover disabled:opacity-50"
+            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 hover:text-primary-hover active:bg-primary/15 disabled:opacity-50"
           >
-            <Plus size={14} />
+            <Plus size={16} />
             Add Item
           </button>
         </div>
@@ -211,11 +210,9 @@ function BazaarForm({
           <label className="mb-1.5 block text-sm font-medium text-foreground">
             Expense Date
           </label>
-          <input
-            type="date"
-            value={expenseDate}
-            onChange={(e) => setExpenseDate(e.target.value)}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+          <DatePicker
+            date={expenseDate}
+            onSelect={setExpenseDate}
             disabled={isPending}
           />
         </div>
