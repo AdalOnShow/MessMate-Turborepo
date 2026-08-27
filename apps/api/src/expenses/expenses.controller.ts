@@ -21,6 +21,7 @@ import {
   type ExpenseWithRelations,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
+import { MembershipGuard } from '../auth/guards/membership.guard';
 import { ExpensesService } from './expenses.service';
 
 type AuthenticatedRequest = Request & {
@@ -48,6 +49,7 @@ export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
 
   @Get(':messId/:monthId')
+  @UseGuards(MembershipGuard)
   async listExpenses(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,

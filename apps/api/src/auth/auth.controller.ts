@@ -33,6 +33,7 @@ export class AuthController {
   private readonly logger = new Logger(AuthController.name);
   private readonly webAppUrl: string;
   private readonly refreshSecret: string;
+  private readonly cookieDomain?: string;
 
   constructor(
     private readonly authService: AuthService,
@@ -42,6 +43,8 @@ export class AuthController {
     this.webAppUrl = this.configService.getOrThrow<string>('CORS_ORIGIN');
     this.refreshSecret =
       this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+    this.cookieDomain =
+      this.configService.get<string>('COOKIE_DOMAIN') || undefined;
   }
 
   @Public()
@@ -156,10 +159,7 @@ export class AuthController {
     await this.authService.logout(userId);
 
     res.clearCookie('refresh_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      path: '/',
+      ...this.cookieOptions(),
     });
 
     this.logger.log(`✅ Logout completed for user: ${userId}`);
@@ -208,21 +208,23 @@ export class AuthController {
     }
   }
 
-  private setRefreshCookie(res: Response, refreshToken: string) {
-    res.cookie('refresh_token', refreshToken, {
+  private cookieOptions(): Record<string, unknown> {
+    return {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
       path: '/',
-    });
+      ...(this.cookieDomain ? { domain: this.cookieDomain } : {}),
+    };
+  }
+
+  private setRefreshCookie(res: Response, refreshToken: string) {
+    res.cookie('refresh_token', refreshToken, this.cookieOptions());
   }
 
   private setAccessCookie(res: Response, accessToken: string) {
     res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      path: '/',
+      ...this.cookieOptions(),
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }

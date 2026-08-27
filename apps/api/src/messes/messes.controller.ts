@@ -25,6 +25,7 @@ import {
   type MemberFilters,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
+import { MembershipGuard } from '../auth/guards/membership.guard';
 import { Roles } from '../auth/guards/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { MessesService } from './messes.service';
@@ -103,6 +104,7 @@ export class MessesController {
   }
 
   @Get(':messId/members')
+  @UseGuards(MembershipGuard)
   async getMembers(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
@@ -244,6 +246,7 @@ export class MessesController {
   }
 
   @Get(':messId/meal-types')
+  @UseGuards(MembershipGuard)
   async getMealTypes(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,

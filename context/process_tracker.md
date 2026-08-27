@@ -5,7 +5,7 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (Phase 6 Complete — Bazaar Management Done, Next: Phase 7 Expenses)
+Status: Active Development (Phase 6 Complete — Bazaar Management Done, Security Review Fixed, Next: Phase 7 Expenses)
 
 Frontend:
 Next.js 16
@@ -606,8 +606,13 @@ A task can be marked complete only if:
 ## Security Improvements
 
 - [x] Rate limiting configured (5 req/min on auth, 10 req/min global)
+- [x] Rate limit guard actually enforced (ThrottlerGuard registered as APP_GUARD)
 - [x] JWT tokens stored in httpOnly cookies only (removed from Zustand)
-- [x] CORS hardened (explicit methods/headers, no fallback)
+- [x] CORS hardened (explicit methods/headers, CORS_ORIGIN validated, no fallback)
+- [x] MembershipGuard (applied to mess read endpoints) — prevents cross-mess IDOR
+- [x] User search strips PII (no phone numbers exposed)
+- [x] Soft-deleted users blocked from all auth flows (login, refresh, JWT)
+- [x] COOKIE_DOMAIN env support for auth cookies (split-host deployments)
 - [x] Environment variables documented (.env.example files)
 - [x] Cloudinary configured for avatar uploads
 - [x] Multer configured with file size/type limits for avatar uploads
@@ -631,6 +636,17 @@ A task can be marked complete only if:
 - [x] Turbo.json updated (test task, inputs, cache)
 - [x] Bundle analyzer added to Next.js
 - [x] DATABASE_URL consolidated (single source of truth)
+
+---
+
+# Security Review — Deferred Work
+
+Items found in full-project security review (root commit `aa549b95...HEAD`), queued for later:
+
+- [ ] S1 — Balance carry-forward (ADR-008) unimplemented. `closeMonth` writes `carry_forward_balances` only if an active other month exists, but `createMonth` closes the old month first, so records never get written; the month summary never applies carries. Fix ordering + apply carry when computing `opening_balance`/summary.
+- [ ] S2 — Deposit Management missing entirely. Schema has `deposits` table but no API module, no controller, no UI. Needed: deposits CRUD (Phase 8), member deposit summary, net balance calc.
+- [ ] S3 — SHARED expenses double-counted in `months.service.ts` `closeMonth`: BAZAAR+SHARED amounts are included in `totalMealCost`/meal rate (lines ~161-165) AND SHARED allocations are also added to `memberSharedCost` (lines ~176-181). Decide which bucket carries shared cost and subtract.
+- [ ] S4 — Expense/Deposit UI absent. `Sidebar.tsx` and `BottomNav.tsx` link to `/dashboard/expenses` and `/dashboard/deposits` which 404. Build pages (ties into Phase 7/8 after S2/S3 resolved).
 
 ---
 

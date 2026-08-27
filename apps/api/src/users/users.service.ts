@@ -26,6 +26,15 @@ export type UserProfile = {
   email_verified: boolean;
 };
 
+export type UserSearchResult = {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  manager_created: boolean;
+  email_verified: boolean;
+};
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -196,7 +205,7 @@ export class UsersService {
     return user.user;
   }
 
-  async searchUsers(query: string): Promise<UserProfile[]> {
+  async searchUsers(query: string): Promise<UserSearchResult[]> {
     if (!query || query.trim().length < 2) {
       return [];
     }
@@ -213,7 +222,6 @@ export class UsersService {
         id: true,
         name: true,
         email: true,
-        phone: true,
         avatar: true,
         manager_created: true,
         email_verified: true,

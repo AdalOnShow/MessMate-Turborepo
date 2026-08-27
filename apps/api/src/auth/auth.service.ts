@@ -44,6 +44,11 @@ export class AuthService {
       return null;
     }
 
+    if (user.deleted_at) {
+      this.logger.warn(`⚠️ Access attempt by deleted user: ${userId}`);
+      return null;
+    }
+
     this.logger.debug(`🔍 User found: ${user.id} (${user.email})`);
     return {
       id: user.id,
@@ -60,6 +65,11 @@ export class AuthService {
     const user = await prisma.users.findUnique({ where: { email } });
     if (!user?.password) {
       this.logger.warn(`⚠️ Login attempt with non-existent email: ${email}`);
+      return null;
+    }
+
+    if (user.deleted_at) {
+      this.logger.warn(`⚠️ Login attempt by deleted user: ${email}`);
       return null;
     }
 
@@ -233,6 +243,11 @@ export class AuthService {
     const user = await prisma.users.findUnique({ where: { id: userId } });
     if (!user?.refresh_token) {
       this.logger.warn(`⚠️ Refresh failed - no stored token: ${userId}`);
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    if (user.deleted_at) {
+      this.logger.warn(`⚠️ Refresh attempt by deleted user: ${userId}`);
       throw new UnauthorizedException('Invalid refresh token');
     }
 

@@ -13,6 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
 import { createMonthSchema, formatZodError } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
+import { MembershipGuard } from '../auth/guards/membership.guard';
 import { MonthsService } from './months.service';
 
 type AuthenticatedRequest = Request & {
@@ -40,6 +41,7 @@ export class MonthsController {
   constructor(private readonly monthsService: MonthsService) {}
 
   @Get(':messId/active')
+  @UseGuards(MembershipGuard)
   async getActiveMonth(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
@@ -100,6 +102,7 @@ export class MonthsController {
   }
 
   @Get(':messId/history')
+  @UseGuards(MembershipGuard)
   async getMonthHistory(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
@@ -123,6 +126,7 @@ export class MonthsController {
   }
 
   @Get(':messId/:monthId/summary')
+  @UseGuards(MembershipGuard)
   async getMonthSummary(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,

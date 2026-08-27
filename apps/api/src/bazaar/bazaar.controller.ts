@@ -21,6 +21,7 @@ import {
   type BazaarHistory,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
+import { MembershipGuard } from '../auth/guards/membership.guard';
 import { BazaarService } from './bazaar.service';
 
 type AuthenticatedRequest = Request & {
@@ -88,6 +89,7 @@ export class BazaarController {
   }
 
   @Get(':messId/:monthId')
+  @UseGuards(MembershipGuard)
   async getBazaarHistory(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,

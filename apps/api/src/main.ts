@@ -9,6 +9,35 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 const expressApp = express();
 let isInitialized = false;
 
+function resolveCorsOrigin(): string[] {
+  const raw = process.env.CORS_ORIGIN;
+  if (!raw) throw new Error('CORS_ORIGIN environment variable is required');
+
+  const origins = raw
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  const valid = origins.every((origin) => {
+    try {
+      const parsed = new URL(origin);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  });
+
+  if (!valid) throw new Error(`Invalid CORS_ORIGIN: ${raw}`);
+  return origins;
+}
+
+const corsOptions = {
+  origin: resolveCorsOrigin(),
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
 async function createServer() {
   if (isInitialized) return expressApp;
 
@@ -18,12 +47,7 @@ async function createServer() {
     { logger: false },
   );
 
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  });
+  app.enableCors(corsOptions);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -50,12 +74,7 @@ if (!isVercel) {
     });
 
     app.enableShutdownHooks();
-    app.enableCors({
-      origin: process.env.CORS_ORIGIN,
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-      credentials: true,
-      allowedHeaders: ['Content-Type', 'Authorization'],
-    });
+    app.enableCors(corsOptions);
 
     if (isDev) {
       app.useGlobalInterceptors(new LoggingInterceptor());

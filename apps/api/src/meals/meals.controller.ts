@@ -21,6 +21,7 @@ import {
   type MonthMealSummary,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
+import { MembershipGuard } from '../auth/guards/membership.guard';
 import { MealsService } from './meals.service';
 
 type AuthenticatedRequest = Request & {
@@ -88,6 +89,7 @@ export class MealsController {
   }
 
   @Get(':messId/:monthId')
+  @UseGuards(MembershipGuard)
   async getMealEntries(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
@@ -151,6 +153,7 @@ export class MealsController {
   }
 
   @Get(':messId/:monthId/daily')
+  @UseGuards(MembershipGuard)
   async getDailyMealReport(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
@@ -187,6 +190,7 @@ export class MealsController {
   }
 
   @Get(':messId/:monthId/member/:memberId')
+  @UseGuards(MembershipGuard)
   async getMemberMealReport(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
@@ -220,6 +224,7 @@ export class MealsController {
   }
 
   @Get(':messId/:monthId/summary')
+  @UseGuards(MembershipGuard)
   async getMonthMealSummary(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
