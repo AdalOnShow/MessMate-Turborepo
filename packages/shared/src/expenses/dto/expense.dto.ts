@@ -18,11 +18,6 @@ export const createExpenseSchema = z
     member_ids: z
       .array(z.string().uuid("Invalid member id"))
       .min(1, "At least one member must be selected"),
-    note: z
-      .string()
-      .trim()
-      .max(500, "Note must be at most 500 characters")
-      .optional(),
   })
   .superRefine((data, ctx) => {
     if (data.type === "INDIVIDUAL" && data.member_ids.length !== 1) {
@@ -52,11 +47,6 @@ export const updateExpenseSchema = z
     member_ids: z
       .array(z.string().uuid("Invalid member id"))
       .min(1, "At least one member must be selected")
-      .optional(),
-    note: z
-      .string()
-      .trim()
-      .max(500, "Note must be at most 500 characters")
       .optional(),
   })
   .superRefine((data, ctx) => {

@@ -13,18 +13,29 @@ import type {
   UpdateExpenseDto,
 } from '@repo/shared';
 
-const memberSelect = {
+const userSelect = {
   id: true,
   name: true,
   email: true,
   avatar: true,
 } as const;
 
+const memberUserSelect = {
+  id: true,
+  user: {
+    select: {
+      name: true,
+      email: true,
+      avatar: true,
+    },
+  },
+} as const;
+
 const expenseInclude = {
-  creator: { select: memberSelect },
+  creator: { select: userSelect },
   members: {
     include: {
-      member: { select: memberSelect },
+      member: { select: memberUserSelect },
     },
   },
 } satisfies Prisma.expensesInclude;
@@ -43,14 +54,23 @@ function toExpenseWithRelations(row: ExpenseRow): ExpenseWithRelations {
     amount: Number(row.amount),
     created_by: row.created_by,
     expense_date: row.expense_date.toISOString(),
-    note: row.note ?? null,
     created_at: row.created_at.toISOString(),
     updated_at: row.updated_at.toISOString(),
-    creator: row.creator,
+    creator: {
+      id: row.creator.id,
+      name: row.creator.name,
+      email: row.creator.email,
+      avatar: row.creator.avatar,
+    },
     members: row.members.map((alloc) => ({
       member_id: alloc.member_id,
       allocated_amount: Number(alloc.allocated_amount),
-      member: alloc.member,
+      member: {
+        id: alloc.member.id,
+        name: alloc.member.user.name,
+        email: alloc.member.user.email,
+        avatar: alloc.member.user.avatar,
+      },
     })),
   };
 }
@@ -168,7 +188,6 @@ export class ExpensesService {
           amount: data.amount,
           created_by: actorId,
           expense_date: new Date(data.expense_date),
-          note: data.note || null,
           members: {
             create: allocations.map((alloc) => ({
               member_id: alloc.member_id,
@@ -320,7 +339,6 @@ export class ExpensesService {
           expense_date: data.expense_date
             ? new Date(data.expense_date)
             : expense.expense_date,
-          note: data.note !== undefined ? data.note || null : expense.note,
           updated_at: new Date(),
         },
         include: expenseInclude,

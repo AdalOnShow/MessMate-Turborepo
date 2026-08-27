@@ -22,7 +22,6 @@ export interface ExpenseInfo {
   amount: number;
   created_by: string;
   expense_date: string;
-  note: string | null;
   created_at: string;
   updated_at: string;
   creator: {
@@ -53,7 +52,6 @@ export interface CreateExpensePayload {
   amount: number;
   expense_date: string;
   member_ids: string[];
-  note?: string;
 }
 
 export interface UpdateExpensePayload {
@@ -62,7 +60,6 @@ export interface UpdateExpensePayload {
   amount?: number;
   expense_date?: string;
   member_ids?: string[];
-  note?: string;
 }
 
 export async function getExpenses(messId: string, monthId: string) {

@@ -18,7 +18,6 @@ export interface Expense {
   amount: number;
   created_by: string;
   expense_date: string;
-  note: string | null;
   created_at: string;
   updated_at: string;
 }
