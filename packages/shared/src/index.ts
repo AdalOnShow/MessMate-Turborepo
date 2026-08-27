@@ -7,4 +7,5 @@ export * from "./messes";
 export * from "./months";
 export * from "./meals";
 export * from "./invites";
+export * from "./bazaar";
 export * from "./api-response/api-response";

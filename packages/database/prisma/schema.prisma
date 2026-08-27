@@ -63,6 +63,10 @@ enum activity_action {
   MONTH_CLOSED
   MEMBER_BALANCE_CREATED
   DEFAULT_MEALS_UPDATED
+  BAZAAR_SUBMITTED
+  BAZAAR_UPDATED
+  BAZAAR_APPROVED
+  BAZAAR_REJECTED
 }
 
 // ============================================

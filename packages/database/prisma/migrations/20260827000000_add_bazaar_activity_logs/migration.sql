@@ -1,0 +1,5 @@
+-- AlterEnum
+ALTER TYPE "activity_action" ADD VALUE 'BAZAAR_SUBMITTED';
+ALTER TYPE "activity_action" ADD VALUE 'BAZAAR_UPDATED';
+ALTER TYPE "activity_action" ADD VALUE 'BAZAAR_APPROVED';
+ALTER TYPE "activity_action" ADD VALUE 'BAZAAR_REJECTED';

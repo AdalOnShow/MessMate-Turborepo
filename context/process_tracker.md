@@ -5,7 +5,7 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (Phase 5 Complete — Meal Management Done, Next: Phase 6 Bazaar)
+Status: Active Development (Phase 6 Complete — Bazaar Management Done, Next: Phase 7 Expenses)
 
 Frontend:
 Next.js 16
@@ -380,24 +380,27 @@ pnpm Workspace
 
 ## Bazaar Submission
 
-- [ ] Submit Bazaar
-- [ ] Add Bazaar Items
-- [ ] Edit Bazaar Submission
+- [x] Submit Bazaar (POST /bazaar/:messId/:monthId — any active member)
+- [x] Add Bazaar Items (JSONB item list with name + amount, ADR-022)
+- [x] Edit Bazaar Submission (PATCH /bazaar/:messId/:submissionId — while PENDING only, submitter or manager)
+- [x] Delete Bazaar Submission (DELETE /bazaar/:messId/:submissionId — while PENDING only)
 
 ---
 
 ## Bazaar Approval
 
-- [ ] Approve Bazaar
-- [ ] Reject Bazaar
+- [x] Approve Bazaar (POST /bazaar/:messId/:submissionId/approve — manager only, atomically creates `expenses` row type=BAZAAR, ADR-012)
+- [x] Reject Bazaar (POST /bazaar/:messId/:submissionId/reject — manager only)
 
 ---
 
 ## Bazaar History
 
-- [ ] Submitted Bazaar List
-- [ ] Approved Bazaar List
-- [ ] Rejected Bazaar List
+- [x] Submitted Bazaar List (GET /bazaar/:messId/:monthId → { pending, approved, rejected })
+- [x] Approved Bazaar List
+- [x] Rejected Bazaar List
+- [x] Bazaar Page UI (/dashboard/bazaar — submit form, tabs for pending/approved/rejected, approve/reject/edit/delete actions)
+- [x] Activity logging (BAZAAR_SUBMITTED, BAZAAR_UPDATED, BAZAAR_APPROVED, BAZAAR_REJECTED added to enum + migration)
 
 ---
 
@@ -509,8 +512,9 @@ pnpm Workspace
 - [ ] Expense Updated
 - [ ] Deposit Added
 - [ ] Deposit Updated
-- [ ] Bazaar Submitted
-- [ ] Bazaar Approved
+- [x] Bazaar Submitted
+- [x] Bazaar Approved
+- [x] Bazaar Rejected
 - [x] Manager Assigned
 - [ ] Manager Removed
 
@@ -631,20 +635,18 @@ A task can be marked complete only if:
 
 ```text
 Current Phase:
-Phase 5 - Meal Management (COMPLETED)
+Phase 6 - Bazaar Management (COMPLETED)
 
-Phase 5 Completed:
-- Removed meal_entry_items table (ADR-021 cleanup)
-- Meal Type CRUD (create, update, disable, delete)
-- Meal Types Page (/dashboard/meal-types)
-- Activity Logging (MEAL_ADDED, MEAL_UPDATED, MEAL_DELETED)
-- Delete button in meals grid UI
-- Meal Reports Backend (daily, member, monthly summary endpoints)
-- Reports Page (/dashboard/meals/reports — tabbed interface)
-- Dashboard Meal Summary Card
+Phase 6 Completed:
+- Bazaar submission (any active member), with JSONB item list + description + date
+- Edit/delete PENDING submissions (submitter or manager)
+- Manager approve/reject workflow
+- Approve atomically creates `expenses` row (type=BAZAAR) per ADR-012
+- Bazaar history lists (pending/approved/rejected)
+- Bazaar Page UI (/dashboard/bazaar)
+- Activity logging (BAZAAR_SUBMITTED, BAZAAR_UPDATED, BAZAAR_APPROVED, BAZAAR_REJECTED)
 
 Next Priority:
-- Phase 6 - Bazaar Management
 - Phase 7 - Expense Management
 - Phase 8 - Deposit Management
 
@@ -655,4 +657,5 @@ Completed Phases:
 - Phase 3 - Mess Management
 - Phase 4 - Month Management
 - Phase 5 - Meal Management
+- Phase 6 - Bazaar Management
 ```

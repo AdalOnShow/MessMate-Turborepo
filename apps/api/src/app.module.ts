@@ -9,6 +9,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { BazaarModule } from './bazaar/bazaar.module';
 import { ApiResponseMiddleware } from './common/api-response/api-response.middleware';
 import { InvitesModule } from './invites/invites.module';
 import { MealsModule } from './meals/meals.module';
@@ -34,6 +35,7 @@ import { UsersModule } from './users/users.module';
     InvitesModule,
     MonthsModule,
     MealsModule,
+    BazaarModule,
   ],
   controllers: [AppController],
   providers: [AppService],
