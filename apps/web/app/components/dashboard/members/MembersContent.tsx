@@ -6,6 +6,7 @@ import { useSessionStore } from "../../../store";
 import { useGetMyMess } from "../../../hooks/use-messes";
 import {
   useMembers,
+  useMemberCalculations,
   useRemoveMember,
   useUpdateMemberRole,
   type MemberData,
@@ -13,7 +14,7 @@ import {
 } from "../../../hooks/use-members";
 import { useInviteUser } from "../../../hooks/use-invites";
 import { MemberFiltersBar } from "./MemberFiltersBar";
-import { MembersTable } from "./MembersTable";
+import { MemberCards } from "./MemberCards";
 import { MembersDialogs } from "./MembersDialogs";
 import { MembersFeedback } from "./MembersFeedback";
 
@@ -39,6 +40,9 @@ export function MembersContent() {
     messId,
     filters,
   );
+
+  const { data: calculations, isLoading: calcLoading } =
+    useMemberCalculations(messId);
 
   const inviteUser = useInviteUser();
   const removeMember = useRemoveMember(messId ?? "");
@@ -102,10 +106,10 @@ export function MembersContent() {
         errorMessage={errorMessage}
       />
 
-      {messLoading || membersLoading ? (
+      {messLoading || membersLoading || calcLoading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 animate-pulse rounded-lg bg-surface" />
+            <div key={i} className="h-40 animate-pulse rounded-lg bg-surface" />
           ))}
         </div>
       ) : members.length === 0 ? (
@@ -164,8 +168,8 @@ export function MembersContent() {
             onFilterChange={handleFilterChange}
           />
 
-          <MembersTable
-            members={members}
+          <MemberCards
+            data={calculations}
             isManager={isManager}
             currentUserId={user?.id}
             onRoleClick={setRoleDialogMember}

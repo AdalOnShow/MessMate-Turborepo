@@ -22,8 +22,7 @@ function computeSplit(amount: number, count: number): number[] {
   if (count <= 0 || amount <= 0) return [];
   const even = Math.floor((amount / count) * 100) / 100;
   const shares = new Array(count).fill(even);
-  const remainder =
-    Math.round(amount * 100) - Math.round(even * 100) * count;
+  const remainder = Math.round(amount * 100) - Math.round(even * 100) * count;
   if (remainder > 0 && count > 0) {
     shares[count - 1]! = even + remainder / 100;
   }
@@ -65,9 +64,7 @@ export default function AddExpensePage() {
       if (type === "INDIVIDUAL") {
         return prev.includes(id) ? [] : [id];
       }
-      return prev.includes(id)
-        ? prev.filter((m) => m !== id)
-        : [...prev, id];
+      return prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id];
     });
   };
 
@@ -208,12 +205,10 @@ export default function AddExpensePage() {
         <p className="text-sm font-semibold uppercase tracking-wide text-primary">
           Expenses
         </p>
-        <h1 className="mt-1 text-3xl font-bold text-foreground">
-          Add Expense
-        </h1>
+        <h1 className="mt-1 text-3xl font-bold text-foreground">Add Expense</h1>
         <p className="mt-1 text-sm text-foreground-muted">
-          Record a shared or individual expense. Shared amounts are split
-          evenly across the selected members.
+          Record a shared or individual expense. Shared amounts are split evenly
+          across the selected members.
         </p>
       </div>
 
@@ -395,7 +390,9 @@ export default function AddExpensePage() {
                       key={member.id}
                       className="flex items-center justify-between text-sm"
                     >
-                      <span className="text-foreground">{member.user.name}</span>
+                      <span className="text-foreground">
+                        {member.user.name}
+                      </span>
                       <span className="font-semibold text-foreground">
                         {formatMoney(shares[index] ?? 0)}
                       </span>

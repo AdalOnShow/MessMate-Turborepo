@@ -4,10 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addMember,
   getMembers,
+  getMemberCalculations,
   removeMember,
   searchUsers,
   updateMemberRole,
   type MemberData,
+  type MemberCalculationListInfo,
   type UserSearchResult,
 } from "../actions/members";
 import { useDebounce } from "./use-debounce";
@@ -33,6 +35,18 @@ export function useMembers(
   });
 }
 
+export function useMemberCalculations(messId: string | undefined) {
+  return useQuery({
+    queryKey: ["member-calculations", messId],
+    queryFn: async () => {
+      if (!messId) return null;
+      const result = await getMemberCalculations(messId);
+      return result;
+    },
+    enabled: !!messId,
+  });
+}
+
 export function useAddMember(messId: string) {
   const queryClient = useQueryClient();
 
@@ -43,6 +57,9 @@ export function useAddMember(messId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members", messId] });
+      queryClient.invalidateQueries({
+        queryKey: ["member-calculations", messId],
+      });
     },
   });
 }
@@ -56,6 +73,9 @@ export function useRemoveMember(messId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members", messId] });
+      queryClient.invalidateQueries({
+        queryKey: ["member-calculations", messId],
+      });
     },
   });
 }
@@ -76,6 +96,9 @@ export function useUpdateMemberRole(messId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members", messId] });
+      queryClient.invalidateQueries({
+        queryKey: ["member-calculations", messId],
+      });
     },
   });
 }
@@ -95,4 +118,8 @@ export function useSearchUsers(query: string) {
   });
 }
 
-export { type MemberData, type UserSearchResult };
+export {
+  type MemberData,
+  type UserSearchResult,
+  type MemberCalculationListInfo,
+};

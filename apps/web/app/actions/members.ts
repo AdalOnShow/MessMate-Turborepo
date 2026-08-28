@@ -19,6 +19,30 @@ export interface MemberData {
   user: MemberUser;
 }
 
+export interface MemberCalculationInfo {
+  member_id: string;
+  user_id: string;
+  mess_role: "MANAGER" | "MEMBER";
+  removed_at: string | null;
+  user: MemberUser;
+  total_meals: number;
+  meal_cost: number;
+  shared_cost: number;
+  individual_cost: number;
+  deposit_amount: number;
+  final_bill: number;
+  final_balance: number;
+  previous_balance: number;
+  current_balance: number;
+}
+
+export interface MemberCalculationListInfo {
+  month_id: string;
+  month_title: string;
+  meal_rate: number;
+  items: MemberCalculationInfo[];
+}
+
 export interface UserSearchResult {
   id: string;
   name: string;
@@ -41,6 +65,12 @@ export async function getMembers(
   const path = `/messes/${messId}/members${query ? `?${query}` : ""}`;
 
   return api.get<MemberData[]>(path);
+}
+
+export async function getMemberCalculations(messId: string) {
+  return api.get<MemberCalculationListInfo>(
+    `/messes/${messId}/members/calculations`,
+  );
 }
 
 export async function addMember(messId: string, userId: string) {

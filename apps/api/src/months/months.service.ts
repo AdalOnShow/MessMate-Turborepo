@@ -7,11 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, prisma } from '@repo/database';
-import type {
-  MonthResponse,
-  MonthSummaryResponse,
-  MemberMonthSummary,
-} from '@repo/shared';
+import type { MonthResponse, MonthSummaryResponse } from '@repo/shared';
 
 @Injectable()
 export class MonthsService {
@@ -76,6 +72,10 @@ export class MonthsService {
         created_by: actorId,
       },
     });
+
+    if (activeMonth) {
+      await this.generateCarryForward(messId, activeMonth.id, month.id);
+    }
 
     await prisma.activity_logs.create({
       data: {
@@ -164,8 +164,6 @@ export class MonthsService {
 
     const mealRate = totalMealsAll > 0 ? totalMealCost / totalMealsAll : 0;
 
-    const summaries: MemberMonthSummary[] = [];
-
     for (const memberId of memberIds) {
       const memberMeals = mealEntries
         .filter((e) => e.member_id === memberId)
@@ -208,45 +206,6 @@ export class MonthsService {
           final_balance: finalBalance,
         },
       });
-
-      summaries.push({
-        id: summary.id,
-        member_id: summary.member_id,
-        user: activeMembers.find((m) => m.id === memberId)!.user,
-        total_meals: summary.total_meals,
-        meal_cost: Number(summary.meal_cost),
-        shared_cost: Number(summary.shared_cost),
-        individual_cost: Number(summary.individual_cost),
-        deposit_amount: Number(summary.deposit_amount),
-        final_bill: Number(summary.final_bill),
-        final_balance: Number(summary.final_balance),
-      });
-    }
-
-    for (const summary of summaries) {
-      if (summary.final_balance !== 0) {
-        const nextMonth = await prisma.months.findFirst({
-          where: {
-            mess_id: messId,
-            month_status: 'ACTIVE',
-            deleted_at: null,
-            id: { not: monthId },
-          },
-        });
-
-        if (nextMonth) {
-          await prisma.carry_forward_balances.create({
-            data: {
-              source_month_id: monthId,
-              target_month_id: nextMonth.id,
-              member_id: summary.member_id,
-              amount: Math.abs(summary.final_balance),
-              carry_forward_type:
-                summary.final_balance > 0 ? 'PREVIOUS_BALANCE' : 'PREVIOUS_DUE',
-            },
-          });
-        }
-      }
     }
 
     await prisma.months.update({
@@ -270,6 +229,32 @@ export class MonthsService {
     });
 
     this.logger.log(`✅ Month closed: ${monthId}`);
+  }
+
+  private async generateCarryForward(
+    messId: string,
+    sourceMonthId: string,
+    targetMonthId: string,
+  ): Promise<void> {
+    const summaries = await prisma.member_month_summaries.findMany({
+      where: { month_id: sourceMonthId },
+    });
+
+    for (const summary of summaries) {
+      const finalBalance = Number(summary.final_balance);
+      if (finalBalance === 0) continue;
+
+      await prisma.carry_forward_balances.create({
+        data: {
+          source_month_id: sourceMonthId,
+          target_month_id: targetMonthId,
+          member_id: summary.member_id,
+          amount: Math.abs(finalBalance),
+          carry_forward_type:
+            finalBalance > 0 ? 'PREVIOUS_BALANCE' : 'PREVIOUS_DUE',
+        },
+      });
+    }
   }
 
   async getMonthHistory(messId: string): Promise<MonthResponse[]> {

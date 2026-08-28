@@ -135,6 +135,32 @@ export class MessesController {
     };
   }
 
+  @Get(':messId/members/calculations')
+  @UseGuards(MembershipGuard)
+  async getMemberCalculations(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').MemberCalculationList;
+  }> {
+    validateUuid(messId, 'messId');
+
+    const userId = req.user!.id;
+    this.logger.log(
+      `📮 GET /messes/${messId}/members/calculations - user: ${userId}`,
+    );
+
+    const data = await this.messesService.getMemberCalculations(messId);
+
+    return {
+      success: true,
+      message: 'Member calculations retrieved successfully',
+      data,
+    };
+  }
+
   @Post(':messId/members')
   @UseGuards(RolesGuard)
   @Roles('MANAGER')

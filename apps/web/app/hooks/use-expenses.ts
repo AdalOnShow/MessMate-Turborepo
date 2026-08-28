@@ -100,4 +100,9 @@ export function useDeleteExpense(
   });
 }
 
-export type { ExpenseInfo, ExpenseListInfo, CreateExpensePayload, UpdateExpensePayload };
+export type {
+  ExpenseInfo,
+  ExpenseListInfo,
+  CreateExpensePayload,
+  UpdateExpensePayload,
+};

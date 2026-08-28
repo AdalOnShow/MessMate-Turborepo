@@ -13,7 +13,11 @@ import {
   type CreateMealTypeDto,
   type UpdateMealTypeDto,
 } from '@repo/shared';
-import type { MemberFilters, MessMemberWithUser } from '@repo/shared';
+import type {
+  MemberCalculationList,
+  MemberFilters,
+  MessMemberWithUser,
+} from '@repo/shared';
 
 export type MessWithMembership = {
   id: string;
@@ -193,6 +197,139 @@ export class MessesService {
       removed_at: m.removed_at?.toISOString() ?? null,
       user: m.user,
     }));
+  }
+
+  async getMemberCalculations(messId: string): Promise<MemberCalculationList> {
+    const month = await prisma.months.findFirst({
+      where: {
+        mess_id: messId,
+        month_status: 'ACTIVE',
+        deleted_at: null,
+      },
+    });
+
+    if (!month) {
+      return {
+        month_id: '',
+        month_title: 'No active month',
+        meal_rate: 0,
+        items: [],
+      };
+    }
+
+    const members = await prisma.mess_members.findMany({
+      where: {
+        mess_id: messId,
+        removed_at: null,
+        deleted_at: null,
+      },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, avatar: true },
+        },
+      },
+      orderBy: { joined_at: 'asc' },
+    });
+
+    const [mealEntries, expenses, deposits, carries] = await Promise.all([
+      prisma.meal_entries.findMany({
+        where: { month_id: month.id, deleted_at: null },
+        select: { member_id: true, total_meal: true },
+      }),
+      prisma.expenses.findMany({
+        where: { mess_id: messId, month_id: month.id },
+        select: {
+          id: true,
+          type: true,
+          amount: true,
+          members: {
+            select: { member_id: true, allocated_amount: true },
+          },
+        },
+      }),
+      prisma.deposits.findMany({
+        where: { mess_id: messId, month_id: month.id, deleted_at: null },
+        select: { member_id: true, amount: true },
+      }),
+      prisma.carry_forward_balances.findMany({
+        where: { target_month_id: month.id },
+        select: { member_id: true, amount: true, carry_forward_type: true },
+      }),
+    ]);
+
+    const totalMealsAll = mealEntries.reduce(
+      (sum, e) => sum + Number(e.total_meal),
+      0,
+    );
+
+    const totalMealCost = expenses
+      .filter((e) => e.type === 'BAZAAR' || e.type === 'SHARED')
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+
+    const mealRate = totalMealsAll > 0 ? totalMealCost / totalMealsAll : 0;
+
+    const items = members.map((m) => {
+      const memberMeals = mealEntries
+        .filter((e) => e.member_id === m.id)
+        .reduce((sum, e) => sum + Number(e.total_meal), 0);
+
+      const mealCost = memberMeals * mealRate;
+
+      const sharedCost = expenses
+        .filter((e) => e.type === 'SHARED' || e.type === 'BAZAAR')
+        .reduce((sum, expense) => {
+          const alloc = expense.members.find((em) => em.member_id === m.id);
+          return sum + (alloc ? Number(alloc.allocated_amount) : 0);
+        }, 0);
+
+      const individualCost = expenses
+        .filter((e) => e.type === 'INDIVIDUAL')
+        .reduce((sum, expense) => {
+          const alloc = expense.members.find((em) => em.member_id === m.id);
+          return sum + (alloc ? Number(alloc.allocated_amount) : 0);
+        }, 0);
+
+      const depositAmount = deposits
+        .filter((d) => d.member_id === m.id)
+        .reduce((sum, d) => sum + Number(d.amount), 0);
+
+      const finalBill = mealCost + sharedCost + individualCost;
+      const finalBalance = depositAmount - finalBill;
+
+      const previousBalance = carries
+        .filter((c) => c.member_id === m.id)
+        .reduce(
+          (sum, c) =>
+            c.carry_forward_type === 'PREVIOUS_BALANCE'
+              ? sum + Number(c.amount)
+              : sum - Number(c.amount),
+          0,
+        );
+
+      return {
+        member_id: m.id,
+        user_id: m.user_id,
+        mess_role: m.mess_role as 'MANAGER' | 'MEMBER',
+        removed_at: m.removed_at?.toISOString() ?? null,
+        user: m.user,
+        total_meals: memberMeals,
+        meal_cost: mealCost,
+        shared_cost: sharedCost,
+        individual_cost: individualCost,
+        deposit_amount: depositAmount,
+        final_bill: finalBill,
+        final_balance: finalBalance,
+        previous_balance: previousBalance,
+        current_balance: finalBalance + previousBalance,
+      };
+    });
+
+    return {
+      month_id: month.id,
+      month_title: month.title,
+      meal_rate: mealRate,
+      items,
+    };
   }
 
   async addMember(

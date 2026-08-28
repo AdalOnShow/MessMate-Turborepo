@@ -221,7 +221,9 @@ export default function AddDepositPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-foreground">{selectedMember.user.name}</span>
+                <span className="text-foreground">
+                  {selectedMember.user.name}
+                </span>
                 <span className="font-bold text-foreground">
                   {formatMoney(parsedAmount)}
                 </span>

@@ -68,9 +68,7 @@ function BazaarForm({
   );
   const [description, setDescription] = useState(editing?.description || "");
   const [expenseDate, setExpenseDate] = useState<Date | undefined>(
-    editing?.expense_date
-      ? new Date(editing.expense_date)
-      : new Date(),
+    editing?.expense_date ? new Date(editing.expense_date) : new Date(),
   );
   const [error, setError] = useState("");
 

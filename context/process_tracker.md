@@ -121,7 +121,7 @@ pnpm Workspace
 - [x] Bundle analyzer configured (Next.js)
 - [x] Root layout with metadata, SEO, OpenGraph
 - [~] shadcn/ui primitives (partial — user requested Button, Popover, Calendar,
-      DatePicker; rest of UI remains custom Tailwind)
+  DatePicker; rest of UI remains custom Tailwind)
 - [ ] Loading/error/empty state components (not yet extracted as reusable)
 - [ ] Protected route layout group (not using Next.js middleware or layout
       group)
@@ -466,25 +466,46 @@ pnpm Workspace
 
 ## Meal Rate Calculation
 
-- [ ] Calculate Total Meals
-- [ ] Calculate Total Meal Cost
-- [ ] Calculate Meal Rate
+- [x] Calculate Total Meals
+- [x] Calculate Total Meal Cost
+- [x] Calculate Meal Rate
 
 ---
 
 ## Bill Calculation
 
-- [ ] Shared Cost Calculation
-- [ ] Individual Cost Calculation
-- [ ] Deposit Calculation
-- [ ] Final Balance Calculation
+- [x] Shared Cost Calculation
+- [x] Individual Cost Calculation
+- [x] Deposit Calculation
+- [x] Final Balance Calculation
 
 ---
 
 ## Carry Forward
 
-- [ ] Previous Due Logic
-- [ ] Previous Balance Logic
+- [x] Previous Due Logic
+- [x] Previous Balance Logic
+
+---
+
+## Implementation Notes (Phase 9)
+
+- Core accounting lives in `apps/api/src/months/months.service.ts` `closeMonth`
+  (meal rate, per-member meal/shared/individual cost, deposits, final bill,
+  final balance; writes `member_month_summaries`, archives month).
+- **Carry-forward bug fixed:** previously `closeMonth` looked up an "active next
+  month" before it existed, so `carry_forward_balances` were never written.
+  Now `createMonth` creates the new ACTIVE month, then calls
+  `generateCarryForward(messId, oldMonthId, newMonthId)` which reads
+  `member_month_summaries` from the closed month and writes PREVIOUS_BALANCE
+  (positive) / PREVIOUS_DUE (negative) rows per ADR-008.
+- **Live member calculation engine** added:
+  `GET /messes/:messId/members/calculations`
+  (`MessesService.getMemberCalculations`) — computes the same math as
+  `closeMonth` but for the current ACTIVE month (which has no archived summary
+  yet), plus `previous_balance` (carry-forward) and `current_balance`.
+  Shared type: `MemberCalculationList` in `packages/shared/src/messes/members.dto.ts`.
+  This is the reusable, cacheable engine to wrap with Redis later.
 
 ---
 
@@ -654,10 +675,29 @@ A task can be marked complete only if:
 
 Items found in full-project security review (root commit `aa549b95...HEAD`), queued for later:
 
-- [ ] S1 — Balance carry-forward (ADR-008) unimplemented. `closeMonth` writes `carry_forward_balances` only if an active other month exists, but `createMonth` closes the old month first, so records never get written; the month summary never applies carries. Fix ordering + apply carry when computing `opening_balance`/summary.
-- [ ] S2 — Deposit Management missing entirely. Schema has `deposits` table but no API module, no controller, no UI. Needed: deposits CRUD (Phase 8), member deposit summary, net balance calc.
-- [ ] S3 — SHARED expenses double-counted in `months.service.ts` `closeMonth`: BAZAAR+SHARED amounts are included in `totalMealCost`/meal rate (lines ~161-165) AND SHARED allocations are also added to `memberSharedCost` (lines ~176-181). Decide which bucket carries shared cost and subtract.
-- [ ] S4 — Expense/Deposit UI absent. `Sidebar.tsx` and `BottomNav.tsx` link to `/dashboard/expenses` and `/dashboard/deposits` which 404. Build pages (ties into Phase 7/8 after S2/S3 resolved).
+- [x] S1 — Balance carry-forward (ADR-008) — FIXED. `createMonth` now creates the
+      new ACTIVE month then calls `generateCarryForward` (reads closed month
+      `member_month_summaries`, writes PREVIOUS_BALANCE/PREVIOUS_DUE). See Phase 9 notes.
+- [x] S2 — Deposit Management — DONE. Full CRUD API (Phase 8) + add-only UI.
+- [ ] S3 — SHARED expenses double-counted in `months.service.ts` `closeMonth`:
+      BAZAAR+SHARED amounts are included in `totalMealCost`/meal rate AND SHARED
+      allocations are also added to `memberSharedCost`. NOTE: the new live
+      `getMemberCalculations` engine mirrors this same math for consistency with
+      `closeMonth`, so if S3 is fixed it must be fixed in BOTH places together.
+- [x] S4 — Expense/Deposit UI absent — RESOLVED. `/dashboard/expenses` and
+      `/dashboard/deposits` pages exist (add-only).
+
+---
+
+## Feature Added — Members Page Live Calculation Cards
+
+- Members page (`/dashboard/members`) now renders a **card per active member**
+  showing live calculated data for the current active month:
+  meals, deposits, meal cost, shared cost, individual cost, total bill,
+  previous balance (carry-forward), and current balance.
+- Backed by the reusable backend engine `GET /messes/:messId/members/calculations`.
+- `MemberCards.tsx` replaces the old `MembersTable.tsx` (removed); management
+  Role/Remove actions preserved in card footers for managers.
 
 ---
 
