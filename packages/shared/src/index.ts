@@ -9,4 +9,5 @@ export * from "./meals";
 export * from "./invites";
 export * from "./bazaar";
 export * from "./expenses";
+export * from "./deposits";
 export * from "./api-response/api-response";

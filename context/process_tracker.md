@@ -409,20 +409,27 @@ pnpm Workspace
 
 # Phase 7 - Expense Management
 
+> **Scope note (user request):** The expenses page is currently a dedicated
+> add-only page (/dashboard/expenses) for creating extra shared/individual
+> expenses with an auto-split preview. History/tabs/summary-cards were removed
+> from that page per user request. The API supports full create/update/delete
+> (manager-only) and BAZAAR-type expenses (auto-created on bazaar approve) are
+> locked. Expense reports remain pending (below).
+
 ## Shared Expenses
 
-- [ ] Create Shared Expense
-- [ ] Select Members
-- [ ] Allocate Expense
-- [ ] Update Expense
+- [x] Create Shared Expense
+- [x] Select Members
+- [x] Allocate Expense (auto-split preview in UI + even split with remainder)
+- [x] Update Expense
 
 ---
 
 ## Individual Expenses
 
-- [ ] Create Individual Expense
-- [ ] Assign Member
-- [ ] Update Individual Expense
+- [x] Create Individual Expense
+- [x] Assign Member
+- [x] Update Individual Expense
 
 ---
 
@@ -438,16 +445,20 @@ pnpm Workspace
 
 ## Deposits
 
-- [ ] Add Deposit
-- [ ] Update Deposit
-- [ ] Deposit History
+- [x] Add Deposit (POST /deposits/:messId/:monthId — manager only, Zod validation, activity log DEPOSIT_ADDED)
+- [x] Update Deposit (PATCH /deposits/:messId/:depositId — manager only, activity log DEPOSIT_UPDATED)
+- [x] Delete Deposit (DELETE /deposits/:messId/:depositId — manager only, soft delete via deleted_at)
+- [x] Deposit History (GET /deposits/:messId/:monthId — active members can view, returns items + total + count)
+- [x] Shared package (packages/shared/src/deposits — create/update Zod DTOs + Deposit/DepositListResponse interfaces)
+- [x] API module (apps/api/src/deposits — service/controller/module, wired into app.module)
+- [x] Frontend (apps/web — actions/deposits.ts, hooks/use-deposits.ts, /dashboard/deposits add-only page with form + skeletons; **no** totals/history cards, matching the simplified expenses page)
+- [x] Nav links added (Sidebar + BottomNav, /dashboard/deposits, WalletCards icon)
+- [x] Removed `note` field from deposits schema (matching expenses note removal)
+- [x] Manager permission model (per user choice — manager-only create/edit/delete, view for all members)
 
----
-
-## Reports
-
-- [ ] Member Deposit Summary
-- [ ] Monthly Deposit Summary
+> **Scope note (user request):** The deposits page is add-only — it does NOT
+> show total deposits, counts, or deposit history. API still supports
+> create/update/delete with activity logging; only the page was simplified.
 
 ---
 
@@ -511,10 +522,10 @@ pnpm Workspace
 - [x] Member Removed
 - [ ] Meal Added
 - [ ] Meal Updated
-- [ ] Expense Added
-- [ ] Expense Updated
-- [ ] Deposit Added
-- [ ] Deposit Updated
+- [x] Expense Added
+- [x] Expense Updated
+- [x] Deposit Added
+- [x] Deposit Updated
 - [x] Bazaar Submitted
 - [x] Bazaar Approved
 - [x] Bazaar Rejected

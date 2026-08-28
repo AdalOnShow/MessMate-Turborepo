@@ -301,7 +301,6 @@ model deposits {
   month_id     String
   member_id    String
   amount       Decimal   @db.Decimal(12, 2)
-  note         String?
   deposit_date DateTime
   created_by   String
   created_at   DateTime  @default(now())

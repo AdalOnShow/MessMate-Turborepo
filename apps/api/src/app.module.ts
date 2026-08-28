@@ -12,6 +12,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { BazaarModule } from './bazaar/bazaar.module';
 import { ApiResponseMiddleware } from './common/api-response/api-response.middleware';
+import { DepositsModule } from './deposits/deposits.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { InvitesModule } from './invites/invites.module';
 import { MealsModule } from './meals/meals.module';
@@ -39,6 +40,7 @@ import { UsersModule } from './users/users.module';
     MealsModule,
     BazaarModule,
     ExpensesModule,
+    DepositsModule,
   ],
   controllers: [AppController],
   providers: [
