@@ -14,8 +14,10 @@ import {
   type UpdateMealTypeDto,
 } from '@repo/shared';
 import type {
+  ActivityLog,
   MemberCalculationList,
   MemberFilters,
+  MessDashboard,
   MessMemberWithUser,
 } from '@repo/shared';
 
@@ -330,6 +332,62 @@ export class MessesService {
       meal_rate: mealRate,
       items,
     };
+  }
+
+  async getDashboard(messId: string): Promise<MessDashboard> {
+    const calculations = await this.getMemberCalculations(messId);
+
+    const totalMeals = calculations.items.reduce(
+      (sum, i) => sum + i.total_meals,
+      0,
+    );
+    const totalDeposits = calculations.items.reduce(
+      (sum, i) => sum + i.deposit_amount,
+      0,
+    );
+    const totalBill = calculations.items.reduce(
+      (sum, i) => sum + i.final_bill,
+      0,
+    );
+    const totalBalance = calculations.items.reduce(
+      (sum, i) => sum + i.current_balance,
+      0,
+    );
+
+    return {
+      month_id: calculations.month_id,
+      month_title: calculations.month_title,
+      meal_rate: calculations.meal_rate,
+      total_members: calculations.items.length,
+      total_meals: totalMeals,
+      total_deposits: totalDeposits,
+      total_expenses: totalBill,
+      total_bill: totalBill,
+      total_balance: totalBalance,
+    };
+  }
+
+  async getRecentActivities(
+    messId: string,
+    limit = 10,
+  ): Promise<ActivityLog[]> {
+    const logs = await prisma.activity_logs.findMany({
+      where: { mess_id: messId },
+      orderBy: { created_at: 'desc' },
+      take: limit,
+      include: {
+        actor: {
+          select: { id: true, name: true, email: true, avatar: true },
+        },
+      },
+    });
+
+    return logs.map((log) => ({
+      id: log.id,
+      action: log.action,
+      created_at: log.created_at.toISOString(),
+      actor: log.actor,
+    }));
   }
 
   async addMember(

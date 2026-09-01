@@ -1,31 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { useSessionStore } from "../store";
 import { useGetMyMess } from "../hooks/use-messes";
-import { useGetActiveMonth, useCreateMonth } from "../hooks/use-months";
-import { useGetMonthMealSummary } from "../hooks/use-meals";
 import {
   usePendingInvites,
   useAcceptInvite,
   useRejectInvite,
 } from "../hooks/use-invites";
-import {
-  useGetBazaarHistory,
-  useApproveBazaar,
-  useRejectBazaar,
-} from "../hooks/use-bazaar";
-import {
-  BarChart3,
-  Calendar,
-  CheckCircle2,
-  Loader2,
-  Plus,
-  ShoppingCart,
-  Utensils,
-  XCircle,
-} from "lucide-react";
+import { MonthOverviewBento } from "../components/dashboard/MonthOverviewBento";
+import { MealOverview } from "../components/dashboard/MealOverview";
+import { RecentActivity } from "../components/dashboard/RecentActivity";
+import { QuickActions } from "../components/dashboard/QuickActions";
+import { PendingBazaarApprovals } from "../components/dashboard/PendingBazaarApprovals";
 
 function InviteBanner() {
   const { data: invites } = usePendingInvites();
@@ -76,409 +63,9 @@ function InviteBanner() {
   );
 }
 
-function ActiveMonthCard() {
-  const { data: myMess } = useGetMyMess();
-  const messId = myMess?.id;
-  const isManager = myMess?.current_user_role === "MANAGER";
-  const { data: activeMonth, isLoading } = useGetActiveMonth(messId);
-  const createMonth = useCreateMonth(messId);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [title, setTitle] = useState("");
-
-  const generateTitle = () => {
-    const now = new Date();
-    return now.toLocaleString("en-US", { month: "long", year: "numeric" });
-  };
-
-  const handleCreateMonth = () => {
-    const monthTitle = title.trim() || generateTitle();
-    createMonth.mutate(
-      { title: monthTitle },
-      {
-        onSuccess: () => {
-          setShowCreateForm(false);
-          setTitle("");
-        },
-      },
-    );
-  };
-
-  const handleOpenCreate = () => {
-    setTitle(generateTitle());
-    setShowCreateForm(true);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
-        <div className="flex items-center justify-center py-4">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
-        </div>
-      </div>
-    );
-  }
-
-  if (showCreateForm) {
-    return (
-      <div className="rounded-xl border border-primary/30 bg-primary/5 p-6">
-        <h3 className="mb-4 text-lg font-semibold text-foreground">
-          {activeMonth ? "Close Current & Start New Month" : "Start New Month"}
-        </h3>
-
-        {activeMonth && (
-          <div className="mb-4 rounded-lg border border-foreground-muted/15 bg-background p-3">
-            <p className="text-xs text-foreground-muted">Current month</p>
-            <p className="text-sm font-semibold text-foreground">
-              {activeMonth.title}
-            </p>
-            <p className="mt-1 text-xs text-foreground-muted">
-              Will be closed and archived automatically
-            </p>
-          </div>
-        )}
-
-        <div className="mb-4">
-          <label
-            htmlFor="month-title"
-            className="mb-1.5 block text-sm font-medium text-foreground"
-          >
-            Month Title
-          </label>
-          <input
-            id="month-title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. August 2026"
-            className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
-            disabled={createMonth.isPending}
-          />
-        </div>
-
-        {createMonth.isError && (
-          <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
-            <p className="text-sm text-destructive">
-              {(createMonth.error as Error)?.message ||
-                "Failed to create month."}
-            </p>
-          </div>
-        )}
-
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setShowCreateForm(false);
-              setTitle("");
-            }}
-            disabled={createMonth.isPending}
-            className="rounded-lg border border-foreground-muted/20 px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleCreateMonth}
-            disabled={createMonth.isPending}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
-          >
-            {createMonth.isPending ? (
-              <>
-                <Loader2 size={14} className="animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Plus size={14} />
-                Create Month
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!activeMonth) {
-    return (
-      <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Calendar size={18} className="text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">
-            Active Month
-          </h3>
-        </div>
-        <p className="mb-4 text-sm text-foreground-muted">
-          No active month. Start a new month to begin tracking meals and
-          expenses.
-        </p>
-        {isManager && (
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
-          >
-            <Plus size={16} />
-            Start Month
-          </button>
-        )}
-      </div>
-    );
-  }
-
-  const startedDate = new Date(activeMonth.started_at).toLocaleDateString(
-    "en-US",
-    {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    },
-  );
-
-  return (
-    <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Calendar size={18} className="text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">
-            Active Month
-          </h3>
-        </div>
-        <span className="rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-semibold text-green-500">
-          Active
-        </span>
-      </div>
-
-      <div className="space-y-3">
-        <div>
-          <p className="text-xl font-bold text-foreground">
-            {activeMonth.title}
-          </p>
-          <p className="text-xs text-foreground-muted">Started {startedDate}</p>
-        </div>
-
-        {isManager && (
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-foreground-muted/20 px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
-          >
-            <Plus size={16} />
-            Start New Month
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function MealSummaryCard() {
-  const { data: myMess } = useGetMyMess();
-  const messId = myMess?.id;
-  const { data: activeMonth } = useGetActiveMonth(messId);
-  const { data: summary, isLoading } = useGetMonthMealSummary(
-    messId,
-    activeMonth?.id,
-  );
-
-  if (!activeMonth || isLoading) {
-    return (
-      <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Utensils size={18} className="text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">Meals</h3>
-        </div>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          </div>
-        ) : (
-          <p className="text-sm text-foreground-muted">
-            No active month to display meal data.
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Utensils size={18} className="text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">
-            Meal Summary
-          </h3>
-        </div>
-        <Link
-          href="/dashboard/meals/reports"
-          className="flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
-        >
-          <BarChart3 size={12} />
-          Reports
-        </Link>
-      </div>
-
-      {summary && summary.member_summaries.length > 0 ? (
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg bg-background p-3">
-              <p className="text-xs text-foreground-muted">Total Meals</p>
-              <p className="text-xl font-bold text-foreground">
-                {summary.total_meals}
-              </p>
-            </div>
-            <div className="rounded-lg bg-background p-3">
-              <p className="text-xs text-foreground-muted">Active Days</p>
-              <p className="text-xl font-bold text-foreground">
-                {summary.active_days}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground-muted">
-              Top Members
-            </p>
-            <div className="space-y-2">
-              {summary.member_summaries.slice(0, 3).map((ms) => (
-                <div
-                  key={ms.member_id}
-                  className="flex items-center justify-between rounded-lg bg-background px-3 py-2"
-                >
-                  <span className="text-sm font-medium text-foreground">
-                    {ms.user.name}
-                  </span>
-                  <span className="text-sm font-bold text-foreground">
-                    {ms.total_meals % 1 === 0
-                      ? ms.total_meals
-                      : ms.total_meals.toFixed(1)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <p className="text-sm text-foreground-muted">
-          No meals recorded this month yet.
-        </p>
-      )}
-    </div>
-  );
-}
-
-function PendingBazaarApprovalsCard() {
-  const { data: myMess } = useGetMyMess();
-  const messId = myMess?.id;
-  const isManager = myMess?.current_user_role === "MANAGER";
-  const { data: activeMonth } = useGetActiveMonth(messId);
-  const { data: history, isLoading } = useGetBazaarHistory(
-    messId,
-    activeMonth?.id,
-  );
-  const approve = useApproveBazaar(messId, activeMonth?.id);
-  const reject = useRejectBazaar(messId, activeMonth?.id);
-
-  if (!isManager || !activeMonth) return null;
-
-  const pending = history?.pending ?? [];
-  const isLoadingPending = isLoading;
-
-  return (
-    <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6 md:col-span-2 lg:col-span-3">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ShoppingCart size={18} className="text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">
-            Bazaar Approvals
-          </h3>
-        </div>
-        {pending.length > 0 && (
-          <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-500">
-            {pending.length} pending
-          </span>
-        )}
-      </div>
-
-      {isLoadingPending ? (
-        <div className="flex items-center justify-center py-4">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
-        </div>
-      ) : pending.length === 0 ? (
-        <p className="text-sm text-foreground-muted">
-          No bazaar submissions awaiting approval.
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {pending.map((submission) => (
-            <div
-              key={submission.id}
-              className="rounded-lg border border-foreground-muted/15 bg-background p-4"
-            >
-              <div className="mb-2 flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">
-                    {submission.submitter?.name}
-                  </p>
-                  <p className="text-xs text-foreground-muted">
-                    {submission.items.length} item
-                    {submission.items.length === 1 ? "" : "s"} ·{" "}
-                    {new Date(submission.expense_date).toLocaleDateString(
-                      "en-US",
-                      { month: "short", day: "numeric" },
-                    )}
-                  </p>
-                </div>
-                <span className="text-base font-bold text-foreground">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "BDT",
-                    maximumFractionDigits: 2,
-                  }).format(submission.total_amount)}
-                </span>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => approve.mutate(submission.id)}
-                  disabled={approve.isPending || reject.isPending}
-                  className="flex items-center gap-1.5 rounded-lg bg-green-600/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-600 disabled:opacity-60"
-                >
-                  {approve.isPending ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <CheckCircle2 size={12} />
-                  )}
-                  Approve
-                </button>
-                <button
-                  type="button"
-                  onClick={() => reject.mutate(submission.id)}
-                  disabled={reject.isPending || approve.isPending}
-                  className="flex items-center gap-1.5 rounded-lg bg-destructive/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-destructive disabled:opacity-60"
-                >
-                  {reject.isPending ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <XCircle size={12} />
-                  )}
-                  Reject
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function DashboardPage() {
   const { user, isAuthenticated } = useSessionStore();
-  const { data: myMess, isLoading: messLoading } =
-    useGetMyMess(isAuthenticated);
+  const { data: myMess } = useGetMyMess(isAuthenticated);
 
   return (
     <>
@@ -486,65 +73,35 @@ export default function DashboardPage() {
         <p className="text-sm font-semibold uppercase tracking-wide text-primary">
           Dashboard
         </p>
-        <h1 className="mt-2 text-3xl font-bold text-foreground">
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
           Welcome back{user?.name ? `, ${user.name}` : ""}
         </h1>
       </div>
 
       <InviteBanner />
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <ActiveMonthCard />
-
-        <MealSummaryCard />
-
-        <PendingBazaarApprovalsCard />
-
-        <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
-          <h2 className="mb-4 text-xl font-semibold text-foreground">
-            Quick Actions
-          </h2>
-
-          {messLoading ? (
-            <p className="text-sm text-foreground-muted">Loading...</p>
-          ) : myMess ? (
-            <div className="space-y-4">
-              <div className="rounded-lg border border-primary/30 bg-primary/10 p-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-primary">
-                  Current Mess
-                </p>
-                <p className="mt-1 font-semibold text-foreground">
-                  {myMess.name}
-                </p>
-                <p className="mt-0.5 text-xs text-foreground-muted">
-                  You are a{" "}
-                  {myMess.current_user_role === "MANAGER"
-                    ? "manager"
-                    : "member"}
-                </p>
-              </div>
-              <ul className="space-y-2 text-sm text-foreground-muted">
-                <li>Manage meals</li>
-                <li>Check balances</li>
-                <li>View reports</li>
-                <li>Manage members</li>
-              </ul>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-sm text-foreground-muted">
-                Create a mess to get started.
-              </p>
-              <Link
-                href="/dashboard/create-mess"
-                className="flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
-              >
-                Create Mess
-              </Link>
-            </div>
-          )}
+      {myMess ? (
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <MonthOverviewBento />
+          <MealOverview messId={myMess.id} />
+          <PendingBazaarApprovals />
+          <QuickActions />
+          <RecentActivity messId={myMess.id} />
         </div>
-      </div>
+      ) : (
+        <div className="rounded-2xl border border-foreground-muted/15 bg-surface p-8 text-center">
+          <p className="text-lg font-semibold text-foreground">No mess yet</p>
+          <p className="mt-1 text-sm text-foreground-muted">
+            Create a mess to start tracking meals, deposits, and expenses.
+          </p>
+          <Link
+            href="/dashboard/create-mess"
+            className="mt-5 inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+          >
+            Create Mess
+          </Link>
+        </div>
+      )}
     </>
   );
 }

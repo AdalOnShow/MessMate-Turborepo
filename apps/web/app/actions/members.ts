@@ -43,6 +43,51 @@ export interface MemberCalculationListInfo {
   items: MemberCalculationInfo[];
 }
 
+export interface MessDashboardInfo {
+  month_id: string;
+  month_title: string;
+  meal_rate: number;
+  total_members: number;
+  total_meals: number;
+  total_deposits: number;
+  total_expenses: number;
+  total_bill: number;
+  total_balance: number;
+}
+
+export type ActivityAction =
+  | "MEMBER_ADDED"
+  | "MEMBER_REMOVED"
+  | "MANAGER_ASSIGNED"
+  | "MEAL_ADDED"
+  | "MEAL_UPDATED"
+  | "MEAL_DELETED"
+  | "EXPENSE_ADDED"
+  | "EXPENSE_UPDATED"
+  | "EXPENSE_DELETED"
+  | "DEPOSIT_ADDED"
+  | "DEPOSIT_UPDATED"
+  | "MONTH_OPENED"
+  | "MONTH_CLOSED"
+  | "MEMBER_BALANCE_CREATED"
+  | "DEFAULT_MEALS_UPDATED"
+  | "BAZAAR_SUBMITTED"
+  | "BAZAAR_UPDATED"
+  | "BAZAAR_APPROVED"
+  | "BAZAAR_REJECTED";
+
+export interface ActivityLogInfo {
+  id: string;
+  action: ActivityAction;
+  created_at: string;
+  actor: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string | null;
+  };
+}
+
 export interface UserSearchResult {
   id: string;
   name: string;
@@ -71,6 +116,14 @@ export async function getMemberCalculations(messId: string) {
   return api.get<MemberCalculationListInfo>(
     `/messes/${messId}/members/calculations`,
   );
+}
+
+export async function getMessDashboard(messId: string) {
+  return api.get<MessDashboardInfo>(`/messes/${messId}/dashboard`);
+}
+
+export async function getRecentActivities(messId: string) {
+  return api.get<ActivityLogInfo[]>(`/messes/${messId}/activities`);
 }
 
 export async function addMember(messId: string, userId: string) {

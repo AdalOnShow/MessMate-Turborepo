@@ -5,7 +5,7 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (Phase 6 Complete — Bazaar Management Done, Security Review Fixed, Next: Phase 7 Expenses)
+Status: Active Development (Phase 10 in progress — Manager Dashboard stats grid done; Recent Activities → Phase 11)
 
 Frontend:
 Next.js 16
@@ -513,14 +513,15 @@ pnpm Workspace
 
 ## Manager Dashboard
 
-- [ ] Current Month
-- [ ] Total Members
-- [ ] Total Meals
-- [ ] Total Deposits
-- [ ] Total Expenses
-- [ ] Meal Rate
-- [ ] Balance
-- [ ] Recent Activities
+- [x] Current Month
+- [x] Total Members
+- [x] Total Meals
+- [x] Total Deposits
+- [x] Total Expenses
+- [x] Meal Rate
+- [x] Balance
+- [x] Recent Activities
+- [ ] Member Dashboard
 
 ---
 
@@ -701,26 +702,51 @@ Items found in full-project security review (root commit `aa549b95...HEAD`), que
 
 ---
 
+## Feature Added — Dashboard Bento Redesign
+
+- `/dashboard` was rebuilt as a modern **bento grid** (replacing the old uniform
+  8-stat-tile layout; `MessStats.tsx` removed). Reuses the existing dark theme,
+  palette, and typography; only presentation/layout changed.
+- Layout (`lg:grid-cols-3`, auto-flow dense):
+  - **MonthOverviewBento** — large dominant card (col-span-2, row-span-2):
+    month title, status, start date, active members, meal rate, and the
+    merged **Financial overview** (deposits, expenses, bill, highlighted net
+    balance), plus "Start New Month" / "View Month" manager actions.
+  - **MealOverview** — tall right block (col-span-1, row-span-2): total meals,
+    meal rate, active days, top members with proportional bars + report link.
+  - **RecentActivity** — full-width (col-span-3): compact activity feed with
+    type, user, time. Uses the lightweight `GET /messes/:messId/activities`
+    endpoint (`MessesService.getRecentActivities`, `ActivityLog` shared type).
+  - **PendingBazaarApprovals** — col-span-2 (manager-only): manager approval
+    queue, preserved and restyled.
+  - **QuickActions** — (col-span-1): links to Add Meal / Add Expense / Add
+    Deposit / Manage Members (manager-gated).
+- Data backend (unchanged contracts, additive): `GET /messes/:messId/dashboard`
+  (`MessesService.getDashboard`, shared `MessDashboard`) and
+  `GET /messes/:messId/activities` (`MessesService.getRecentActivities`,
+  shared `ActivityLog`). Both derive from existing engine/logs — no API,
+  schema, or business-logic changes.
+- Reusable primitives in `apps/web/app/components/dashboard/bento.tsx`
+  (`BentoCard`, `CardHeading`, `CardActionLink`) and money helpers in
+  `apps/web/app/lib/format.ts` (`formatMoney` → ৳, `formatCompact`).
+
+---
+
 # Current Focus
 
 ```text
 Current Phase:
-Phase 6 - Bazaar Management (COMPLETED)
+Phase 10 - Dashboard (Manager Dashboard IN PROGRESS)
 
-Phase 6 Completed:
-- Bazaar submission (any active member), with JSONB item list + description + date
-- Edit/delete PENDING submissions (submitter or manager)
-- Manager approve/reject workflow
-- Approve atomically creates `expenses` row (type=BAZAAR) per ADR-012
-- Bazaar history lists (pending/approved/rejected)
-- Bazaar Page UI (/dashboard/bazaar)
-- Activity logging (BAZAAR_SUBMITTED, BAZAAR_UPDATED, BAZAAR_APPROVED, BAZAAR_REJECTED)
-- shadcn DatePicker on bazaar form (replaces native date input)
-- Manager dashboard Pending Bazaar Approvals card (approve/reject inline)
+Phase 10 Completed (Manager Dashboard):
+- Stat grid on /dashboard via GET /messes/:messId/dashboard: total members,
+  total meals, total deposits, total expenses, meal rate, total bill, month, net balance
+- ৳ taka money formatting
 
 Next Priority:
-- Phase 7 - Expense Management
-- Phase 8 - Deposit Management
+- Phase 10 - Recent Activities (deferred to Phase 11 Activity Logs)
+- Phase 11 - Activity Logs
+- Phase 7/8 remaining polish
 
 Completed Phases:
 - Phase 0 - Project Foundation

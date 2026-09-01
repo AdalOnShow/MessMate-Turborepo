@@ -161,6 +161,54 @@ export class MessesController {
     };
   }
 
+  @Get(':messId/dashboard')
+  @UseGuards(MembershipGuard)
+  async getDashboard(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').MessDashboard;
+  }> {
+    validateUuid(messId, 'messId');
+
+    const userId = req.user!.id;
+    this.logger.log(`📮 GET /messes/${messId}/dashboard - user: ${userId}`);
+
+    const data = await this.messesService.getDashboard(messId);
+
+    return {
+      success: true,
+      message: 'Dashboard data retrieved successfully',
+      data,
+    };
+  }
+
+  @Get(':messId/activities')
+  @UseGuards(MembershipGuard)
+  async getRecentActivities(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').ActivityLog[];
+  }> {
+    validateUuid(messId, 'messId');
+
+    const userId = req.user!.id;
+    this.logger.log(`📮 GET /messes/${messId}/activities - user: ${userId}`);
+
+    const data = await this.messesService.getRecentActivities(messId, 10);
+
+    return {
+      success: true,
+      message: 'Recent activities retrieved successfully',
+      data,
+    };
+  }
+
   @Post(':messId/members')
   @UseGuards(RolesGuard)
   @Roles('MANAGER')
