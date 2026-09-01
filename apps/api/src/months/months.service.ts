@@ -159,7 +159,7 @@ export class MonthsService {
     });
 
     const totalMealCost = expenses
-      .filter((e) => e.type === 'BAZAAR' || e.type === 'SHARED')
+      .filter((e) => e.type === 'BAZAAR')
       .reduce((sum, e) => sum + Number(e.amount), 0);
 
     const mealRate = totalMealsAll > 0 ? totalMealCost / totalMealsAll : 0;
@@ -172,7 +172,7 @@ export class MonthsService {
       const memberMealCost = memberMeals * mealRate;
 
       const memberSharedCost = expenses
-        .filter((e) => e.type === 'SHARED' || e.type === 'BAZAAR')
+        .filter((e) => e.type === 'SHARED')
         .reduce((sum, expense) => {
           const alloc = expense.members.find((m) => m.member_id === memberId);
           return sum + (alloc ? Number(alloc.allocated_amount) : 0);

@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { BarChart3, ChefHat, ShoppingCart, SquarePen, Users } from "lucide-react";
+import {
+  BarChart3,
+  ChefHat,
+  ShoppingCart,
+  SquarePen,
+  Users,
+} from "lucide-react";
 import { BentoCard, CardHeading } from "./bento";
 
 const ACTIONS = [

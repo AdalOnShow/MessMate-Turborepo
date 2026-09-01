@@ -266,7 +266,7 @@ export class MessesService {
     );
 
     const totalMealCost = expenses
-      .filter((e) => e.type === 'BAZAAR' || e.type === 'SHARED')
+      .filter((e) => e.type === 'BAZAAR')
       .reduce((sum, e) => sum + Number(e.amount), 0);
 
     const mealRate = totalMealsAll > 0 ? totalMealCost / totalMealsAll : 0;
@@ -279,7 +279,7 @@ export class MessesService {
       const mealCost = memberMeals * mealRate;
 
       const sharedCost = expenses
-        .filter((e) => e.type === 'SHARED' || e.type === 'BAZAAR')
+        .filter((e) => e.type === 'SHARED')
         .reduce((sum, expense) => {
           const alloc = expense.members.find((em) => em.member_id === m.id);
           return sum + (alloc ? Number(alloc.allocated_amount) : 0);

@@ -40,7 +40,9 @@ function FinanceRow({
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-foreground-muted/10 bg-background/40 px-4 py-3">
       <div className="flex items-center gap-3">
-        <span className="rounded-lg bg-primary/10 p-2 text-primary">{icon}</span>
+        <span className="rounded-lg bg-primary/10 p-2 text-primary">
+          {icon}
+        </span>
         <span className="text-sm font-medium text-foreground-muted">
           {label}
         </span>
@@ -197,7 +199,7 @@ export function MemberMonthSummary() {
                 Meal rate
               </p>
               <p className="mt-0.5 text-lg font-bold text-foreground">
-                {member?.meal_rate
+                {typeof member?.meal_rate === "number"
                   ? formatMoney(Math.round(member.meal_rate))
                   : "—"}
               </p>

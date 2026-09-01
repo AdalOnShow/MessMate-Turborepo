@@ -680,11 +680,13 @@ Items found in full-project security review (root commit `aa549b95...HEAD`), que
       new ACTIVE month then calls `generateCarryForward` (reads closed month
       `member_month_summaries`, writes PREVIOUS_BALANCE/PREVIOUS_DUE). See Phase 9 notes.
 - [x] S2 — Deposit Management — DONE. Full CRUD API (Phase 8) + add-only UI.
-- [ ] S3 — SHARED expenses double-counted in `months.service.ts` `closeMonth`:
-      BAZAAR+SHARED amounts are included in `totalMealCost`/meal rate AND SHARED
-      allocations are also added to `memberSharedCost`. NOTE: the new live
-      `getMemberCalculations` engine mirrors this same math for consistency with
-      `closeMonth`, so if S3 is fixed it must be fixed in BOTH places together.
+- [x] S3 — SHARED expenses double-counted in `months.service.ts` `closeMonth`:
+      BAZAAR+SHARED amounts were included in `totalMealCost`/meal rate AND SHARED
+      allocations were also added to `memberSharedCost`. FIXED in BOTH places
+      together (per the tracking note): `meal_rate` now counts BAZAAR costs only
+      (distributed per meal) and `shared_cost` counts SHARED allocations only, so
+      `final_bill`/`current_balance` include each expense category exactly once.
+      The live `getMemberCalculations` engine and `closeMonth` remain mirrored.
 - [x] S4 — Expense/Deposit UI absent — RESOLVED. `/dashboard/expenses` and
       `/dashboard/deposits` pages exist (add-only).
 
