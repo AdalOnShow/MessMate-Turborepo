@@ -16,6 +16,7 @@ import {
 import type {
   ActivityLog,
   MemberCalculationList,
+  MemberDashboard,
   MemberFilters,
   MessDashboard,
   MessMemberWithUser,
@@ -364,6 +365,28 @@ export class MessesService {
       total_expenses: totalBill,
       total_bill: totalBill,
       total_balance: totalBalance,
+    };
+  }
+
+  async getMemberDashboard(
+    messId: string,
+    userId: string,
+  ): Promise<MemberDashboard> {
+    const calculations = await this.getMemberCalculations(messId);
+    const mine = calculations.items.find((item) => item.user_id === userId);
+
+    return {
+      month_id: calculations.month_id,
+      month_title: calculations.month_title,
+      meal_rate: calculations.meal_rate,
+      total_meals: mine?.total_meals ?? 0,
+      meal_cost: mine?.meal_cost ?? 0,
+      shared_cost: mine?.shared_cost ?? 0,
+      individual_cost: mine?.individual_cost ?? 0,
+      deposit_amount: mine?.deposit_amount ?? 0,
+      final_bill: mine?.final_bill ?? 0,
+      previous_balance: mine?.previous_balance ?? 0,
+      current_balance: mine?.current_balance ?? 0,
     };
   }
 

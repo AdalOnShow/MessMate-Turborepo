@@ -13,6 +13,8 @@ import { MealOverview } from "../components/dashboard/MealOverview";
 import { RecentActivity } from "../components/dashboard/RecentActivity";
 import { QuickActions } from "../components/dashboard/QuickActions";
 import { PendingBazaarApprovals } from "../components/dashboard/PendingBazaarApprovals";
+import { MemberMonthSummary } from "../components/dashboard/MemberMonthSummary";
+import { MemberQuickLinks } from "../components/dashboard/MemberQuickLinks";
 
 function InviteBanner() {
   const { data: invites } = usePendingInvites();
@@ -67,6 +69,8 @@ export default function DashboardPage() {
   const { user, isAuthenticated } = useSessionStore();
   const { data: myMess } = useGetMyMess(isAuthenticated);
 
+  const isManager = myMess?.current_user_role === "MANAGER";
+
   return (
     <>
       <div className="mb-8">
@@ -81,13 +85,23 @@ export default function DashboardPage() {
       <InviteBanner />
 
       {myMess ? (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          <MonthOverviewBento />
-          <MealOverview messId={myMess.id} />
-          <PendingBazaarApprovals />
-          <QuickActions />
-          <RecentActivity messId={myMess.id} />
-        </div>
+        isManager ? (
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <MonthOverviewBento />
+            <MealOverview messId={myMess.id} />
+            <PendingBazaarApprovals />
+            <QuickActions />
+            <RecentActivity messId={myMess.id} />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <MonthOverviewBento />
+            <MealOverview messId={myMess.id} />
+            <MemberMonthSummary />
+            <MemberQuickLinks />
+            <RecentActivity messId={myMess.id} />
+          </div>
+        )
       ) : (
         <div className="rounded-2xl border border-foreground-muted/15 bg-surface p-8 text-center">
           <p className="text-lg font-semibold text-foreground">No mess yet</p>

@@ -6,6 +6,7 @@ import {
   getMembers,
   getMemberCalculations,
   getMessDashboard,
+  getMemberDashboard,
   getRecentActivities,
   removeMember,
   searchUsers,
@@ -14,6 +15,7 @@ import {
   type MemberData,
   type MemberCalculationListInfo,
   type MessDashboardInfo,
+  type MemberDashboardInfo,
   type UserSearchResult,
 } from "../actions/members";
 import { useDebounce } from "./use-debounce";
@@ -69,6 +71,18 @@ export function useRecentActivities(messId: string | undefined) {
     queryFn: async () => {
       if (!messId) return [];
       const result = await getRecentActivities(messId);
+      return result;
+    },
+    enabled: !!messId,
+  });
+}
+
+export function useMemberDashboard(messId: string | undefined) {
+  return useQuery({
+    queryKey: ["member-dashboard", messId],
+    queryFn: async () => {
+      if (!messId) return null;
+      const result = await getMemberDashboard(messId);
       return result;
     },
     enabled: !!messId,
@@ -151,5 +165,6 @@ export {
   type UserSearchResult,
   type MemberCalculationListInfo,
   type MessDashboardInfo,
+  type MemberDashboardInfo,
   type ActivityLogInfo,
 };

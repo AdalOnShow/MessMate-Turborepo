@@ -6,4 +6,5 @@ export * from "./interfaces/mess-response.interface";
 export * from "./members.schemas";
 export * from "./members.dto";
 export * from "./interfaces/dashboard.interface";
+export * from "./interfaces/member-dashboard.interface";
 export * from "./interfaces/activity.interface";

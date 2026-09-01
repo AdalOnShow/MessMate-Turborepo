@@ -185,6 +185,30 @@ export class MessesController {
     };
   }
 
+  @Get(':messId/member/me')
+  @UseGuards(MembershipGuard)
+  async getMemberDashboard(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').MemberDashboard;
+  }> {
+    validateUuid(messId, 'messId');
+
+    const userId = req.user!.id;
+    this.logger.log(`📮 GET /messes/${messId}/member/me - user: ${userId}`);
+
+    const data = await this.messesService.getMemberDashboard(messId, userId);
+
+    return {
+      success: true,
+      message: 'Member dashboard retrieved successfully',
+      data,
+    };
+  }
+
   @Get(':messId/activities')
   @UseGuards(MembershipGuard)
   async getRecentActivities(

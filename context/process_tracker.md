@@ -5,7 +5,7 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (Phase 10 in progress — Manager Dashboard stats grid done; Recent Activities → Phase 11)
+Status: Active Development (Phase 10 complete — Manager + Member Dashboard done; Recent Activities complete and rendered via the dashboard RecentActivity card)
 
 Frontend:
 Next.js 16
@@ -521,18 +521,18 @@ pnpm Workspace
 - [x] Meal Rate
 - [x] Balance
 - [x] Recent Activities
-- [ ] Member Dashboard
+- [x] Member Dashboard (role-based view on /dashboard; managers keep the manager bento, members get personal month summary + quick links below the shared MonthOverview/MealOverview top grid)
 
 ---
 
 ## Member Dashboard
 
-- [ ] Personal Meals
-- [ ] Personal Deposits
-- [ ] Personal Expenses
-- [ ] Personal Balance
-- [ ] Bazaar Information
-- [ ] Monthly Summary
+- [x] Personal Meals
+- [x] Personal Deposits
+- [x] Personal Expenses
+- [x] Personal Balance
+- [x] Bazaar Information (dropped per user choice — bazaars are visible on the Bazaar page)
+- [x] Monthly Summary (personal month summary card)
 
 ---
 
@@ -558,8 +558,8 @@ pnpm Workspace
 
 ## Activity Feed
 
-- [ ] Recent Activities API
-- [ ] Activity Feed UI
+- [x] Recent Activities API (live via GET /messes/:messId/activities)
+- [x] Activity Feed UI (dashboard RecentActivity card, rendered by DashboardPage)
 
 ---
 
@@ -732,19 +732,43 @@ Items found in full-project security review (root commit `aa549b95...HEAD`), que
 
 ---
 
+## Feature Added — Member Dashboard (Phase 10, role-based)
+
+- `/dashboard` is now **role-based**: managers see the full manager bento
+  (MonthOverview, MealOverview, Bazaar Approvals, Quick Actions, Recent
+  Activity); members see the **same MonthOverview + MealOverview top grid**
+  (per user request — unchanged from the manager dashboard), then:
+  - **MemberMonthSummary** (col-span-2): personal month summary card —
+    my deposits, my bill, meal/shared/individual cost, highlighted current
+    balance, carried balance, my meals + meal rate, report links.
+  - **MemberQuickLinks** (col-span-1): Add Meal, Bazaar, Meals Reports,
+    Members.
+  - **RecentActivity** (col-span-3) shared bottom feed.
+- Additive endpoint `GET /messes/:messId/member/me`
+  (`MessesService.getMemberDashboard`, MembershipGuard) — reuses the
+  `getMemberCalculations` engine and returns the current user's personal
+  record. Shared type: `MemberDashboard` in
+  `packages/shared/src/messes/interfaces/member-dashboard.interface.ts`.
+- No bazaar section on the member dashboard by user choice (bazaars are
+  visible on the Bazaar page).
+
+---
+
 # Current Focus
 
 ```text
 Current Phase:
-Phase 10 - Dashboard (Manager Dashboard IN PROGRESS)
+Phase 10 - Dashboard (Manager + Member Dashboard DONE)
 
-Phase 10 Completed (Manager Dashboard):
-- Stat grid on /dashboard via GET /messes/:messId/dashboard: total members,
-  total meals, total deposits, total expenses, meal rate, total bill, month, net balance
+Phase 10 Completed:
+- Manager /dashboard bento (MonthOverview+Financial, MealOverview,
+  Bazaar Approvals, Quick Actions, Recent Activity)
+- Member /dashboard (role-based): same MonthOverview + MealOverview top
+  grid, then personal month summary card + member quick links + activity.
+- Recent Activities (API + dashboard feed card) — complete.
 - ৳ taka money formatting
 
 Next Priority:
-- Phase 10 - Recent Activities (deferred to Phase 11 Activity Logs)
 - Phase 11 - Activity Logs
 - Phase 7/8 remaining polish
 

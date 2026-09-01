@@ -54,7 +54,9 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
             Rate
           </p>
           <p className="mt-1.5 text-xl font-bold text-foreground">
-            {dashboard?.meal_rate ? `৳${Math.round(dashboard.meal_rate)}` : "—"}
+            {typeof dashboard?.meal_rate === "number"
+              ? `৳${Math.round(dashboard.meal_rate)}`
+              : "—"}
           </p>
         </div>
         <div className="rounded-xl border border-foreground-muted/10 bg-background/40 p-3">
