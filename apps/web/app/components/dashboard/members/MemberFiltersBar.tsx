@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Select } from "../../ui/select";
 import { useDebounce } from "../../../hooks/use-debounce";
 import type { MemberFilters } from "../../../hooks/use-members";
@@ -39,8 +39,6 @@ export const MemberFiltersBar = React.memo(function MemberFiltersBar({
   useEffect(() => {
     setLocalSearch(filters.search ?? "");
   }, [filters.search]);
-
-  const options = useMemo(() => ({ roleOptions, statusOptions }), []);
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row">

@@ -203,7 +203,9 @@ function MealsSummaryView({
   if (isLoading) return <LoadingBlock />;
 
   if (!data || data.member_summaries.length === 0) {
-    return <EmptyBlock message="No meal entries recorded for this month yet." />;
+    return (
+      <EmptyBlock message="No meal entries recorded for this month yet." />
+    );
   }
 
   return (
@@ -266,7 +268,10 @@ function ExpensesSummaryView({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <StatCard label="Total" value={formatMoney(data.total)} highlight />
         <StatCard label="Shared" value={formatMoney(data.shared_total)} />
-        <StatCard label="Individual" value={formatMoney(data.individual_total)} />
+        <StatCard
+          label="Individual"
+          value={formatMoney(data.individual_total)}
+        />
         <StatCard label="Bazaar" value={formatMoney(data.bazaar_total)} />
         <StatCard label="Count" value={String(data.count)} />
       </div>
@@ -325,7 +330,11 @@ function DepositsSummaryView({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <StatCard label="Total Deposits" value={formatMoney(data.total)} highlight />
+        <StatCard
+          label="Total Deposits"
+          value={formatMoney(data.total)}
+          highlight
+        />
         <StatCard label="Transactions" value={String(data.count)} />
         <StatCard label="Depositors" value={String(data.per_member.length)} />
       </div>
@@ -377,8 +386,8 @@ function MembersSummaryView({
   if (isActive ? calcLoading : summaryLoading) return <LoadingBlock />;
 
   const rows: MemberRow[] = isActive
-    ? calc?.items ?? []
-    : summary?.member_summaries ?? [];
+    ? (calc?.items ?? [])
+    : (summary?.member_summaries ?? []);
 
   if (rows.length === 0) {
     return (

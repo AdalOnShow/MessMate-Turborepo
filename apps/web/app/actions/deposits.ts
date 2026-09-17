@@ -67,7 +67,9 @@ export async function getDeposits(messId: string, monthId: string) {
 }
 
 export async function getDepositSummary(messId: string, monthId: string) {
-  return api.get<DepositSummaryResponseInfo>(`/deposits/${messId}/${monthId}/summary`);
+  return api.get<DepositSummaryResponseInfo>(
+    `/deposits/${messId}/${monthId}/summary`,
+  );
 }
 
 export async function createDeposit(

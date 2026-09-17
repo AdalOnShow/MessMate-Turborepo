@@ -90,8 +90,6 @@ cd packages/database && pnpm migrate    # prisma migrate dev
 cd packages/database && pnpm generate  # prisma generate
 ```
 
-**Known issue:** `meal_entry_items` table still exists in schema but ADR-021 says meals should use JSONB in `meal_entries.meals`. This table should be removed.
-
 ## Style Guide
 
 - Dark theme primary. CSS variables in `globals.css` via Tailwind v4 `@theme`.

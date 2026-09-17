@@ -101,7 +101,10 @@ pnpm Workspace
       updateMemberRole, searchUsers, createMemberAccount)
 - [x] Server actions for invites (inviteUser, getPendingInvites, acceptInvite, rejectInvite)
 - [x] Google Fonts: Plus Jakarta Sans + Alkatra (Bengali)
-- [x] Landing page: Navbar, Hero, Stats, Features, How It Works, Pricing, Footer
+- [x] Landing page (one-pager, dark) — Navbar, Hero + dashboard preview, Problem,
+      Features bento, How It Works, Accounting, Product preview, Activity, Roles,
+      Month flow, Tech stack, Free, FAQ, Final CTA, Footer (Stats/Pricing sections
+      removed per redesign — product is free, no fake stats)
 - [x] Auth pages: /signin (with Google OAuth button + error handling), /signup
 - [x] Auth hooks: useSignin, useSignup, useLogout (React Query mutations)
 - [x] Profile hooks: useGetProfile, useUpdateProfile, useChangePassword,
@@ -271,8 +274,8 @@ pnpm Workspace
 
 - [x] Create Mess (backend module + controller + service + DTOs)
 - [x] Create Mess UI (dashboard Create Mess button + modal)
-- [ ] Update Mess
-- [ ] View Mess
+- [x] Update Mess (backend `PATCH /messes/:messId` + `/dashboard/settings` edit form: name, slug, description)
+- [x] View Mess (dashboard MonthOverview shows mess name/status; settings page shows full info)
 
 ---
 
@@ -436,9 +439,9 @@ pnpm Workspace
 
 ## Expense Reports
 
-- [ ] Expense Summary
-- [ ] Expense History
-- [ ] Member Expense Breakdown
+- [x] Expense Summary (Phase 12 — `GET /expenses/:messId/:monthId/summary`, type totals + per-member)
+- [x] Expense History (archived month summaries on `/dashboard/months`; approve/reject tabs on bazaar)
+- [x] Member Expense Breakdown (`GET /expenses/:messId/:monthId/summary` per-member shared/individual; Reports Expenses tab)
 
 ---
 

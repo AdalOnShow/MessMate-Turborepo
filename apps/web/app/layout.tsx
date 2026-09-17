@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   title: "MessMate — মেস ম্যানেজমেন্ট সহজ করুন | Smart Mess Management",
   description:
     "MessMate simplifies meal tracking, expense management, deposits, and monthly accounting for shared living. Built for students and bachelor messes in Bangladesh.",
+  icons: {
+    icon: "/messmate-icon.png",
+  },
   keywords: [
     "mess management",
     "meal tracking",

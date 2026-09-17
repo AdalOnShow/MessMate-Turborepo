@@ -5,6 +5,7 @@ import { useGetMyMess } from "../../../hooks/use-messes";
 import { useGetActiveMonth } from "../../../hooks/use-months";
 import { useGetMealTypes } from "../../../hooks/use-messes";
 import { useMembers } from "../../../hooks/use-members";
+import type { MemberData } from "../../../hooks/use-members";
 import {
   useGetMealEntries,
   useBulkSaveMealEntries,
@@ -30,13 +31,11 @@ type Tab = "daily" | "member" | "monthly";
 
 function MealCell({
   value,
-  step,
   onIncrement,
   onDecrement,
   disabled,
 }: {
   value: number;
-  step: number;
   onIncrement: () => void;
   onDecrement: () => void;
   disabled?: boolean;
@@ -339,7 +338,7 @@ function EditDailyGrid({
   getValue,
   updateValue,
 }: {
-  members: any[];
+  members: MemberData[];
   mealTypes: { id: string; name: string; value: number }[];
   getValue: (memberId: string, mealTypeId: string) => number;
   updateValue: (memberId: string, mealTypeId: string, delta: number) => void;
@@ -389,7 +388,7 @@ function EditDailyGrid({
           </tr>
         </thead>
         <tbody>
-          {members.map((member: any) => {
+          {members.map((member: MemberData) => {
             let rowTotal = 0;
             return (
               <tr
@@ -412,7 +411,6 @@ function EditDailyGrid({
                       <div className="flex justify-center">
                         <MealCell
                           value={val}
-                          step={mt.value || 1}
                           onIncrement={() =>
                             updateValue(member.id, mt.id, mt.value || 1)
                           }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
@@ -50,8 +51,14 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex lg:fixed lg:inset-y-0 lg:left-0 lg:w-72 lg:flex-col">
       <div className="flex h-16 items-center gap-3 border-b border-foreground-muted/10 px-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-lg font-bold text-primary">
-          M
+        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-primary/25 bg-primary/10">
+          <Image
+            src="/messmate-icon.png"
+            alt="MessMate"
+            width={460}
+            height={400}
+            className="h-7 w-auto object-contain"
+          />
         </div>
         <Link
           href="/dashboard"

@@ -84,7 +84,9 @@ export async function getExpenses(messId: string, monthId: string) {
 }
 
 export async function getExpenseSummary(messId: string, monthId: string) {
-  return api.get<ExpenseSummaryResponseInfo>(`/expenses/${messId}/${monthId}/summary`);
+  return api.get<ExpenseSummaryResponseInfo>(
+    `/expenses/${messId}/${monthId}/summary`,
+  );
 }
 
 export async function createExpense(

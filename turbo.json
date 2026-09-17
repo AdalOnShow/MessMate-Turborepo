@@ -8,6 +8,7 @@
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**", "dist/**"],
       "env": [
         "NODE_ENV",
+        "ANALYZE",
         "DATABASE_URL",
         "NEXT_PUBLIC_*",
         "CORS_ORIGIN",

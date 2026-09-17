@@ -11,7 +11,7 @@ import {
   useDeleteMealType,
 } from "../../hooks/use-messes";
 import type { MealTypeInfo } from "../../hooks/use-messes";
-import { useMembers } from "../../hooks/use-members";
+import { useMembers, type MemberData } from "../../hooks/use-members";
 import {
   useGetMealEntries,
   useBulkSaveMealEntries,
@@ -36,13 +36,11 @@ function formatDate(d: Date): string {
 
 function MealCell({
   value,
-  step,
   onIncrement,
   onDecrement,
   disabled,
 }: {
   value: number;
-  step: number;
   onIncrement: () => void;
   onDecrement: () => void;
   disabled?: boolean;
@@ -320,7 +318,7 @@ export default function MealsPage() {
                 </td>
               </tr>
             ) : (
-              (activeMembers ?? []).map((member: any) => {
+              (activeMembers ?? []).map((member: MemberData) => {
                 let rowTotal = 0;
                 return (
                   <tr
@@ -343,7 +341,6 @@ export default function MealsPage() {
                           <div className="flex justify-center">
                             <MealCell
                               value={val}
-                              step={mt.value || 1}
                               onIncrement={() =>
                                 updateValue(member.id, mt.id, mt.value || 1)
                               }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSignin } from "../hooks/use-auth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
@@ -63,20 +64,14 @@ export default function SignInForm() {
           href="/"
           className="flex items-center justify-center gap-2.5 mb-10 focus:outline-none"
         >
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-5.5 h-5.5 text-primary"
-            >
-              <path d="M12 2v20" />
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 overflow-hidden">
+            <Image
+              src="/messmate-icon.png"
+              alt="MessMate"
+              width={460}
+              height={400}
+              className="w-6 h-6 object-contain"
+            />
           </div>
           <span className="text-xl font-bold tracking-tight text-foreground font-heading">
             Mess<span className="text-primary">Mate</span>
