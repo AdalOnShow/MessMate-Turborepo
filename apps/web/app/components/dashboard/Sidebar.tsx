@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BarChart3,
   Calendar,
   Home,
   LogOut,
@@ -26,6 +27,7 @@ const navItems = [
   { href: "/dashboard/bazaar", label: "Bazaar", icon: ShoppingCart },
   { href: "/dashboard/expenses", label: "Expenses", icon: ReceiptText },
   { href: "/dashboard/deposits", label: "Deposits", icon: WalletCards },
+  { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { href: "/dashboard/profile", label: "Profile", icon: User },
 ];
 

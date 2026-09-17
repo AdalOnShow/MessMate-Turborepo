@@ -3,11 +3,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getExpenses,
+  getExpenseSummary,
   createExpense,
   updateExpense,
   deleteExpense,
   type ExpenseInfo,
   type ExpenseListInfo,
+  type ExpenseSummaryResponseInfo,
   type CreateExpensePayload,
   type UpdateExpensePayload,
 } from "../actions/expenses";
@@ -32,6 +34,29 @@ export function useGetExpenses(
         };
       }
       return getExpenses(messId, monthId);
+    },
+    enabled: !!messId && !!monthId,
+  });
+}
+
+export function useExpenseSummary(
+  messId: string | undefined,
+  monthId: string | undefined,
+) {
+  return useQuery({
+    queryKey: ["expense-summary", messId, monthId],
+    queryFn: async (): Promise<ExpenseSummaryResponseInfo> => {
+      if (!messId || !monthId) {
+        return {
+          total: 0,
+          shared_total: 0,
+          individual_total: 0,
+          bazaar_total: 0,
+          count: 0,
+          per_member: [],
+        };
+      }
+      return getExpenseSummary(messId, monthId);
     },
     enabled: !!messId && !!monthId,
   });
@@ -103,6 +128,7 @@ export function useDeleteExpense(
 export type {
   ExpenseInfo,
   ExpenseListInfo,
+  ExpenseSummaryResponseInfo,
   CreateExpensePayload,
   UpdateExpensePayload,
 };

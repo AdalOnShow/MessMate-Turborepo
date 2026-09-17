@@ -32,6 +32,24 @@ export interface DepositListInfo {
   count: number;
 }
 
+export interface DepositMemberSummaryInfo {
+  member_id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string | null;
+  };
+  amount: number;
+  count: number;
+}
+
+export interface DepositSummaryResponseInfo {
+  total: number;
+  count: number;
+  per_member: DepositMemberSummaryInfo[];
+}
+
 export interface CreateDepositPayload {
   member_id: string;
   amount: number;
@@ -46,6 +64,10 @@ export interface UpdateDepositPayload {
 
 export async function getDeposits(messId: string, monthId: string) {
   return api.get<DepositListInfo>(`/deposits/${messId}/${monthId}`);
+}
+
+export async function getDepositSummary(messId: string, monthId: string) {
+  return api.get<DepositSummaryResponseInfo>(`/deposits/${messId}/${monthId}/summary`);
 }
 
 export async function createDeposit(

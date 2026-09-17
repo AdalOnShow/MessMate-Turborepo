@@ -40,6 +40,23 @@ export interface ExpenseSummary {
   count: number;
 }
 
+export interface ExpenseMemberSummary {
+  member_id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string | null;
+  };
+  shared_cost: number;
+  individual_cost: number;
+  total_cost: number;
+}
+
+export interface ExpenseSummaryResponse extends ExpenseSummary {
+  per_member: ExpenseMemberSummary[];
+}
+
 export interface ExpenseListResponse {
   items: ExpenseWithRelations[];
   summary: ExpenseSummary;

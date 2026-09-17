@@ -18,6 +18,7 @@ import {
   formatZodError,
   updateExpenseSchema,
   type ExpenseListResponse,
+  type ExpenseSummaryResponse,
   type ExpenseWithRelations,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
@@ -73,6 +74,29 @@ export class ExpensesController {
       actorId,
     );
     return { success: true, message: 'Expenses fetched', data };
+  }
+
+  @Get(':messId/:monthId/summary')
+  @UseGuards(MembershipGuard)
+  async getExpenseSummary(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('monthId') monthId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: ExpenseSummaryResponse;
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(monthId, 'monthId');
+
+    const actorId = req.user!.id;
+    const data = await this.expensesService.getExpenseSummary(
+      messId,
+      monthId,
+      actorId,
+    );
+    return { success: true, message: 'Expense summary fetched', data };
   }
 
   @Post(':messId/:monthId')

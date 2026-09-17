@@ -9,6 +9,8 @@ import { Prisma, prisma } from '@repo/database';
 import type {
   CreateDepositDto,
   DepositListResponse,
+  DepositMemberSummary,
+  DepositSummaryResponse,
   DepositWithRelations,
   UpdateDepositDto,
 } from '@repo/shared';
@@ -202,6 +204,80 @@ export class DepositsService {
       items,
       total,
       count: items.length,
+    };
+  }
+
+  async getDepositSummary(
+    messId: string,
+    monthId: string,
+    actorId: string,
+  ): Promise<DepositSummaryResponse> {
+    const membership = await prisma.mess_members.findFirst({
+      where: {
+        mess_id: messId,
+        user_id: actorId,
+        removed_at: null,
+        deleted_at: null,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        'You must be an active member to view deposit reports',
+      );
+    }
+
+    await this.findActiveMonth(messId, monthId);
+
+    const rows = await prisma.deposits.findMany({
+      where: { mess_id: messId, month_id: monthId, deleted_at: null },
+      include: depositInclude,
+      orderBy: { deposit_date: 'desc' },
+    });
+
+    const round = (n: number) => Math.round(n * 100) / 100;
+
+    let total = 0;
+    const memberMap = new Map<string, DepositMemberSummary>();
+
+    for (const row of rows) {
+      const amount = Number(row.amount);
+      total = round(total + amount);
+
+      const current =
+        memberMap.get(row.member_id) ??
+        this.emptyMemberSummary(row.member_id, row.member);
+      current.amount = round(current.amount + amount);
+      current.count += 1;
+      memberMap.set(row.member_id, current);
+    }
+
+    return {
+      total,
+      count: rows.length,
+      per_member: Array.from(memberMap.values()).sort((a, b) =>
+        a.user.name.localeCompare(b.user.name),
+      ),
+    };
+  }
+
+  private emptyMemberSummary(
+    memberId: string,
+    member: {
+      id: string;
+      user: { name: string; email: string; avatar: string | null };
+    },
+  ): DepositMemberSummary {
+    return {
+      member_id: memberId,
+      user: {
+        id: member.id,
+        name: member.user.name,
+        email: member.user.email,
+        avatar: member.user.avatar,
+      },
+      amount: 0,
+      count: 0,
     };
   }
 

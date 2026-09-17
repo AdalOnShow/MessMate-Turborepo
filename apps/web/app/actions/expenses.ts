@@ -41,6 +41,23 @@ export interface ExpenseSummaryInfo {
   count: number;
 }
 
+export interface ExpenseMemberSummaryInfo {
+  member_id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string | null;
+  };
+  shared_cost: number;
+  individual_cost: number;
+  total_cost: number;
+}
+
+export interface ExpenseSummaryResponseInfo extends ExpenseSummaryInfo {
+  per_member: ExpenseMemberSummaryInfo[];
+}
+
 export interface ExpenseListInfo {
   items: ExpenseInfo[];
   summary: ExpenseSummaryInfo;
@@ -64,6 +81,10 @@ export interface UpdateExpensePayload {
 
 export async function getExpenses(messId: string, monthId: string) {
   return api.get<ExpenseListInfo>(`/expenses/${messId}/${monthId}`);
+}
+
+export async function getExpenseSummary(messId: string, monthId: string) {
+  return api.get<ExpenseSummaryResponseInfo>(`/expenses/${messId}/${monthId}/summary`);
 }
 
 export async function createExpense(

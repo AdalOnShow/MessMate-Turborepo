@@ -23,6 +23,7 @@ const ACTION_META: Record<
   MEMBER_ADDED: { label: "Member added", icon: <UserPlus size={14} /> },
   MEMBER_REMOVED: { label: "Member removed", icon: <UserMinus size={14} /> },
   MANAGER_ASSIGNED: { label: "Manager assigned", icon: <Crown size={14} /> },
+  MANAGER_REMOVED: { label: "Manager removed", icon: <Crown size={14} /> },
   MEAL_ADDED: { label: "Meals added", icon: <ChefHat size={14} /> },
   MEAL_UPDATED: { label: "Meals updated", icon: <ChefHat size={14} /> },
   MEAL_DELETED: { label: "Meals deleted", icon: <ChefHat size={14} /> },
@@ -31,6 +32,7 @@ const ACTION_META: Record<
   EXPENSE_DELETED: { label: "Expense deleted", icon: <Receipt size={14} /> },
   DEPOSIT_ADDED: { label: "Deposit added", icon: <Landmark size={14} /> },
   DEPOSIT_UPDATED: { label: "Deposit updated", icon: <Landmark size={14} /> },
+  DEPOSIT_DELETED: { label: "Deposit deleted", icon: <Landmark size={14} /> },
   MONTH_OPENED: { label: "Month opened", icon: <Activity size={14} /> },
   MONTH_CLOSED: { label: "Month closed", icon: <Activity size={14} /> },
   MEMBER_BALANCE_CREATED: {

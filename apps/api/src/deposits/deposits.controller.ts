@@ -18,6 +18,7 @@ import {
   formatZodError,
   updateDepositSchema,
   type DepositListResponse,
+  type DepositSummaryResponse,
   type DepositWithRelations,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
@@ -73,6 +74,29 @@ export class DepositsController {
       actorId,
     );
     return { success: true, message: 'Deposits fetched', data };
+  }
+
+  @Get(':messId/:monthId/summary')
+  @UseGuards(MembershipGuard)
+  async getDepositSummary(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('monthId') monthId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: DepositSummaryResponse;
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(monthId, 'monthId');
+
+    const actorId = req.user!.id;
+    const data = await this.depositsService.getDepositSummary(
+      messId,
+      monthId,
+      actorId,
+    );
+    return { success: true, message: 'Deposit summary fetched', data };
   }
 
   @Post(':messId/:monthId')

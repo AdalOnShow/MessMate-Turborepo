@@ -9,6 +9,8 @@ import { Prisma, prisma } from '@repo/database';
 import type {
   CreateExpenseDto,
   ExpenseListResponse,
+  ExpenseMemberSummary,
+  ExpenseSummaryResponse,
   ExpenseWithRelations,
   UpdateExpenseDto,
 } from '@repo/shared';
@@ -274,6 +276,122 @@ export class ExpensesService {
     );
 
     return { items, summary };
+  }
+
+  async getExpenseSummary(
+    messId: string,
+    monthId: string,
+    actorId: string,
+  ): Promise<ExpenseSummaryResponse> {
+    const membership = await prisma.mess_members.findFirst({
+      where: {
+        mess_id: messId,
+        user_id: actorId,
+        removed_at: null,
+        deleted_at: null,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        'You must be an active member to view expense reports',
+      );
+    }
+
+    await this.findActiveMonth(messId, monthId);
+
+    const rows = await prisma.expenses.findMany({
+      where: { mess_id: messId, month_id: monthId },
+      include: expenseInclude,
+      orderBy: { expense_date: 'desc' },
+    });
+
+    const round = (n: number) => Math.round(n * 100) / 100;
+
+    let total = 0;
+    let shared_total = 0;
+    let individual_total = 0;
+    let bazaar_total = 0;
+
+    const memberMap = new Map<string, ExpenseMemberSummary>();
+
+    for (const row of rows) {
+      const amount = Number(row.amount);
+      total = round(total + amount);
+
+      if (row.type === 'SHARED') {
+        shared_total = round(shared_total + amount);
+        for (const alloc of row.members) {
+          const current =
+            memberMap.get(alloc.member_id) ??
+            this.emptyMemberSummary(
+              alloc.member.id,
+              this.memberUser(alloc.member),
+            );
+          current.shared_cost = round(
+            current.shared_cost + Number(alloc.allocated_amount),
+          );
+          current.total_cost = round(
+            current.shared_cost + current.individual_cost,
+          );
+          memberMap.set(alloc.member_id, current);
+        }
+      } else if (row.type === 'INDIVIDUAL') {
+        individual_total = round(individual_total + amount);
+        const target = row.members[0];
+        if (target) {
+          const current =
+            memberMap.get(target.member_id) ??
+            this.emptyMemberSummary(
+              target.member.id,
+              this.memberUser(target.member),
+            );
+          current.individual_cost = round(current.individual_cost + amount);
+          current.total_cost = round(
+            current.shared_cost + current.individual_cost,
+          );
+          memberMap.set(target.member_id, current);
+        }
+      } else {
+        bazaar_total = round(bazaar_total + amount);
+      }
+    }
+
+    return {
+      total,
+      shared_total,
+      individual_total,
+      bazaar_total,
+      count: rows.length,
+      per_member: Array.from(memberMap.values()).sort((a, b) =>
+        a.user.name.localeCompare(b.user.name),
+      ),
+    };
+  }
+
+  private memberUser(member: {
+    id: string;
+    user: { name: string; email: string; avatar: string | null };
+  }): ExpenseMemberSummary['user'] {
+    return {
+      id: member.id,
+      name: member.user.name,
+      email: member.user.email,
+      avatar: member.user.avatar,
+    };
+  }
+
+  private emptyMemberSummary(
+    memberId: string,
+    user: ExpenseMemberSummary['user'],
+  ): ExpenseMemberSummary {
+    return {
+      member_id: memberId,
+      user,
+      shared_cost: 0,
+      individual_cost: 0,
+      total_cost: 0,
+    };
   }
 
   async updateExpense(

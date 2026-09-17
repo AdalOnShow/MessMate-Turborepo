@@ -30,6 +30,22 @@ export interface DepositSummary {
   count: number;
 }
 
+export interface DepositMemberSummary {
+  member_id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string | null;
+  };
+  amount: number;
+  count: number;
+}
+
+export interface DepositSummaryResponse extends DepositSummary {
+  per_member: DepositMemberSummary[];
+}
+
 export interface DepositListResponse {
   items: DepositWithRelations[];
   total: number;

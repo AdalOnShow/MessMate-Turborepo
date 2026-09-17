@@ -5,7 +5,7 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (Phase 11 complete — Activity Logs; Phase 10 Manager + Member Dashboards complete; Recent Activities complete and rendered via the dashboard RecentActivity card)
+Status: Active Development (All numbered phases complete — Phases 0-12 done. Next: Future Features)
 
 Frontend:
 Next.js 16
@@ -336,13 +336,13 @@ pnpm Workspace
 
 ## Month History
 
-- [ ] View Previous Months (deferred — covered by Phase 12 Month Reports)
-- [ ] View Archived Reports (deferred — covered by Phase 12 Month Reports)
+- [x] View Previous Months (GET /months/:messId/history + /dashboard/months)
+- [x] View Archived Reports (expandable month summary on /dashboard/months)
 
 > **Note:** Tracker previously showed Phase 4 as fully unchecked while the
 > summary listed it complete — stale. Backend month lifecycle (create/get/
-> close/archive/carry-forward) is done since Phase 9; only the history/report
-> views remain, tracked under Phase 12.
+> close/archive/carry-forward) is done since Phase 9; history views are now
+> also delivered (see Phase 12).
 
 ---
 
@@ -578,18 +578,27 @@ pnpm Workspace
 
 ## Member Reports
 
-- [ ] Member Summary
-- [ ] Member Balance
-- [ ] Member Expenses
+- [x] Member Summary (per-member month summary via GET /months/:messId/:monthId/summary)
+- [x] Member Balance (full breakdown — live via members/calculations for ACTIVE, archived via month summary)
+- [x] Member Expenses (per-member shared/individual breakdown via GET /expenses/:messId/:monthId/summary)
 
 ---
 
 ## Month Reports
 
-- [ ] Monthly Summary
-- [ ] Meal Summary
-- [ ] Expense Summary
-- [ ] Deposit Summary
+- [x] Monthly Summary (month + member summaries — Months page and Reports Month tab)
+- [x] Meal Summary (GET /meals/:messId/:monthId/summary — Meal Reports page + Reports Meals tab)
+- [x] Expense Summary (GET /expenses/:messId/:monthId/summary — type totals + per-member, Reports Expenses tab)
+- [x] Deposit Summary (GET /deposits/:messId/:monthId/summary — totals + per-member, Reports Deposits tab)
+
+> **Note (Phase 12 completion):** Delivered a consolidated **Reports hub
+> (`/dashboard/reports`)** with a month picker and 5 tabs (Month, Meals,
+> Expenses, Deposits, Members). Two new summary endpoints were added —
+> `GET /expenses/:messId/:monthId/summary` and
+> `GET /deposits/:messId/:monthId/summary` — including per-member breakdowns.
+> Existing `/dashboard/months` and `/dashboard/meals/reports` pages are
+> preserved. Reports are visible to all active members (matching existing list
+> endpoint permissions).
 
 ---
 
@@ -771,16 +780,21 @@ Items found in full-project security review (root commit `aa549b95...HEAD`), que
 
 ```text
 Current Phase:
-Phase 12 - Reports (Member Reports + Month Reports pending)
+Future Features (all numbered phases, 0-12, are complete)
 
-Phase 11 Completed:
-- All activity logging done, including MANAGER_REMOVED + DEPOSIT_DELETED
-  (new enum values + migration) — demote and deposit-delete now logged correctly
-- Recent Activities API + dashboard feed card
+Phase 12 Completed:
+- Consolidated Reports hub (/dashboard/reports): month picker + 5 tabs
+  (Month Summary, Meals, Expenses, Deposits, Members)
+- New endpoints: GET /expenses/:messId/:monthId/summary (type totals +
+  per-member shared/individual breakdown), GET /deposits/:messId/:monthId/summary
+  (totals + per-member)
+- Members tab: live calculations for active month, archived month summaries
+  otherwise
+- Reports nav links (Sidebar + BottomNav); visible to all active members
 
 Next Priority:
-- Phase 12 - Reports (Member Summary/Balance/Expenses, Monthly/Meal/Expense/
-  Deposit Summaries), incl. the deferred "View Previous Months / Archived Reports"
+- Future Features: Connected Accounts Management, Chat, Mobile, SaaS
+  (all require product decisions before scoping)
 
 Completed Phases:
 - Phase 0 - Project Foundation
@@ -795,4 +809,5 @@ Completed Phases:
 - Phase 9 - Accounting Engine
 - Phase 10 - Dashboard
 - Phase 11 - Activity Logs
+- Phase 12 - Reports
 ```

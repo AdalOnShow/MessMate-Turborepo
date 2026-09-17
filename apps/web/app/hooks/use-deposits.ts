@@ -3,11 +3,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getDeposits,
+  getDepositSummary,
   createDeposit,
   updateDeposit,
   deleteDeposit,
   type DepositInfo,
   type DepositListInfo,
+  type DepositSummaryResponseInfo,
   type CreateDepositPayload,
   type UpdateDepositPayload,
 } from "../actions/deposits";
@@ -23,6 +25,22 @@ export function useGetDeposits(
         return { items: [], total: 0, count: 0 };
       }
       return getDeposits(messId, monthId);
+    },
+    enabled: !!messId && !!monthId,
+  });
+}
+
+export function useDepositSummary(
+  messId: string | undefined,
+  monthId: string | undefined,
+) {
+  return useQuery({
+    queryKey: ["deposit-summary", messId, monthId],
+    queryFn: async (): Promise<DepositSummaryResponseInfo> => {
+      if (!messId || !monthId) {
+        return { total: 0, count: 0, per_member: [] };
+      }
+      return getDepositSummary(messId, monthId);
     },
     enabled: !!messId && !!monthId,
   });
@@ -94,6 +112,7 @@ export function useDeleteDeposit(
 export type {
   DepositInfo,
   DepositListInfo,
+  DepositSummaryResponseInfo,
   CreateDepositPayload,
   UpdateDepositPayload,
 };
