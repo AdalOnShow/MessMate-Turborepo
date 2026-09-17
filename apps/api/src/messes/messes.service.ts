@@ -581,7 +581,7 @@ export class MessesService {
       data: {
         mess_id: messId,
         actor_id: actorId,
-        action: newRole === 'MANAGER' ? 'MANAGER_ASSIGNED' : 'MEMBER_REMOVED',
+        action: newRole === 'MANAGER' ? 'MANAGER_ASSIGNED' : 'MANAGER_REMOVED',
         entity_type: 'mess_members',
         entity_id: updated.id,
       },

@@ -277,6 +277,17 @@ export class DepositsService {
       data: { deleted_at: new Date() },
     });
 
+    await prisma.activity_logs.create({
+      data: {
+        mess_id: messId,
+        month_id: existing.month_id,
+        actor_id: actorId,
+        action: 'DEPOSIT_DELETED',
+        entity_type: 'deposits',
+        entity_id: depositId,
+      },
+    });
+
     this.logger.log(`🗑 Deposit deleted: ${depositId}`);
     return { id: depositId };
   }

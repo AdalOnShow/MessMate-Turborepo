@@ -5,7 +5,7 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (Phase 10 complete — Manager + Member Dashboard done; Recent Activities complete and rendered via the dashboard RecentActivity card)
+Status: Active Development (Phase 11 complete — Activity Logs; Phase 10 Manager + Member Dashboards complete; Recent Activities complete and rendered via the dashboard RecentActivity card)
 
 Frontend:
 Next.js 16
@@ -323,25 +323,26 @@ pnpm Workspace
 
 ## Active Month
 
-- [ ] Create Month
-- [ ] Get Active Month
-- [ ] Active Month Dashboard
-
----
+- [x] Create Month (`createMonth` in months.service — creates new ACTIVE month + generates carry-forward)
+- [x] Get Active Month (`getActiveMonth` — feeds dashboard current-month data)
+- [x] Active Month Dashboard (Phase 10 MonthOverviewBento)
 
 ## Month Closing
 
-- [ ] Calculate Final Summary
-- [ ] Generate Member Summary
-- [ ] Generate Carry Forward Balances
-- [ ] Archive Month
-
----
+- [x] Calculate Final Summary (`closeMonth` in months.service)
+- [x] Generate Member Summary (writes `member_month_summaries`)
+- [x] Generate Carry Forward Balances (`generateCarryForward` — PREVIOUS_BALANCE/PREVIOUS_DUE per ADR-008)
+- [x] Archive Month (closeMonth sets status CLOSED)
 
 ## Month History
 
-- [ ] View Previous Months
-- [ ] View Archived Reports
+- [ ] View Previous Months (deferred — covered by Phase 12 Month Reports)
+- [ ] View Archived Reports (deferred — covered by Phase 12 Month Reports)
+
+> **Note:** Tracker previously showed Phase 4 as fully unchecked while the
+> summary listed it complete — stale. Backend month lifecycle (create/get/
+> close/archive/carry-forward) is done since Phase 9; only the history/report
+> views remain, tracked under Phase 12.
 
 ---
 
@@ -542,17 +543,27 @@ pnpm Workspace
 
 - [x] Member Added
 - [x] Member Removed
-- [ ] Meal Added
-- [ ] Meal Updated
+- [x] Meal Added
+- [x] Meal Updated
+- [x] Meal Deleted
 - [x] Expense Added
 - [x] Expense Updated
+- [x] Expense Deleted
 - [x] Deposit Added
 - [x] Deposit Updated
+- [x] Deposit Deleted
 - [x] Bazaar Submitted
 - [x] Bazaar Approved
 - [x] Bazaar Rejected
 - [x] Manager Assigned
-- [ ] Manager Removed
+- [x] Manager Removed
+- [x] Month Opened / Month Closed / Default Meals Updated
+
+> **Note (Phase 11 completion):** All activity logging is implemented. In this
+> pass, two enum values were added (`MANAGER_REMOVED`, `DEPOSIT_DELETED`) via
+> migration `20260917000000_add_remaining_activity_logs`. Previously the
+> manager-demote path logged `MEMBER_REMOVED` (semantically wrong) and deposit
+> deletion was not logged at all.
 
 ---
 
@@ -760,19 +771,16 @@ Items found in full-project security review (root commit `aa549b95...HEAD`), que
 
 ```text
 Current Phase:
-Phase 10 - Dashboard (Manager + Member Dashboard DONE)
+Phase 12 - Reports (Member Reports + Month Reports pending)
 
-Phase 10 Completed:
-- Manager /dashboard bento (MonthOverview+Financial, MealOverview,
-  Bazaar Approvals, Quick Actions, Recent Activity)
-- Member /dashboard (role-based): same MonthOverview + MealOverview top
-  grid, then personal month summary card + member quick links + activity.
-- Recent Activities (API + dashboard feed card) — complete.
-- ৳ taka money formatting
+Phase 11 Completed:
+- All activity logging done, including MANAGER_REMOVED + DEPOSIT_DELETED
+  (new enum values + migration) — demote and deposit-delete now logged correctly
+- Recent Activities API + dashboard feed card
 
 Next Priority:
-- Phase 11 - Activity Logs
-- Phase 7/8 remaining polish
+- Phase 12 - Reports (Member Summary/Balance/Expenses, Monthly/Meal/Expense/
+  Deposit Summaries), incl. the deferred "View Previous Months / Archived Reports"
 
 Completed Phases:
 - Phase 0 - Project Foundation
@@ -782,4 +790,9 @@ Completed Phases:
 - Phase 4 - Month Management
 - Phase 5 - Meal Management
 - Phase 6 - Bazaar Management
+- Phase 7 - Expense Management
+- Phase 8 - Deposit Management
+- Phase 9 - Accounting Engine
+- Phase 10 - Dashboard
+- Phase 11 - Activity Logs
 ```
