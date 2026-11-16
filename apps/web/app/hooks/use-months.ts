@@ -28,6 +28,7 @@ export function useCreateMonth(messId: string | undefined) {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "New month started" },
     mutationFn: async (payload: CreateMonthPayload) => {
       if (!messId) throw new Error("No mess ID");
       const result = await unwrap(createMonth(messId, payload));

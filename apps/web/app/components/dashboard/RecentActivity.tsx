@@ -15,6 +15,7 @@ import {
 import type { ActivityLogInfo } from "../../hooks/use-members";
 import { useRecentActivities } from "../../hooks/use-members";
 import { BentoCard, CardHeading } from "./bento";
+import { QueryErrorState } from "../feedback/QueryErrorState";
 
 const ACTION_META: Record<
   ActivityLogInfo["action"],
@@ -74,7 +75,8 @@ function timeAgo(iso: string) {
 }
 
 export function RecentActivity({ messId }: { messId: string | undefined }) {
-  const { data: activities, isLoading } = useRecentActivities(messId);
+  const activitiesQuery = useRecentActivities(messId);
+  const { data: activities, isLoading } = activitiesQuery;
 
   return (
     <BentoCard className="flex flex-col p-6 lg:col-span-3">
@@ -89,6 +91,14 @@ export function RecentActivity({ messId }: { messId: string | undefined }) {
             />
           ))}
         </div>
+      ) : activitiesQuery.isError && !activities ? (
+        <QueryErrorState
+          compact
+          error={activitiesQuery.error}
+          onRetry={activitiesQuery.refetch}
+          isRetrying={activitiesQuery.isFetching}
+          resource="recent activity"
+        />
       ) : activities && activities.length > 0 ? (
         <div className="flex-1 space-y-1.5">
           {activities.slice(0, 6).map((a) => {

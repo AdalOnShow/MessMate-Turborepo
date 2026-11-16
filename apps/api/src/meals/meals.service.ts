@@ -1,3 +1,4 @@
+import { ErrorCode } from '@repo/shared';
 import {
   BadRequestException,
   ForbiddenException,
@@ -35,7 +36,10 @@ export class MealsService {
     });
 
     if (!membership) {
-      throw new ForbiddenException('Only managers can record meals');
+      throw new ForbiddenException({
+        message: 'Only managers can record meals',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const month = await prisma.months.findFirst({
@@ -48,7 +52,10 @@ export class MealsService {
     });
 
     if (!month) {
-      throw new NotFoundException('Active month not found');
+      throw new NotFoundException({
+        message: 'Active month not found',
+        code: ErrorCode.NO_ACTIVE_MONTH,
+      });
     }
 
     const activeMealTypes = await prisma.meal_types.findMany({
@@ -246,7 +253,10 @@ export class MealsService {
     });
 
     if (!membership) {
-      throw new ForbiddenException('Only managers can delete meals');
+      throw new ForbiddenException({
+        message: 'Only managers can delete meals',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const entry = await prisma.meal_entries.findFirst({

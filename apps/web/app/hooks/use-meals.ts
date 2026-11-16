@@ -42,6 +42,7 @@ export function useBulkSaveMealEntries(
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Meals saved" },
     mutationFn: async (payload: BulkMealEntriesPayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
       const result = await unwrap(
@@ -59,6 +60,7 @@ export function useDeleteMealEntry(messId: string | undefined) {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Meal entry deleted" },
     mutationFn: async (entryId: string) => {
       if (!messId) throw new Error("No mess ID");
       const result = await unwrap(deleteMealEntry(messId, entryId));

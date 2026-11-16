@@ -11,3 +11,4 @@ export * from "./bazaar";
 export * from "./expenses";
 export * from "./deposits";
 export * from "./api-response/api-response";
+export * from "./api-response/error-codes";

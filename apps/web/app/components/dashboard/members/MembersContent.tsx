@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSessionStore } from "../../../store";
 import { useGetMyMess } from "../../../hooks/use-messes";
@@ -16,12 +16,15 @@ import { useInviteUser } from "../../../hooks/use-invites";
 import { MemberFiltersBar } from "./MemberFiltersBar";
 import { MemberCards } from "./MemberCards";
 import { MembersDialogs } from "./MembersDialogs";
-import { MembersFeedback } from "./MembersFeedback";
+import {
+  QueriesErrorState,
+  failedQueries,
+} from "../../feedback/QueryErrorState";
 
 export function MembersContent() {
   const { user, isAuthenticated } = useSessionStore();
-  const { data: myMess, isLoading: messLoading } =
-    useGetMyMess(isAuthenticated);
+  const messQuery = useGetMyMess(isAuthenticated);
+  const { data: myMess, isLoading: messLoading } = messQuery;
 
   const [filters, setFilters] = useState<MemberFilters>({});
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -30,19 +33,16 @@ export function MembersContent() {
   );
   const [removeDialogMember, setRemoveDialogMember] =
     useState<MemberData | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const messId = myMess?.id;
   const isManager = myMess?.current_user_role === "MANAGER";
 
-  const { data: members = [], isLoading: membersLoading } = useMembers(
-    messId,
-    filters,
-  );
+  const membersQuery = useMembers(messId, filters);
+  const { data: members = [], isLoading: membersLoading } = membersQuery;
 
-  const { data: calculations, isLoading: calcLoading } =
-    useMemberCalculations(messId);
+  const calcQuery = useMemberCalculations(messId);
+  const { data: calculations, isLoading: calcLoading } = calcQuery;
+  const pageQueries = [messQuery, membersQuery, calcQuery];
 
   // The cards are built from the calculations list, which the API returns
   // unfiltered, so apply the search/role/status result to it here.
@@ -75,15 +75,6 @@ export function MembersContent() {
     [],
   );
 
-  useEffect(() => {
-    if (!successMessage && !errorMessage) return;
-    const timer = setTimeout(() => {
-      setSuccessMessage(null);
-      setErrorMessage(null);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [successMessage, errorMessage]);
-
   return (
     <>
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -114,17 +105,14 @@ export function MembersContent() {
         )}
       </div>
 
-      <MembersFeedback
-        successMessage={successMessage}
-        errorMessage={errorMessage}
-      />
-
       {messLoading || membersLoading || calcLoading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-40 animate-pulse rounded-lg bg-surface" />
           ))}
         </div>
+      ) : failedQueries(...pageQueries).length > 0 ? (
+        <QueriesErrorState queries={pageQueries} resource="members" />
       ) : members.length === 0 ? (
         <div className="space-y-4">
           {isManager && (
@@ -197,12 +185,6 @@ export function MembersContent() {
           inviteUser.mutate(email, {
             onSuccess: () => {
               setAddDialogOpen(false);
-              setSuccessMessage("Invite sent successfully");
-            },
-            onError: (err) => {
-              setErrorMessage(
-                err.message || "Failed to send invite. Please try again.",
-              );
             },
           })
         }
@@ -219,12 +201,6 @@ export function MembersContent() {
             {
               onSuccess: () => {
                 setRoleDialogMember(null);
-                setSuccessMessage("Member role updated successfully");
-              },
-              onError: (err) => {
-                setErrorMessage(
-                  err.message || "Failed to update role. Please try again.",
-                );
               },
             },
           )
@@ -236,12 +212,6 @@ export function MembersContent() {
           removeMember.mutate(removeDialogMember!.user_id, {
             onSuccess: () => {
               setRemoveDialogMember(null);
-              setSuccessMessage("Member removed successfully");
-            },
-            onError: (err) => {
-              setErrorMessage(
-                err.message || "Failed to remove member. Please try again.",
-              );
             },
           })
         }

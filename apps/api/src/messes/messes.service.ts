@@ -12,6 +12,7 @@ import {
   type UpdateMessDto,
   type CreateMealTypeDto,
   type UpdateMealTypeDto,
+  ErrorCode,
 } from '@repo/shared';
 import type {
   ActivityLog,
@@ -423,7 +424,10 @@ export class MessesService {
     });
 
     if (existing) {
-      throw new ConflictException('User is already a member of this mess');
+      throw new ConflictException({
+        message: 'User is already a member of this mess',
+        code: ErrorCode.ALREADY_MEMBER,
+      });
     }
 
     const member = await prisma.mess_members.create({
@@ -645,7 +649,10 @@ export class MessesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException('Only managers can update mess details');
+      throw new ForbiddenException({
+        message: 'Only managers can update mess details',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const mess = await prisma.messes.findFirst({
@@ -711,7 +718,10 @@ export class MessesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException('Only managers can update meal types');
+      throw new ForbiddenException({
+        message: 'Only managers can update meal types',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const mealType = await prisma.meal_types.findFirst({
@@ -764,7 +774,10 @@ export class MessesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException('Only managers can create meal types');
+      throw new ForbiddenException({
+        message: 'Only managers can create meal types',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const existingCount = await prisma.meal_types.count({
@@ -828,7 +841,10 @@ export class MessesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException('Only managers can delete meal types');
+      throw new ForbiddenException({
+        message: 'Only managers can delete meal types',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const mealType = await prisma.meal_types.findFirst({

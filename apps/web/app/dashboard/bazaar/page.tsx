@@ -26,6 +26,10 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import {
+  QueriesErrorState,
+  failedQueries,
+} from "../../components/feedback/QueryErrorState";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -225,13 +229,6 @@ function BazaarForm({
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
-
-        {(submit.isError || update.isError) && (
-          <p className="text-sm text-destructive">
-            {(submit.error || update.error)?.message ||
-              "Failed to save bazaar submission."}
-          </p>
-        )}
 
         <div className="flex gap-3">
           {editing && (
@@ -472,15 +469,14 @@ function BazaarCard({
 
 export default function BazaarPage() {
   const user = useSessionStore((state) => state.user);
-  const { data: myMess, isLoading: messLoading } = useGetMyMess();
+  const messQuery = useGetMyMess();
+  const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
   const isManager = myMess?.current_user_role === "MANAGER";
-  const { data: activeMonth, isLoading: monthLoading } =
-    useGetActiveMonth(messId);
-  const { data: history, isLoading: historyLoading } = useGetBazaarHistory(
-    messId,
-    activeMonth?.id,
-  );
+  const monthQuery = useGetActiveMonth(messId);
+  const { data: activeMonth, isLoading: monthLoading } = monthQuery;
+  const historyQuery = useGetBazaarHistory(messId, activeMonth?.id);
+  const { data: history, isLoading: historyLoading } = historyQuery;
   const [activeTab, setActiveTab] = useState<
     "pending" | "approved" | "rejected"
   >("pending");
@@ -505,6 +501,13 @@ export default function BazaarPage() {
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  const pageQueries = [messQuery, monthQuery, historyQuery];
+  if (failedQueries(...pageQueries).length > 0) {
+    return (
+      <QueriesErrorState queries={pageQueries} resource="bazaar submissions" />
     );
   }
 

@@ -12,6 +12,7 @@ import {
   updateProfileSchema,
   changePasswordSchema,
   formatZodError,
+  ErrorCode,
 } from '@repo/shared';
 import { CloudinaryService } from '../common/services/cloudinary.service';
 import type { MulterFile } from '../common/upload/multer.types';
@@ -254,7 +255,10 @@ export class UsersService {
     });
 
     if (!membership || membership.mess_role !== 'MANAGER') {
-      throw new ForbiddenException('Only managers can create member accounts');
+      throw new ForbiddenException({
+        message: 'Only managers can create member accounts',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const existing = await prisma.users.findFirst({
@@ -262,9 +266,10 @@ export class UsersService {
     });
 
     if (existing) {
-      throw new BadRequestException(
-        'An account with this email already exists',
-      );
+      throw new BadRequestException({
+        message: 'An account with this email already exists',
+        code: ErrorCode.EMAIL_IN_USE,
+      });
     }
 
     const saltRounds = Number(

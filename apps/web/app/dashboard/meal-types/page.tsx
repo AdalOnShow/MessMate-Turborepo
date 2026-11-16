@@ -10,6 +10,10 @@ import {
 } from "../../hooks/use-messes";
 import type { MealTypeInfo } from "../../hooks/use-messes";
 import { Check, Loader2, Plus, Trash2, UtensilsCrossed, X } from "lucide-react";
+import {
+  QueriesErrorState,
+  failedQueries,
+} from "../../components/feedback/QueryErrorState";
 
 function CreateMealTypeForm({
   messId,
@@ -50,9 +54,6 @@ function CreateMealTypeForm({
           setName("");
           setValue("1");
           onCancel();
-        },
-        onError: (err) => {
-          setError((err as Error)?.message || "Failed to create meal type");
         },
       },
     );
@@ -250,11 +251,13 @@ function MealTypeRow({
 }
 
 export default function MealTypesPage() {
-  const { data: myMess, isLoading: messLoading } = useGetMyMess();
+  const messQuery = useGetMyMess();
+  const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
   const isManager = myMess?.current_user_role === "MANAGER";
 
-  const { data: mealTypes, isLoading: typesLoading } = useGetMealTypes(messId);
+  const typesQuery = useGetMealTypes(messId);
+  const { data: mealTypes, isLoading: typesLoading } = typesQuery;
 
   const [showCreate, setShowCreate] = useState(false);
 
@@ -265,6 +268,15 @@ export default function MealTypesPage() {
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  if (failedQueries(messQuery, typesQuery).length > 0) {
+    return (
+      <QueriesErrorState
+        queries={[messQuery, typesQuery]}
+        resource="meal types"
+      />
     );
   }
 

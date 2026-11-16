@@ -32,6 +32,7 @@ export function useCreateMess() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Mess created" },
     mutationFn: async (payload: { name: string; description?: string }) => {
       const result = await unwrap(createMess(payload));
       return result;
@@ -46,6 +47,7 @@ export function useUpdateMess(messId: string | undefined) {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Mess settings saved" },
     mutationFn: async (payload: UpdateMessPayload) => {
       if (!messId) throw new Error("No mess ID");
       const result = await unwrap(updateMess(messId, payload));
@@ -73,6 +75,7 @@ export function useUpdateMealType(messId: string | undefined) {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Meal type updated" },
     mutationFn: async ({
       mealTypeId,
       data,
@@ -94,6 +97,7 @@ export function useCreateMealType(messId: string | undefined) {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Meal type added" },
     mutationFn: async (payload: CreateMealTypePayload) => {
       if (!messId) throw new Error("No mess ID");
       const result = await unwrap(createMealType(messId, payload));
@@ -109,6 +113,7 @@ export function useDeleteMealType(messId: string | undefined) {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Meal type deleted" },
     mutationFn: async (mealTypeId: string) => {
       if (!messId) throw new Error("No mess ID");
       const result = await unwrap(deleteMealType(messId, mealTypeId));

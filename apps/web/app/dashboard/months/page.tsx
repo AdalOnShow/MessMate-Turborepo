@@ -5,11 +5,17 @@ import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetMonthHistory, useGetMonthSummary } from "../../hooks/use-months";
 import type { MonthInfo } from "../../hooks/use-months";
 import { Calendar, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import {
+  QueriesErrorState,
+  QueryErrorState,
+  failedQueries,
+} from "../../components/feedback/QueryErrorState";
 
 function MonthSummary({ month }: { month: MonthInfo }) {
   const { data: myMess } = useGetMyMess();
   const messId = myMess?.id;
-  const { data: summary, isLoading } = useGetMonthSummary(messId, month.id);
+  const summaryQuery = useGetMonthSummary(messId, month.id);
+  const { data: summary, isLoading } = summaryQuery;
   const [expanded, setExpanded] = useState(false);
 
   // Time of day is included so months opened on the same date can be told
@@ -75,6 +81,14 @@ function MonthSummary({ month }: { month: MonthInfo }) {
             <div className="flex items-center justify-center py-4">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
+          ) : summaryQuery.isError && !summary ? (
+            <QueryErrorState
+              compact
+              error={summaryQuery.error}
+              onRetry={summaryQuery.refetch}
+              isRetrying={summaryQuery.isFetching}
+              resource="this month's summary"
+            />
           ) : !summary || summary.member_summaries.length === 0 ? (
             <p className="text-sm text-foreground-muted">
               No summary data available for this month.
@@ -154,9 +168,11 @@ function MonthSummary({ month }: { month: MonthInfo }) {
 }
 
 export default function MonthsPage() {
-  const { data: myMess, isLoading: messLoading } = useGetMyMess();
+  const messQuery = useGetMyMess();
+  const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
-  const { data: months, isLoading: monthsLoading } = useGetMonthHistory(messId);
+  const monthsQuery = useGetMonthHistory(messId);
+  const { data: months, isLoading: monthsLoading } = monthsQuery;
 
   if (messLoading || monthsLoading) {
     return (
@@ -177,7 +193,12 @@ export default function MonthsPage() {
         </h1>
       </div>
 
-      {!months || months.length === 0 ? (
+      {failedQueries(messQuery, monthsQuery).length > 0 ? (
+        <QueriesErrorState
+          queries={[messQuery, monthsQuery]}
+          resource="month history"
+        />
+      ) : !months || months.length === 0 ? (
         <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center">
           <Calendar size={32} className="mx-auto mb-3 text-foreground-muted" />
           <p className="text-sm text-foreground-muted">

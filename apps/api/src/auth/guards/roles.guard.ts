@@ -1,3 +1,4 @@
+import { ErrorCode } from '@repo/shared';
 import {
   CanActivate,
   ExecutionContext,
@@ -50,11 +51,17 @@ export class RolesGuard implements CanActivate {
     });
 
     if (!membership) {
-      throw new ForbiddenException('You are not a member of this mess');
+      throw new ForbiddenException({
+        message: 'You are not a member of this mess',
+        code: ErrorCode.NOT_MESS_MEMBER,
+      });
     }
 
     if (!requiredRoles.includes(membership.mess_role)) {
-      throw new ForbiddenException('Insufficient permissions');
+      throw new ForbiddenException({
+        message: 'Insufficient permissions',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     return true;

@@ -6,7 +6,7 @@ import {
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 import { AuthService } from '../auth.service';
-import { formatZodError, signInSchema } from '@repo/shared';
+import { formatZodError, signInSchema, ErrorCode } from '@repo/shared';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
@@ -28,7 +28,11 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       parsed.data.email,
       parsed.data.password,
     );
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user)
+      throw new UnauthorizedException({
+        message: 'Invalid credentials',
+        code: ErrorCode.INVALID_CREDENTIALS,
+      });
     return user;
   }
 }

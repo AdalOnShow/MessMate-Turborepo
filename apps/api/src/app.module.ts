@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { BazaarModule } from './bazaar/bazaar.module';
 import { ApiResponseMiddleware } from './common/api-response/api-response.middleware';
 import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
+import { RequestIdMiddleware } from './common/request-id/request-id.middleware';
 import { DepositsModule } from './deposits/deposits.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { InvitesModule } from './invites/invites.module';
@@ -58,7 +59,7 @@ import { UsersModule } from './users/users.module';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(ApiResponseMiddleware)
+      .apply(RequestIdMiddleware, ApiResponseMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

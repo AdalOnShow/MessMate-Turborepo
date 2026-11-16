@@ -7,7 +7,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSessionStore } from "../../../store";
 import { useGetMyMess } from "../../../hooks/use-messes";
 import { createMemberAccount } from "../../../actions/members";
-import { unwrap } from "../../../lib/action-result";
+import { toActionError, unwrap } from "../../../lib/action-result";
+import { toast } from "../../../store/toast";
 
 export default function CreateAccountForm() {
   const router = useRouter();
@@ -23,14 +24,12 @@ export default function CreateAccountForm() {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!myMess?.id) return;
 
     setLoading(true);
-    setError(null);
 
     try {
       await unwrap(
@@ -43,11 +42,17 @@ export default function CreateAccountForm() {
         }),
       );
       await queryClient.invalidateQueries();
+      toast.success("Member account created");
       router.push("/dashboard/members");
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to create account";
-      setError(message);
+      const error = toActionError(err);
+      toast.error(
+        error.isServerError ? "Couldn't create the account" : error.message,
+        {
+          description: error.isServerError ? error.message : undefined,
+          reference: error.isServerError ? error.requestId : undefined,
+        },
+      );
     } finally {
       setLoading(false);
     }
@@ -68,12 +73,6 @@ export default function CreateAccountForm() {
         onSubmit={handleSubmit}
         className="space-y-4 rounded-xl border border-foreground-muted/15 bg-surface p-6"
       >
-        {error && (
-          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-500">
-            {error}
-          </div>
-        )}
-
         <div>
           <label
             htmlFor="name"
@@ -156,7 +155,7 @@ export default function CreateAccountForm() {
           </Link>
           <button
             type="submit"
-            disabled={loading || !name || !email || !password}
+            disabled={loading || !myMess?.id || !name || !email || !password}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Creating..." : "Create Account"}

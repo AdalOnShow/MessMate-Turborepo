@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../store";
 import { useGetMyMess, useCreateMess } from "../../hooks/use-messes";
+import { Loader2 } from "lucide-react";
+import { QueryErrorState } from "../../components/feedback/QueryErrorState";
 
 function CreateMessForm() {
   const [name, setName] = useState("");
@@ -123,15 +125,6 @@ function CreateMessForm() {
             {createMess.isPending ? "Creating..." : "Create Mess"}
           </button>
         </div>
-
-        {createMess.isError && (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
-            <p className="text-sm text-destructive">
-              {(createMess.error as Error)?.message ||
-                "Failed to create mess. Please try again."}
-            </p>
-          </div>
-        )}
       </form>
     </div>
   );
@@ -139,11 +132,34 @@ function CreateMessForm() {
 
 function CreateMessContent() {
   const { isAuthenticated } = useSessionStore();
-  const { data: myMess } = useGetMyMess(isAuthenticated);
+  const messQuery = useGetMyMess(isAuthenticated);
+  const { data: myMess } = messQuery;
   const router = useRouter();
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  if (messQuery.isPending) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Don't offer to create a mess when we couldn't check for an existing one.
+  if (messQuery.isError && !myMess) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <QueryErrorState
+          error={messQuery.error}
+          onRetry={messQuery.refetch}
+          isRetrying={messQuery.isFetching}
+          resource="your mess"
+        />
+      </div>
+    );
   }
 
   if (myMess) {

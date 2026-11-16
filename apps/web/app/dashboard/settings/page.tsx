@@ -11,6 +11,7 @@ import {
 } from "../../hooks/use-messes";
 import type { MealTypeInfo } from "../../hooks/use-messes";
 import { Check, Loader2, Pencil, Settings, X } from "lucide-react";
+import { QueryErrorState } from "../../components/feedback/QueryErrorState";
 
 function EditableMessInfo() {
   const { data: myMess } = useGetMyMess();
@@ -172,15 +173,6 @@ function EditableMessInfo() {
           )}
         </div>
 
-        {updateMess.isError && (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">
-            <p className="text-sm text-destructive">
-              {(updateMess.error as Error)?.message ||
-                "Failed to update mess. Please try again."}
-            </p>
-          </div>
-        )}
-
         <div className="flex gap-3">
           <button
             type="button"
@@ -210,10 +202,6 @@ function EditableMessInfo() {
             )}
           </button>
         </div>
-
-        {updateMess.isSuccess && (
-          <p className="text-sm text-green-500">Mess updated successfully!</p>
-        )}
       </div>
     );
   }
@@ -257,7 +245,8 @@ function EditableMessInfo() {
 function MealTypesConfig() {
   const { data: myMess } = useGetMyMess();
   const messId = myMess?.id;
-  const { data: mealTypes, isLoading } = useGetMealTypes(messId);
+  const mealTypesQuery = useGetMealTypes(messId);
+  const { data: mealTypes, isLoading } = mealTypesQuery;
   const updateMealType = useUpdateMealType(messId);
 
   if (isLoading) {
@@ -265,6 +254,18 @@ function MealTypesConfig() {
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-5 w-5 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  if (mealTypesQuery.isError && !mealTypes) {
+    return (
+      <QueryErrorState
+        compact
+        error={mealTypesQuery.error}
+        onRetry={mealTypesQuery.refetch}
+        isRetrying={mealTypesQuery.isFetching}
+        resource="meal types"
+      />
     );
   }
 
@@ -350,15 +351,6 @@ function MealTypesConfig() {
           </div>
         ))}
       </div>
-
-      {updateMealType.isError && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">
-          <p className="text-sm text-destructive">
-            {(updateMealType.error as Error)?.message ||
-              "Failed to update meal type."}
-          </p>
-        </div>
-      )}
     </div>
   );
 }
@@ -366,8 +358,8 @@ function MealTypesConfig() {
 function SettingsContent() {
   const { isAuthenticated } = useSessionStore();
   const router = useRouter();
-  const { data: myMess, isLoading: messLoading } =
-    useGetMyMess(isAuthenticated);
+  const messQuery = useGetMyMess(isAuthenticated);
+  const { data: myMess, isLoading: messLoading } = messQuery;
 
   useEffect(() => {
     if (!messLoading && myMess && myMess.current_user_role !== "MANAGER") {
@@ -380,6 +372,17 @@ function SettingsContent() {
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  if (messQuery.isError && !myMess) {
+    return (
+      <QueryErrorState
+        error={messQuery.error}
+        onRetry={messQuery.refetch}
+        isRetrying={messQuery.isFetching}
+        resource="mess settings"
+      />
     );
   }
 

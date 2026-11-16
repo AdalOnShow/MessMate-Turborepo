@@ -4,7 +4,6 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import {
   AlertCircle,
   Camera,
-  CheckCircle2,
   Loader2,
   Save,
   Shield,
@@ -20,6 +19,7 @@ import {
   useUpdateProfile,
   useUploadAvatar,
 } from "../../hooks/use-profile";
+import { QueryErrorState } from "../../components/feedback/QueryErrorState";
 
 function CompactAvatarUpload({
   currentAvatarUrl,
@@ -125,30 +125,6 @@ function CompactAvatarUpload({
           <p className="flex items-center gap-1.5 text-xs text-destructive">
             <AlertCircle size={13} />
             {fileError}
-          </p>
-        )}
-        {uploadAvatar.error && !fileError && (
-          <p className="flex items-center gap-1.5 text-xs text-destructive">
-            <AlertCircle size={13} />
-            {uploadAvatar.error.message}
-          </p>
-        )}
-        {deleteAvatar.error && (
-          <p className="flex items-center gap-1.5 text-xs text-destructive">
-            <AlertCircle size={13} />
-            {deleteAvatar.error.message}
-          </p>
-        )}
-        {uploadAvatar.isSuccess && !selectedFile && (
-          <p className="flex items-center gap-1.5 text-xs text-success">
-            <CheckCircle2 size={13} />
-            Avatar updated!
-          </p>
-        )}
-        {deleteAvatar.isSuccess && (
-          <p className="flex items-center gap-1.5 text-xs text-success">
-            <CheckCircle2 size={13} />
-            Avatar removed.
           </p>
         )}
 
@@ -272,6 +248,13 @@ function ProfileContent() {
           <Loader2 className="mr-2 animate-spin" size={18} />
           Loading profile
         </div>
+      ) : profile.isError && !profile.data ? (
+        <QueryErrorState
+          error={profile.error}
+          onRetry={profile.refetch}
+          isRetrying={profile.isFetching}
+          resource="your profile"
+        />
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
           <form
@@ -328,19 +311,6 @@ function ProfileContent() {
                 />
               </label>
             </div>
-
-            {updateProfile.error && (
-              <p className="mt-5 flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                <AlertCircle size={16} />
-                {updateProfile.error.message}
-              </p>
-            )}
-            {updateProfile.isSuccess && (
-              <p className="mt-5 flex items-center gap-2 rounded-lg bg-success/10 px-3 py-2 text-sm text-success">
-                <CheckCircle2 size={16} />
-                Profile updated
-              </p>
-            )}
 
             <button
               type="submit"
@@ -412,19 +382,6 @@ function ProfileContent() {
                   />
                 </label>
               </div>
-
-              {changePassword.error && (
-                <p className="mt-5 flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                  <AlertCircle size={16} />
-                  {changePassword.error.message}
-                </p>
-              )}
-              {changePassword.isSuccess && (
-                <p className="mt-5 flex items-center gap-2 rounded-lg bg-success/10 px-3 py-2 text-sm text-success">
-                  <CheckCircle2 size={16} />
-                  Password changed
-                </p>
-              )}
 
               <button
                 type="submit"

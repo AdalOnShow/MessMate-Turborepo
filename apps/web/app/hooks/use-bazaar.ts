@@ -38,6 +38,7 @@ export function useSubmitBazaar(
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Bazaar submitted for approval" },
     mutationFn: async (payload: CreateBazaarPayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
       return unwrap(submitBazaar(messId, monthId, payload));
@@ -57,6 +58,7 @@ export function useUpdateBazaar(
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Bazaar updated" },
     mutationFn: async ({
       submissionId,
       data,
@@ -82,6 +84,7 @@ export function useDeleteBazaar(
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Bazaar deleted" },
     mutationFn: async (submissionId: string) => {
       if (!messId) throw new Error("No mess ID");
       return unwrap(deleteBazaar(messId, submissionId));
@@ -101,6 +104,7 @@ export function useApproveBazaar(
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Bazaar approved" },
     mutationFn: async (submissionId: string) => {
       if (!messId) throw new Error("No mess ID");
       return unwrap(approveBazaar(messId, submissionId));
@@ -121,6 +125,7 @@ export function useRejectBazaar(
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Bazaar rejected" },
     mutationFn: async (submissionId: string) => {
       if (!messId) throw new Error("No mess ID");
       return unwrap(rejectBazaar(messId, submissionId));

@@ -9,6 +9,10 @@ import { DatePicker } from "../../components/ui/date-picker";
 import { Select } from "../../components/ui/select";
 import { Button } from "../../components/ui/button";
 import { Loader2, Plus, WalletCards } from "lucide-react";
+import {
+  QueriesErrorState,
+  failedQueries,
+} from "../../components/feedback/QueryErrorState";
 
 function formatMoney(n: number) {
   return new Intl.NumberFormat("en-US", {
@@ -19,14 +23,16 @@ function formatMoney(n: number) {
 }
 
 export default function AddDepositPage() {
-  const { data: myMess, isLoading: messLoading } = useGetMyMess();
+  const messQuery = useGetMyMess();
+  const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
   const isManager = myMess?.current_user_role === "MANAGER";
-  const { data: activeMonth, isLoading: monthLoading } =
-    useGetActiveMonth(messId);
-  const { data: members, isLoading: membersLoading } = useMembers(messId, {
+  const monthQuery = useGetActiveMonth(messId);
+  const { data: activeMonth, isLoading: monthLoading } = monthQuery;
+  const membersQuery = useMembers(messId, {
     status: "ACTIVE",
   });
+  const { data: members, isLoading: membersLoading } = membersQuery;
 
   const create = useCreateDeposit(messId, activeMonth?.id);
   const isLoading = messLoading || monthLoading || membersLoading;
@@ -98,6 +104,15 @@ export default function AddDepositPage() {
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  const loadQueries = [messQuery, monthQuery, membersQuery];
+  if (failedQueries(...loadQueries).length > 0) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <QueriesErrorState queries={loadQueries} resource="deposit details" />
       </div>
     );
   }
@@ -232,18 +247,6 @@ export default function AddDepositPage() {
           )}
 
           {error && <p className="text-sm text-destructive">{error}</p>}
-
-          {create.isError && (
-            <p className="text-sm text-destructive">
-              {create.error?.message || "Failed to save deposit."}
-            </p>
-          )}
-
-          {create.isSuccess && (
-            <p className="rounded-lg bg-green-500/10 px-4 py-3 text-sm font-medium text-green-500">
-              Deposit added successfully.
-            </p>
-          )}
 
           <Button
             type="button"

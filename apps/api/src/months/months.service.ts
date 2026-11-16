@@ -1,3 +1,4 @@
+import { ErrorCode } from '@repo/shared';
 import {
   ConflictException,
   ForbiddenException,
@@ -42,7 +43,10 @@ export class MonthsService {
     });
 
     if (!membership) {
-      throw new ForbiddenException('Only managers can create months');
+      throw new ForbiddenException({
+        message: 'Only managers can create months',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const activeMonth = await prisma.months.findFirst({
@@ -62,9 +66,10 @@ export class MonthsService {
       activeMonth &&
       now.getTime() - activeMonth.started_at.getTime() < 60_000
     ) {
-      throw new ConflictException(
-        `"${activeMonth.title}" was started less than a minute ago. Refresh the page to see it.`,
-      );
+      throw new ConflictException({
+        message: `"${activeMonth.title}" was started less than a minute ago. Refresh the page to see it.`,
+        code: ErrorCode.MONTH_ALREADY_ACTIVE,
+      });
     }
 
     if (activeMonth) {
@@ -122,7 +127,10 @@ export class MonthsService {
     });
 
     if (!month) {
-      throw new NotFoundException('Active month not found');
+      throw new NotFoundException({
+        message: 'Active month not found',
+        code: ErrorCode.NO_ACTIVE_MONTH,
+      });
     }
 
     const [activeMembers, mealEntries, expenses, deposits] = await Promise.all([
@@ -225,7 +233,10 @@ export class MonthsService {
       });
 
       if (claimed.count === 0) {
-        throw new ConflictException('This month has already been closed');
+        throw new ConflictException({
+          message: 'This month has already been closed',
+          code: ErrorCode.MONTH_ALREADY_CLOSED,
+        });
       }
 
       if (summaries.length > 0) {

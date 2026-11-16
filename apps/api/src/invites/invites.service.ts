@@ -1,3 +1,4 @@
+import { ErrorCode } from '@repo/shared';
 import {
   BadRequestException,
   ConflictException,
@@ -29,11 +30,17 @@ export class InvitesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException('You are not part of any active mess');
+      throw new ForbiddenException({
+        message: 'You are not part of any active mess',
+        code: ErrorCode.NO_ACTIVE_MESS,
+      });
     }
 
     if (membership.mess_role !== 'MANAGER') {
-      throw new ForbiddenException('Only managers can invite members');
+      throw new ForbiddenException({
+        message: 'Only managers can invite members',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     return this.inviteUser(membership.mess_id, actorId, userEmail);
@@ -113,7 +120,10 @@ export class InvitesService {
     });
 
     if (existingMembership) {
-      throw new ConflictException('You are already a member of this mess');
+      throw new ConflictException({
+        message: 'You are already a member of this mess',
+        code: ErrorCode.ALREADY_MEMBER,
+      });
     }
 
     await prisma.$transaction(async (tx) => {
@@ -207,15 +217,17 @@ export class InvitesService {
     });
 
     if (membership && membership.removed_at === null) {
-      throw new ConflictException(
-        'User is already an active member of this mess',
-      );
+      throw new ConflictException({
+        message: 'User is already an active member of this mess',
+        code: ErrorCode.ALREADY_MEMBER,
+      });
     }
 
     if (membership && membership.removed_at !== null) {
-      throw new ConflictException(
-        'User was previously removed. Ask them to request re-entry.',
-      );
+      throw new ConflictException({
+        message: 'User was previously removed. Ask them to request re-entry.',
+        code: ErrorCode.MEMBER_PREVIOUSLY_REMOVED,
+      });
     }
 
     const pending = await prisma.join_requests.findFirst({
@@ -227,7 +239,10 @@ export class InvitesService {
     });
 
     if (pending) {
-      throw new ConflictException('An invite is already pending for this user');
+      throw new ConflictException({
+        message: 'An invite is already pending for this user',
+        code: ErrorCode.INVITE_ALREADY_PENDING,
+      });
     }
   }
 }

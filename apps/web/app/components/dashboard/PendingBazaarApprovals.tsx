@@ -10,16 +10,15 @@ import {
 } from "../../hooks/use-bazaar";
 import { formatMoney } from "../../lib/format";
 import { BentoCard, CardHeading } from "./bento";
+import { QueryErrorState } from "../feedback/QueryErrorState";
 
 export function PendingBazaarApprovals() {
   const { data: myMess } = useGetMyMess();
   const messId = myMess?.id;
   const isManager = myMess?.current_user_role === "MANAGER";
   const { data: activeMonth } = useGetActiveMonth(messId);
-  const { data: history, isLoading } = useGetBazaarHistory(
-    messId,
-    activeMonth?.id,
-  );
+  const historyQuery = useGetBazaarHistory(messId, activeMonth?.id);
+  const { data: history, isLoading } = historyQuery;
   const approve = useApproveBazaar(messId, activeMonth?.id);
   const reject = useRejectBazaar(messId, activeMonth?.id);
 
@@ -45,6 +44,14 @@ export function PendingBazaarApprovals() {
         <div className="flex items-center justify-center py-6">
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
         </div>
+      ) : historyQuery.isError && !history ? (
+        <QueryErrorState
+          compact
+          error={historyQuery.error}
+          onRetry={historyQuery.refetch}
+          isRetrying={historyQuery.isFetching}
+          resource="pending bazaars"
+        />
       ) : pending.length === 0 ? (
         <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-foreground-muted/15 py-6">
           <p className="text-sm text-foreground-muted">

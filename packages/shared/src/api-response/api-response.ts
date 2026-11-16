@@ -1,3 +1,5 @@
+import type { ErrorCode } from "./error-codes";
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
@@ -7,8 +9,12 @@ export interface ApiResponse<T = unknown> {
 export interface ApiErrorResponse extends ApiResponse<never> {
   success: false;
   statusCode: number;
+  /** Stable machine-readable code; see `ErrorCode`. */
+  code: ErrorCode;
   error?: string;
   path?: string;
+  /** Correlates this response with server logs (also in `X-Request-Id`). */
+  requestId?: string;
   details?: unknown;
 }
 

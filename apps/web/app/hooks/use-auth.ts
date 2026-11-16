@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../store";
+import { unwrap } from "../lib/action-result";
 
 // Server Action imports
 import {
@@ -28,16 +29,12 @@ export function useSignin() {
   const setSession = useSessionStore((s) => s.setSession);
 
   return useMutation({
-    mutationFn: async (payload: SigninPayload) => {
-      const result = await serverSignin(payload);
-      return result;
-    },
+    mutationFn: (payload: SigninPayload) => unwrap(serverSignin(payload)),
+    // The form shows the failure inline next to the fields.
+    meta: { errorToast: false },
     onSuccess: (data) => {
       setSession(data.user);
       router.push("/dashboard");
-    },
-    onError: (error) => {
-      console.error("Signin error:", error);
     },
   });
 }
@@ -47,16 +44,12 @@ export function useSignup() {
   const setSession = useSessionStore((s) => s.setSession);
 
   return useMutation({
-    mutationFn: async (payload: SignupPayload) => {
-      const result = await serverSignup(payload);
-      return result;
-    },
+    mutationFn: (payload: SignupPayload) => unwrap(serverSignup(payload)),
+    // The form shows the failure inline next to the fields.
+    meta: { errorToast: false },
     onSuccess: (data) => {
       setSession(data.user);
       router.push("/dashboard");
-    },
-    onError: (error) => {
-      console.error("Signup error:", error);
     },
   });
 }
@@ -70,6 +63,8 @@ export function useLogout() {
     mutationFn: async () => {
       await serverLogout();
     },
+    // Logout always ends the local session, even if the API call failed.
+    meta: { errorToast: false },
     onSuccess: () => {
       queryClient.clear();
       clearSession();

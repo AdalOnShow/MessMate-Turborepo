@@ -1,3 +1,4 @@
+import { ErrorCode } from '@repo/shared';
 import {
   BadRequestException,
   Injectable,
@@ -126,9 +127,11 @@ export class AuthService {
       this.logger.warn(
         `🔗 Google OAuth: rejected auto-linking for existing user: ${existingUser.id}`,
       );
-      throw new UnauthorizedException(
-        'An account with this email already exists. Please sign in with your password or link your Google account from settings after signing in.',
-      );
+      throw new UnauthorizedException({
+        message:
+          'An account with this email already exists. Please sign in with your password or link your Google account from settings after signing in.',
+        code: ErrorCode.EMAIL_IN_USE,
+      });
     }
 
     this.logger.log(`📝 Google OAuth: creating new user for ${profile.email}`);
@@ -218,7 +221,10 @@ export class AuthService {
     const dbUser = await prisma.users.findUnique({ where: { id: user.id } });
     if (!dbUser) {
       this.logger.error(`❌ Login failed - user not in DB: ${user.id}`);
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException({
+        message: 'Invalid credentials',
+        code: ErrorCode.INVALID_CREDENTIALS,
+      });
     }
 
     const accessToken = await this.createAccessToken(dbUser);

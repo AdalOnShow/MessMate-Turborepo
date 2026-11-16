@@ -1,3 +1,4 @@
+import { ErrorCode } from '@repo/shared';
 import {
   BadRequestException,
   ForbiddenException,
@@ -107,7 +108,10 @@ export class ExpensesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException('Only managers can manage expenses');
+      throw new ForbiddenException({
+        message: 'Only managers can manage expenses',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
   }
 
@@ -122,7 +126,10 @@ export class ExpensesService {
     });
 
     if (!month) {
-      throw new NotFoundException('Active month not found');
+      throw new NotFoundException({
+        message: 'Active month not found',
+        code: ErrorCode.NO_ACTIVE_MONTH,
+      });
     }
 
     return month;
@@ -235,9 +242,10 @@ export class ExpensesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'You must be an active member to view expenses',
-      );
+      throw new ForbiddenException({
+        message: 'You must be an active member to view expenses',
+        code: ErrorCode.NOT_MESS_MEMBER,
+      });
     }
 
     await this.findActiveMonth(messId, monthId);
@@ -293,9 +301,10 @@ export class ExpensesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'You must be an active member to view expense reports',
-      );
+      throw new ForbiddenException({
+        message: 'You must be an active member to view expense reports',
+        code: ErrorCode.NOT_MESS_MEMBER,
+      });
     }
 
     await this.findActiveMonth(messId, monthId);
@@ -411,9 +420,10 @@ export class ExpensesService {
     }
 
     if (expense.type === 'BAZAAR') {
-      throw new ForbiddenException(
-        'Bazaar expenses are locked and cannot be edited',
-      );
+      throw new ForbiddenException({
+        message: 'Bazaar expenses are locked and cannot be edited',
+        code: ErrorCode.EXPENSE_LOCKED,
+      });
     }
 
     const type = data.type ?? expense.type;
@@ -507,9 +517,10 @@ export class ExpensesService {
     }
 
     if (expense.type === 'BAZAAR') {
-      throw new ForbiddenException(
-        'Bazaar expenses are locked and cannot be deleted',
-      );
+      throw new ForbiddenException({
+        message: 'Bazaar expenses are locked and cannot be deleted',
+        code: ErrorCode.EXPENSE_LOCKED,
+      });
     }
 
     await prisma.$transaction(async (tx) => {

@@ -16,6 +16,7 @@ import {
   Scale,
   Sparkles,
 } from "lucide-react";
+import { QueriesErrorState, failedQueries } from "../feedback/QueryErrorState";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetActiveMonth, useCreateMonth } from "../../hooks/use-months";
 import { useMessDashboard } from "../../hooks/use-members";
@@ -78,35 +79,32 @@ export function MonthOverviewBento() {
   const messId = myMess?.id;
   const isManager = myMess?.current_user_role === "MANAGER";
 
-  const { data: activeMonth, isLoading } = useGetActiveMonth(messId);
-  const { data: dashboard } = useMessDashboard(messId);
+  const monthQuery = useGetActiveMonth(messId);
+  const dashboardQuery = useMessDashboard(messId);
+  const { data: activeMonth, isLoading } = monthQuery;
+  const { data: dashboard } = dashboardQuery;
+  // If we can't tell whether a month is active, never offer "Start Month":
+  // starting one closes the current month for good.
+  const loadFailed = failedQueries(monthQuery, dashboardQuery).length > 0;
   const createMonth = useCreateMonth(messId);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [notice, setNotice] = useState<string | null>(null);
   const creating = createMonth.isPending;
 
   const generateTitle = () =>
     new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
 
   const startMonth = (title: string) => {
-    setNotice(null);
     createMonth.mutate(
       { title: title.trim() || generateTitle() },
-      {
-        onSuccess: (month) => {
-          setConfirmOpen(false);
-          setNotice(`"${month.title}" is now the active month.`);
-        },
-      },
+      { onSuccess: () => setConfirmOpen(false) },
     );
   };
 
   // Starting a month while one is active closes it for good, so ask first.
   const openConfirm = () => {
     createMonth.reset();
-    setNotice(null);
     setNewTitle(generateTitle());
     setConfirmOpen(true);
   };
@@ -144,7 +142,13 @@ export function MonthOverviewBento() {
         </div>
 
         <div className="mt-5 flex-1">
-          {isLoading ? (
+          {loadFailed ? (
+            <QueriesErrorState
+              compact
+              queries={[monthQuery, dashboardQuery]}
+              resource="this month"
+            />
+          ) : isLoading ? (
             <div className="space-y-2">
               <div className="h-9 w-2/3 animate-pulse rounded-lg bg-foreground-muted/10" />
               <div className="h-4 w-1/3 animate-pulse rounded bg-foreground-muted/10" />
@@ -243,7 +247,7 @@ export function MonthOverviewBento() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2.5 border-t border-foreground-muted/10 pt-5">
-          {isManager ? (
+          {isManager && !loadFailed && !isLoading ? (
             activeMonth ? (
               <>
                 <button
@@ -280,13 +284,6 @@ export function MonthOverviewBento() {
             )
           ) : null}
         </div>
-
-        {notice && <p className="mt-3 text-sm text-success">{notice}</p>}
-        {createMonth.isError && !confirmOpen && (
-          <p className="mt-3 text-sm text-destructive">
-            {createMonth.error?.message || "Failed to start the month."}
-          </p>
-        )}
       </div>
 
       {confirmOpen && activeMonth && (
@@ -320,12 +317,6 @@ export function MonthOverviewBento() {
               disabled={creating}
               className="w-full rounded-lg border border-foreground-muted/20 bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
             />
-
-            {createMonth.isError && (
-              <p className="mt-3 text-sm text-destructive">
-                {createMonth.error?.message || "Failed to start the month."}
-              </p>
-            )}
 
             <div className="mt-5 flex justify-end gap-3">
               <button

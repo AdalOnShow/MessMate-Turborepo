@@ -1,3 +1,4 @@
+import { ErrorCode } from '@repo/shared';
 import {
   BadRequestException,
   ForbiddenException,
@@ -67,7 +68,10 @@ export class BazaarService {
     });
 
     if (!month) {
-      throw new NotFoundException('Active month not found');
+      throw new NotFoundException({
+        message: 'Active month not found',
+        code: ErrorCode.NO_ACTIVE_MONTH,
+      });
     }
 
     return month;
@@ -93,9 +97,10 @@ export class BazaarService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'You must be an active member to submit a bazaar',
-      );
+      throw new ForbiddenException({
+        message: 'You must be an active member to submit a bazaar',
+        code: ErrorCode.NOT_MESS_MEMBER,
+      });
     }
 
     const month = await this.findActiveMonth(messId, monthId);
@@ -170,9 +175,10 @@ export class BazaarService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'You must be an active member to edit a bazaar',
-      );
+      throw new ForbiddenException({
+        message: 'You must be an active member to edit a bazaar',
+        code: ErrorCode.NOT_MESS_MEMBER,
+      });
     }
 
     const isSubmitter = submission.submitted_by === actorId;
@@ -256,9 +262,10 @@ export class BazaarService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'You must be an active member to delete a bazaar',
-      );
+      throw new ForbiddenException({
+        message: 'You must be an active member to delete a bazaar',
+        code: ErrorCode.NOT_MESS_MEMBER,
+      });
     }
 
     const isSubmitter = submission.submitted_by === actorId;
@@ -295,9 +302,10 @@ export class BazaarService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'Only managers can approve bazaar submissions',
-      );
+      throw new ForbiddenException({
+        message: 'Only managers can approve bazaar submissions',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const submission = await prisma.bazaar_submissions.findFirst({
@@ -372,9 +380,10 @@ export class BazaarService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'Only managers can reject bazaar submissions',
-      );
+      throw new ForbiddenException({
+        message: 'Only managers can reject bazaar submissions',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const submission = await prisma.bazaar_submissions.findFirst({

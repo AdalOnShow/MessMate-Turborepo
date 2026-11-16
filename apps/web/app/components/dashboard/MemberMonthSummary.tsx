@@ -16,6 +16,7 @@ import { useGetMyMess } from "../../hooks/use-messes";
 import { useMemberDashboard } from "../../hooks/use-members";
 import { formatMoney } from "../../lib/format";
 import { BentoCard, CardActionLink, CardHeading } from "./bento";
+import { QueryErrorState } from "../feedback/QueryErrorState";
 
 type Tone = "success" | "destructive" | "neutral";
 
@@ -57,7 +58,8 @@ function FinanceRow({
 export function MemberMonthSummary() {
   const { data: myMess } = useGetMyMess();
   const messId = myMess?.id;
-  const { data: member, isLoading } = useMemberDashboard(messId);
+  const memberQuery = useMemberDashboard(messId);
+  const { data: member, isLoading } = memberQuery;
 
   const hasMonth = !!member?.month_id;
   const balance = member?.current_balance ?? 0;
@@ -87,6 +89,14 @@ export function MemberMonthSummary() {
             <div className="h-16 animate-pulse rounded-xl bg-foreground-muted/10" />
           </div>
         </div>
+      ) : memberQuery.isError && !member ? (
+        <QueryErrorState
+          compact
+          error={memberQuery.error}
+          onRetry={memberQuery.refetch}
+          isRetrying={memberQuery.isFetching}
+          resource="your summary"
+        />
       ) : hasMonth ? (
         <>
           <div className="flex items-center gap-2">

@@ -2,6 +2,8 @@
 
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
+import type { ActionResult } from "../lib/action-result";
+import { apiFetch, readFailure } from "../lib/api-client";
 
 // Server-side API call to NestJS
 async function callNestJSAPI<T>(
@@ -23,28 +25,6 @@ async function callNestJSAPI<T>(
   }
 
   return response.json();
-}
-
-async function callNestJSAPIWithResponse<T>(
-  endpoint: string,
-  options?: RequestInit,
-): Promise<{ data: T; headers: Headers }> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
-  const response = await fetch(`${baseUrl}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status} ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return { data, headers: response.headers };
 }
 
 function extractRefreshCookie(headers: Headers): string | null {
@@ -111,48 +91,74 @@ async function callAuthenticatedNestJSAPI<T>(
   });
 }
 
-export async function signup(payload: SignupPayload): Promise<{
-  success: true;
-  accessToken: string;
-  user: ProfileUser;
-}> {
+type AuthSuccess = { success: true; accessToken: string; user: ProfileUser };
+
+/** POST to an auth endpoint; returns the token and response headers. */
+async function postAuth(
+  endpoint: string,
+  payload: unknown,
+): Promise<ActionResult<{ accessToken: string; headers: Headers }>> {
+  const res = await apiFetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!(res instanceof Response)) return res;
+  if (!res.ok) return readFailure(res);
+
   try {
-    const { data, headers } = await callNestJSAPIWithResponse<{
-      success: boolean;
-      message: string;
-      data: { accessToken: string };
-    }>("/auth/signup", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
+    const json = (await res.json()) as { data?: { accessToken?: string } };
+    const accessToken = json.data?.accessToken;
+    if (!accessToken) throw new Error("missing accessToken");
+    return { ok: true, data: { accessToken, headers: res.headers } };
+  } catch {
+    return {
+      ok: false,
+      status: 502,
+      message: "The server returned an unreadable response.",
+    };
+  }
+}
 
-    const accessToken = data.data.accessToken;
-    const decoded = decodeJwt(accessToken);
-    if (!decoded) {
-      throw new Error("Failed to decode token");
-    }
+const BAD_TOKEN: ActionResult<never> = {
+  ok: false,
+  status: 502,
+  message: "Sign in failed. Please try again.",
+};
 
-    // Set cookies
-    const cookieStore = await cookies();
-    cookieStore.set("access_token", accessToken, {
+export async function signup(
+  payload: SignupPayload,
+): Promise<ActionResult<AuthSuccess>> {
+  const result = await postAuth("/auth/signup", payload);
+  if (!result.ok) return result;
+  const { accessToken, headers } = result.data;
+
+  const decoded = decodeJwt(accessToken);
+  if (!decoded) return BAD_TOKEN;
+
+  // Set cookies
+  const cookieStore = await cookies();
+  cookieStore.set("access_token", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 604800, // 7 days
+    path: "/",
+  });
+
+  const refreshToken = extractRefreshCookie(headers);
+  if (refreshToken) {
+    cookieStore.set("refresh_token", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 604800, // 7 days
       path: "/",
     });
+  }
 
-    const refreshToken = extractRefreshCookie(headers);
-    if (refreshToken) {
-      cookieStore.set("refresh_token", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/",
-      });
-    }
-
-    return {
+  return {
+    ok: true,
+    data: {
       success: true,
       accessToken,
       user: {
@@ -164,69 +170,51 @@ export async function signup(payload: SignupPayload): Promise<{
         manager_created: false,
         email_verified: false,
       },
-    };
-  } catch (error) {
-    console.error("Signup error:", error);
-    throw error;
-  }
+    },
+  };
 }
 
-export async function signin(payload: SigninPayload): Promise<{
-  success: true;
-  accessToken: string;
-  user: ProfileUser;
-}> {
-  try {
-    const { data, headers } = await callNestJSAPIWithResponse<{
-      success: boolean;
-      message: string;
-      data: { accessToken: string };
-    }>("/auth/signin", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
+export async function signin(
+  payload: SigninPayload,
+): Promise<ActionResult<AuthSuccess>> {
+  const result = await postAuth("/auth/signin", payload);
+  if (!result.ok) return result;
+  const { accessToken, headers } = result.data;
 
-    const accessToken = data.data.accessToken;
-    const decoded = decodeJwt(accessToken);
-    if (!decoded) {
-      throw new Error("Failed to decode token");
-    }
+  const decoded = decodeJwt(accessToken);
+  if (!decoded) return BAD_TOKEN;
 
-    // Set cookies
-    const cookieStore = await cookies();
-    cookieStore.set("access_token", accessToken, {
+  // Set cookies
+  const cookieStore = await cookies();
+  cookieStore.set("access_token", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 604800, // 7 days
+    path: "/",
+  });
+
+  const refreshToken = extractRefreshCookie(headers);
+  if (refreshToken) {
+    cookieStore.set("refresh_token", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 604800, // 7 days
       path: "/",
     });
-
-    const refreshToken = extractRefreshCookie(headers);
-    if (refreshToken) {
-      cookieStore.set("refresh_token", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/",
-      });
-    }
-
-    const user = await getProfileWithToken(accessToken, {
-      id: decoded.sub,
-      email: decoded.email,
-      name: "",
-      phone: null,
-      avatar: null,
-      manager_created: false,
-      email_verified: false,
-    });
-
-    return { success: true, accessToken, user };
-  } catch (error) {
-    console.error("Signin error:", error);
-    throw error;
   }
+
+  const user = await getProfileWithToken(accessToken, {
+    id: decoded.sub,
+    email: decoded.email,
+    name: "",
+    phone: null,
+    avatar: null,
+    manager_created: false,
+    email_verified: false,
+  });
+
+  return { ok: true, data: { success: true, accessToken, user } };
 }
 
 export async function logout(): Promise<{ success: true }> {

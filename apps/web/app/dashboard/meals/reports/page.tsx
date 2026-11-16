@@ -26,6 +26,11 @@ import {
   User,
   X,
 } from "lucide-react";
+import {
+  QueriesErrorState,
+  QueryErrorState,
+  failedQueries,
+} from "../../../components/feedback/QueryErrorState";
 
 type Tab = "daily" | "member" | "monthly";
 
@@ -78,19 +83,23 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
   const { data: myMess } = useGetMyMess();
   const isManager = myMess?.current_user_role === "MANAGER";
 
-  const { data: report, isLoading } = useGetDailyMealReport(
-    messId,
-    monthId,
-    date,
-  );
-  const { data: mealTypes } = useGetMealTypes(messId);
+  const reportQuery = useGetDailyMealReport(messId, monthId, date);
+  const { data: report, isLoading } = reportQuery;
+  const typesQuery = useGetMealTypes(messId);
+  const { data: mealTypes } = typesQuery;
   const activeMealTypes = useMemo(
     () => (mealTypes ?? []).filter((mt) => mt.is_active),
     [mealTypes],
   );
 
-  const { data: entries } = useGetMealEntries(messId, monthId, date, date);
-  const { data: activeMembers } = useMembers(messId, { status: "ACTIVE" });
+  const entriesQuery = useGetMealEntries(messId, monthId, date, date);
+  const { data: entries } = entriesQuery;
+  const membersQuery = useMembers(messId, { status: "ACTIVE" });
+  const { data: activeMembers } = membersQuery;
+  // The edit grid is seeded from these; editing over a failed load would
+  // save zeros over real entries.
+  const dailyQueries = [reportQuery, typesQuery, entriesQuery, membersQuery];
+  const dailyFailed = failedQueries(...dailyQueries).length > 0;
   const saveMutation = useBulkSaveMealEntries(messId, monthId);
 
   const entryMap = useMemo(() => {
@@ -220,6 +229,8 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
         </div>
+      ) : dailyFailed ? (
+        <QueriesErrorState queries={dailyQueries} resource="the daily report" />
       ) : isEditing ? (
         <EditDailyGrid
           members={activeMembers ?? []}
@@ -455,11 +466,12 @@ function MemberReport({
     return map;
   }, [mealTypes]);
 
-  const { data: report, isLoading } = useGetMemberMealReport(
+  const reportQuery = useGetMemberMealReport(
     messId,
     monthId,
     selectedMemberId || undefined,
   );
+  const { data: report, isLoading } = reportQuery;
 
   return (
     <div className="space-y-4">
@@ -490,6 +502,13 @@ function MemberReport({
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
         </div>
+      ) : reportQuery.isError && !report ? (
+        <QueryErrorState
+          error={reportQuery.error}
+          onRetry={reportQuery.refetch}
+          isRetrying={reportQuery.isFetching}
+          resource="this member's report"
+        />
       ) : !report || report.entries.length === 0 ? (
         <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center">
           <p className="text-sm text-foreground-muted">
@@ -606,7 +625,8 @@ function MonthlySummary({
   messId: string;
   monthId: string;
 }) {
-  const { data: summary, isLoading } = useGetMonthMealSummary(messId, monthId);
+  const summaryQuery = useGetMonthMealSummary(messId, monthId);
+  const { data: summary, isLoading } = summaryQuery;
   const { data: mealTypes } = useGetMealTypes(messId);
 
   const mealTypeMap = useMemo(() => {
@@ -622,6 +642,17 @@ function MonthlySummary({
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-5 w-5 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  if (summaryQuery.isError && !summary) {
+    return (
+      <QueryErrorState
+        error={summaryQuery.error}
+        onRetry={summaryQuery.refetch}
+        isRetrying={summaryQuery.isFetching}
+        resource="the monthly summary"
+      />
     );
   }
 
@@ -737,10 +768,11 @@ function MonthlySummary({
 }
 
 export default function MealReportsPage() {
-  const { data: myMess, isLoading: messLoading } = useGetMyMess();
+  const messQuery = useGetMyMess();
+  const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
-  const { data: activeMonth, isLoading: monthLoading } =
-    useGetActiveMonth(messId);
+  const monthQuery = useGetActiveMonth(messId);
+  const { data: activeMonth, isLoading: monthLoading } = monthQuery;
   const monthId = activeMonth?.id;
 
   const [activeTab, setActiveTab] = useState<Tab>("monthly");
@@ -758,6 +790,15 @@ export default function MealReportsPage() {
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  if (failedQueries(messQuery, monthQuery).length > 0) {
+    return (
+      <QueriesErrorState
+        queries={[messQuery, monthQuery]}
+        resource="meal reports"
+      />
     );
   }
 

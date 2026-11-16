@@ -22,6 +22,11 @@ import { useExpenseSummary } from "../../hooks/use-expenses";
 import { useDepositSummary } from "../../hooks/use-deposits";
 import { useMemberCalculations } from "../../hooks/use-members";
 import { formatMoney } from "../../lib/format";
+import {
+  QueriesErrorState,
+  QueryErrorState,
+  failedQueries,
+} from "../../components/feedback/QueryErrorState";
 
 type Tab = "month" | "meals" | "expenses" | "deposits" | "members";
 
@@ -144,9 +149,20 @@ function MonthSummaryView({
   messId: string;
   monthId: string;
 }) {
-  const { data, isLoading } = useGetMonthSummary(messId, monthId);
+  const query = useGetMonthSummary(messId, monthId);
+  const { data, isLoading } = query;
 
   if (isLoading) return <LoadingBlock />;
+  if (query.isError && !data) {
+    return (
+      <QueryErrorState
+        error={query.error}
+        onRetry={query.refetch}
+        isRetrying={query.isFetching}
+        resource="this report"
+      />
+    );
+  }
 
   if (!data || data.member_summaries.length === 0) {
     return (
@@ -217,9 +233,20 @@ function MealsSummaryView({
   messId: string;
   monthId: string;
 }) {
-  const { data, isLoading } = useGetMonthMealSummary(messId, monthId);
+  const query = useGetMonthMealSummary(messId, monthId);
+  const { data, isLoading } = query;
 
   if (isLoading) return <LoadingBlock />;
+  if (query.isError && !data) {
+    return (
+      <QueryErrorState
+        error={query.error}
+        onRetry={query.refetch}
+        isRetrying={query.isFetching}
+        resource="this report"
+      />
+    );
+  }
 
   if (!data || data.member_summaries.length === 0) {
     return (
@@ -274,9 +301,20 @@ function ExpensesSummaryView({
   messId: string;
   monthId: string;
 }) {
-  const { data, isLoading } = useExpenseSummary(messId, monthId);
+  const query = useExpenseSummary(messId, monthId);
+  const { data, isLoading } = query;
 
   if (isLoading) return <LoadingBlock />;
+  if (query.isError && !data) {
+    return (
+      <QueryErrorState
+        error={query.error}
+        onRetry={query.refetch}
+        isRetrying={query.isFetching}
+        resource="this report"
+      />
+    );
+  }
 
   if (!data || data.count === 0) {
     return <EmptyBlock message="No expenses recorded for this month yet." />;
@@ -338,9 +376,20 @@ function DepositsSummaryView({
   messId: string;
   monthId: string;
 }) {
-  const { data, isLoading } = useDepositSummary(messId, monthId);
+  const query = useDepositSummary(messId, monthId);
+  const { data, isLoading } = query;
 
   if (isLoading) return <LoadingBlock />;
+  if (query.isError && !data) {
+    return (
+      <QueryErrorState
+        error={query.error}
+        onRetry={query.refetch}
+        isRetrying={query.isFetching}
+        resource="this report"
+      />
+    );
+  }
 
   if (!data || data.count === 0) {
     return <EmptyBlock message="No deposits recorded for this month yet." />;
@@ -398,13 +447,26 @@ function MembersSummaryView({
   month: MonthInfo;
 }) {
   const isActive = month.month_status === "ACTIVE";
-  const { data: calc, isLoading: calcLoading } = useMemberCalculations(messId);
-  const { data: summary, isLoading: summaryLoading } = useGetMonthSummary(
+  const calcQuery = useMemberCalculations(messId);
+  const summaryQuery = useGetMonthSummary(
     messId,
     isActive ? undefined : month.id,
   );
+  const { data: calc, isLoading: calcLoading } = calcQuery;
+  const { data: summary, isLoading: summaryLoading } = summaryQuery;
 
   if (isActive ? calcLoading : summaryLoading) return <LoadingBlock />;
+  const relevantQuery = isActive ? calcQuery : summaryQuery;
+  if (relevantQuery.isError && relevantQuery.data === undefined) {
+    return (
+      <QueryErrorState
+        error={relevantQuery.error}
+        onRetry={relevantQuery.refetch}
+        isRetrying={relevantQuery.isFetching}
+        resource="member report"
+      />
+    );
+  }
 
   const rows: MemberRow[] = isActive
     ? (calc?.items ?? [])
@@ -495,10 +557,12 @@ function MembersSummaryView({
 }
 
 export default function ReportsPage() {
-  const { data: myMess, isLoading: messLoading } = useGetMyMess();
+  const messQuery = useGetMyMess();
+  const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
   const { data: activeMonth } = useGetActiveMonth(messId);
-  const { data: months, isLoading: monthsLoading } = useGetMonthHistory(messId);
+  const monthsQuery = useGetMonthHistory(messId);
+  const { data: months, isLoading: monthsLoading } = monthsQuery;
 
   const [selectedMonthId, setSelectedMonthId] = useState<string | undefined>(
     undefined,
@@ -525,6 +589,18 @@ export default function ReportsPage() {
   ];
 
   if (messLoading || monthsLoading) return <LoadingBlock />;
+
+  if (failedQueries(messQuery, monthsQuery).length > 0) {
+    return (
+      <>
+        <PageHeader />
+        <QueriesErrorState
+          queries={[messQuery, monthsQuery]}
+          resource="reports"
+        />
+      </>
+    );
+  }
 
   if (!months || months.length === 0) {
     return (

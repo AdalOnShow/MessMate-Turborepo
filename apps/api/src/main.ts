@@ -1,10 +1,11 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 import { AppModule } from './app.module';
 import { ApiExceptionFilter } from './common/filters/api-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { REQUEST_ID_HEADER } from './common/request-id/request-id.middleware';
 
 const expressApp = express();
 let isInitialized = false;
@@ -35,8 +36,23 @@ const corsOptions = {
   origin: resolveCorsOrigin(),
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', REQUEST_ID_HEADER],
+  exposedHeaders: [REQUEST_ID_HEADER],
 };
+
+/** Shared by the local server and the Vercel handler; keep them identical. */
+function configureApp(app: INestApplication) {
+  app.enableCors(corsOptions);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
+  app.useGlobalFilters(new ApiExceptionFilter());
+}
 
 async function createServer() {
   if (isInitialized) return expressApp;
@@ -47,18 +63,7 @@ async function createServer() {
     { logger: false },
   );
 
-  app.enableCors(corsOptions);
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
-
-  app.useGlobalFilters(new ApiExceptionFilter());
+  configureApp(app);
   await app.init();
   isInitialized = true;
   return expressApp;
@@ -74,22 +79,11 @@ if (!isVercel) {
     });
 
     app.enableShutdownHooks();
-    app.enableCors(corsOptions);
+    configureApp(app);
 
     if (isDev) {
       app.useGlobalInterceptors(new LoggingInterceptor());
     }
-
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-        transformOptions: { enableImplicitConversion: true },
-      }),
-    );
-
-    app.useGlobalFilters(new ApiExceptionFilter());
     const port = process.env.PORT ?? 4000;
     await app.listen(port);
 

@@ -1,3 +1,4 @@
+import { ErrorCode } from '@repo/shared';
 import {
   BadRequestException,
   ForbiddenException,
@@ -84,7 +85,10 @@ export class DepositsService {
     });
 
     if (!membership) {
-      throw new ForbiddenException('Only managers can manage deposits');
+      throw new ForbiddenException({
+        message: 'Only managers can manage deposits',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
   }
 
@@ -99,7 +103,10 @@ export class DepositsService {
     });
 
     if (!month) {
-      throw new NotFoundException('Active month not found');
+      throw new NotFoundException({
+        message: 'Active month not found',
+        code: ErrorCode.NO_ACTIVE_MONTH,
+      });
     }
 
     return month;
@@ -182,9 +189,10 @@ export class DepositsService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'You must be an active member to view deposits',
-      );
+      throw new ForbiddenException({
+        message: 'You must be an active member to view deposits',
+        code: ErrorCode.NOT_MESS_MEMBER,
+      });
     }
 
     await this.findActiveMonth(messId, monthId);
@@ -222,9 +230,10 @@ export class DepositsService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'You must be an active member to view deposit reports',
-      );
+      throw new ForbiddenException({
+        message: 'You must be an active member to view deposit reports',
+        code: ErrorCode.NOT_MESS_MEMBER,
+      });
     }
 
     await this.findActiveMonth(messId, monthId);

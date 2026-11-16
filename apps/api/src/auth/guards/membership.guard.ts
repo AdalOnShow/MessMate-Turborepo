@@ -1,3 +1,4 @@
+import { ErrorCode } from '@repo/shared';
 import {
   CanActivate,
   ExecutionContext,
@@ -37,7 +38,10 @@ export class MembershipGuard implements CanActivate {
     });
 
     if (!membership) {
-      throw new ForbiddenException('You are not a member of this mess');
+      throw new ForbiddenException({
+        message: 'You are not a member of this mess',
+        code: ErrorCode.NOT_MESS_MEMBER,
+      });
     }
 
     return true;

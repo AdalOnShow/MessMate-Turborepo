@@ -31,6 +31,7 @@ export function useUpdateProfile() {
   const setSession = useSessionStore((state) => state.setSession);
 
   return useMutation({
+    meta: { successMessage: "Profile updated" },
     mutationFn: (data: UpdateProfilePayload) => unwrap(updateProfile(data)),
     onSuccess: (profile) => {
       setSession(profile);
@@ -41,6 +42,7 @@ export function useUpdateProfile() {
 
 export function useChangePassword() {
   return useMutation({
+    meta: { successMessage: "Password changed" },
     mutationFn: ({
       currentPassword,
       newPassword,
@@ -56,6 +58,7 @@ export function useUploadAvatar() {
   const setSession = useSessionStore((state) => state.setSession);
 
   return useMutation({
+    meta: { successMessage: "Profile photo updated" },
     mutationFn: (file: File) => {
       const formData = new FormData();
       formData.append("avatar", file);
@@ -73,6 +76,7 @@ export function useDeleteAvatar() {
   const setSession = useSessionStore((state) => state.setSession);
 
   return useMutation({
+    meta: { successMessage: "Profile photo removed" },
     mutationFn: () => unwrap(deleteAvatar()),
     onSuccess: (profile) => {
       setSession(profile);

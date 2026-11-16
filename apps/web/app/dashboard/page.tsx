@@ -15,6 +15,7 @@ import { QuickActions } from "../components/dashboard/QuickActions";
 import { PendingBazaarApprovals } from "../components/dashboard/PendingBazaarApprovals";
 import { MemberMonthSummary } from "../components/dashboard/MemberMonthSummary";
 import { MemberQuickLinks } from "../components/dashboard/MemberQuickLinks";
+import { QueryErrorState } from "../components/feedback/QueryErrorState";
 
 function InviteBanner() {
   const { data: invites } = usePendingInvites();
@@ -67,7 +68,8 @@ function InviteBanner() {
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useSessionStore();
-  const { data: myMess } = useGetMyMess(isAuthenticated);
+  const messQuery = useGetMyMess(isAuthenticated);
+  const { data: myMess } = messQuery;
 
   const isManager = myMess?.current_user_role === "MANAGER";
 
@@ -84,7 +86,20 @@ export default function DashboardPage() {
 
       <InviteBanner />
 
-      {myMess ? (
+      {messQuery.isPending ? (
+        <div className="grid animate-pulse grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="h-80 rounded-2xl bg-surface md:col-span-2 lg:row-span-2" />
+          <div className="h-80 rounded-2xl bg-surface lg:row-span-2" />
+          <div className="h-40 rounded-2xl bg-surface md:col-span-2 lg:col-span-3" />
+        </div>
+      ) : messQuery.isError && !myMess ? (
+        <QueryErrorState
+          error={messQuery.error}
+          onRetry={messQuery.refetch}
+          isRetrying={messQuery.isFetching}
+          resource="your mess"
+        />
+      ) : myMess ? (
         isManager ? (
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             <MonthOverviewBento />
