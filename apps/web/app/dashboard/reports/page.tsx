@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
@@ -84,6 +85,7 @@ function StatCard({
 }
 
 function BalanceBadge({ value }: { value: number }) {
+  const t = useTranslations("pages.reports");
   const color =
     value > 0
       ? "text-success"
@@ -149,6 +151,7 @@ function MonthSummaryView({
   messId: string;
   monthId: string;
 }) {
+  const t = useTranslations("pages.reports");
   const query = useGetMonthSummary(messId, monthId);
   const { data, isLoading } = query;
 
@@ -166,25 +169,25 @@ function MonthSummaryView({
 
   if (!data || data.member_summaries.length === 0) {
     return (
-      <EmptyBlock message="No summary data available for this month yet. Close the month from the dashboard to generate member summaries." />
+      <EmptyBlock message={t("noSummaryDataAvailable")} />
     );
   }
 
   return (
     <div className="space-y-4">
-      <StatCard label="Members" value={String(data.member_summaries.length)} />
+      <StatCard label={t("members")} value={String(data.member_summaries.length)} />
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <ThLeft label="Member" />
-              <Th label="Meals" />
-              <Th label="Meal Cost" />
-              <Th label="Shared" />
-              <Th label="Individual" />
-              <Th label="Bill" />
-              <Th label="Deposit" />
-              <Th label="Balance" />
+              <ThLeft label={t("member")} />
+              <Th label={t("meals")} />
+              <Th label={t("mealCost")} />
+              <Th label={t("shared")} />
+              <Th label={t("individual")} />
+              <Th label={t("bill")} />
+              <Th label={t("deposit")} />
+              <Th label={t("balance")} />
             </tr>
           </thead>
           <tbody>
@@ -230,6 +233,7 @@ function MealsSummaryView({
   messId: string;
   monthId: string;
 }) {
+  const t = useTranslations("pages.reports");
   const query = useGetMonthMealSummary(messId, monthId);
   const { data, isLoading } = query;
 
@@ -247,24 +251,24 @@ function MealsSummaryView({
 
   if (!data || data.member_summaries.length === 0) {
     return (
-      <EmptyBlock message="No meal entries recorded for this month yet." />
+      <EmptyBlock message={t("noMealEntriesRecorded")} />
     );
   }
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3">
-        <StatCard label="Total Meals" value={String(data.total_meals)} />
-        <StatCard label="Active Days" value={String(data.active_days)} />
-        <StatCard label="Entries" value={String(data.total_entries)} />
+        <StatCard label={t("totalMeals")} value={String(data.total_meals)} />
+        <StatCard label={t("activeDays")} value={String(data.active_days)} />
+        <StatCard label={t("entries")} value={String(data.total_entries)} />
       </div>
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <ThLeft label="Member" />
-              <Th label="Meals" />
-              <Th label="Entries" />
+              <ThLeft label={t("member")} />
+              <Th label={t("meals")} />
+              <Th label={t("entries")} />
             </tr>
           </thead>
           <tbody>
@@ -298,6 +302,7 @@ function ExpensesSummaryView({
   messId: string;
   monthId: string;
 }) {
+  const t = useTranslations("pages.reports");
   const query = useExpenseSummary(messId, monthId);
   const { data, isLoading } = query;
 
@@ -314,29 +319,29 @@ function ExpensesSummaryView({
   }
 
   if (!data || data.count === 0) {
-    return <EmptyBlock message="No expenses recorded for this month yet." />;
+    return <EmptyBlock message={t("noExpensesRecordedMonth")} />;
   }
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <StatCard label="Total" value={formatMoney(data.total)} highlight />
-        <StatCard label="Shared" value={formatMoney(data.shared_total)} />
+        <StatCard label={t("total")} value={formatMoney(data.total)} highlight />
+        <StatCard label={t("shared")} value={formatMoney(data.shared_total)} />
         <StatCard
-          label="Individual"
+          label={t("individual")}
           value={formatMoney(data.individual_total)}
         />
-        <StatCard label="Bazaar" value={formatMoney(data.bazaar_total)} />
-        <StatCard label="Count" value={String(data.count)} />
+        <StatCard label={t("bazaar")} value={formatMoney(data.bazaar_total)} />
+        <StatCard label={t("count")} value={String(data.count)} />
       </div>
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <ThLeft label="Member" />
-              <Th label="Shared Cost" />
-              <Th label="Individual" />
-              <Th label="Total" />
+              <ThLeft label={t("member")} />
+              <Th label={t("sharedCost")} />
+              <Th label={t("individual")} />
+              <Th label={t("total")} />
             </tr>
           </thead>
           <tbody>
@@ -373,6 +378,7 @@ function DepositsSummaryView({
   messId: string;
   monthId: string;
 }) {
+  const t = useTranslations("pages.reports");
   const query = useDepositSummary(messId, monthId);
   const { data, isLoading } = query;
 
@@ -389,27 +395,27 @@ function DepositsSummaryView({
   }
 
   if (!data || data.count === 0) {
-    return <EmptyBlock message="No deposits recorded for this month yet." />;
+    return <EmptyBlock message={t("noDepositsRecordedMonth")} />;
   }
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <StatCard
-          label="Total Deposits"
+          label={t("totalDeposits")}
           value={formatMoney(data.total)}
           highlight
         />
-        <StatCard label="Transactions" value={String(data.count)} />
-        <StatCard label="Depositors" value={String(data.per_member.length)} />
+        <StatCard label={t("transactions")} value={String(data.count)} />
+        <StatCard label={t("depositors")} value={String(data.per_member.length)} />
       </div>
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <ThLeft label="Member" />
-              <Th label="Count" />
-              <Th label="Amount" />
+              <ThLeft label={t("member")} />
+              <Th label={t("count")} />
+              <Th label={t("amount")} />
             </tr>
           </thead>
           <tbody>
@@ -443,6 +449,7 @@ function MembersSummaryView({
   messId: string;
   month: MonthInfo;
 }) {
+  const t = useTranslations("pages.reports");
   const isActive = month.month_status === "ACTIVE";
   const calcQuery = useMemberCalculations(messId);
   const summaryQuery = useGetMonthSummary(
@@ -474,8 +481,8 @@ function MembersSummaryView({
       <EmptyBlock
         message={
           isActive
-            ? "No member data available yet. Record meals and expenses for this month."
-            : "No summary available for this month yet."
+            ? t("noMemberDataAvailable")
+            : t("noSummaryAvailableMonth")
         }
       />
     );
@@ -485,23 +492,23 @@ function MembersSummaryView({
     <div className="space-y-4">
       <p className="text-sm text-foreground-muted">
         {isActive
-          ? "Live calculations for the current active month."
-          : "Calculations from the archived month summary."}
+          ? t("liveCalculationsCurrentActive")
+          : t("calculationsFromArchivedMonth")}
       </p>
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <ThLeft label="Member" />
-              <Th label="Meals" />
-              <Th label="Meal Cost" />
-              <Th label="Shared" />
-              <Th label="Individual" />
-              <Th label="Deposit" />
-              <Th label="Bill" />
-              <Th label="Balance" />
-              {isActive && <Th label="Carried" />}
-              {isActive && <Th label="Current" />}
+              <ThLeft label={t("member")} />
+              <Th label={t("meals")} />
+              <Th label={t("mealCost")} />
+              <Th label={t("shared")} />
+              <Th label={t("individual")} />
+              <Th label={t("deposit")} />
+              <Th label={t("bill")} />
+              <Th label={t("balance")} />
+              {isActive && <Th label={t("carried")} />}
+              {isActive && <Th label={t("current")} />}
             </tr>
           </thead>
           <tbody>
@@ -554,6 +561,7 @@ function MembersSummaryView({
 }
 
 export default function ReportsPage() {
+  const t = useTranslations("pages.reports");
   const messQuery = useGetMyMess();
   const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
@@ -578,7 +586,7 @@ export default function ReportsPage() {
   );
 
   const tabs: { key: Tab; label: string; icon: typeof Calendar }[] = [
-    { key: "month", label: "Month Summary", icon: BarChart3 },
+    { key: "month", label: t("monthSummary"), icon: BarChart3 },
     { key: "meals", label: "Meals", icon: Utensils },
     { key: "expenses", label: "Expenses", icon: ReceiptText },
     { key: "deposits", label: "Deposits", icon: WalletCards },
@@ -603,7 +611,7 @@ export default function ReportsPage() {
     return (
       <>
         <PageHeader />
-        <EmptyBlock message="No months found. Start a new month from the dashboard to view reports." />
+        <EmptyBlock message={t("noMonthsFoundStart")} />
       </>
     );
   }
@@ -671,10 +679,11 @@ export default function ReportsPage() {
 }
 
 function PageHeader() {
+  const t = useTranslations("pages.reports");
   return (
     <div className="mb-8">
-      <p className="label-mono text-primary">Reports</p>
-      <h1 className="mt-2 heading-tight text-3xl text-foreground">Reports</h1>
+      <p className="label-mono text-primary">{t("reports")}</p>
+      <h1 className="mt-2 heading-tight text-3xl text-foreground">{t("reports")}</h1>
     </div>
   );
 }

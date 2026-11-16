@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import type {
   MemberCalculationListInfo,
@@ -93,6 +94,7 @@ function BalanceChip({
   value: number;
   positive: boolean;
 }) {
+  const t = useTranslations("members.memberCards");
   return (
     <div className="flex items-baseline gap-1.5">
       <span className="text-[10px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
@@ -127,6 +129,7 @@ export function MemberCards({
   onRoleClick: (member: MemberData) => void;
   onRemoveClick: (member: MemberData) => void;
 }) {
+  const t = useTranslations("members.memberCards");
   const items = data?.items ?? [];
 
   const toMemberData = (
@@ -148,10 +151,10 @@ export function MemberCards({
           <Users size={22} className="text-primary" />
         </div>
         <p className="text-lg font-semibold text-foreground">
-          No active members
+          {t("noActiveMembers")}
         </p>
         <p className="mt-1 text-sm text-foreground-muted">
-          Add members to see their live calculation summary.
+          {t("addMembersSeeTheir")}
         </p>
       </div>
     );
@@ -167,7 +170,7 @@ export function MemberCards({
             </div>
             <div>
               <p className="text-[10px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
-                Active month
+                {t("activeMonth")}
               </p>
               <p className="text-sm font-semibold text-foreground">
                 {data.month_title}
@@ -221,7 +224,7 @@ export function MemberCards({
                       {m.mess_role === "MANAGER" && (
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-[5px] border border-accent-warm/25 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] bg-accent-warm/10 text-accent-warm">
                           <Crown size={9} strokeWidth={2.5} />
-                          Manager
+                          {t("manager")}
                         </span>
                       )}
                     </div>
@@ -239,7 +242,7 @@ export function MemberCards({
                       className="inline-flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted opacity-0 transition-all duration-200 hover:border-border-strong hover:bg-surface-raised hover:text-foreground group-hover:opacity-100"
                     >
                       <UserCog size={14} />
-                      Role
+                      {t("role")}
                     </button>
                     <button
                       type="button"
@@ -247,7 +250,7 @@ export function MemberCards({
                       className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/25 px-3 py-1.5 text-xs font-semibold text-destructive opacity-0 transition-all duration-200 hover:bg-destructive/10 group-hover:opacity-100"
                     >
                       <UserMinus size={14} />
-                      Remove
+                      {t("remove")}
                     </button>
                   </div>
                 )}
@@ -265,7 +268,7 @@ export function MemberCards({
               >
                 <div className="flex flex-col">
                   <span className="text-[10px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
-                    Current balance
+                    {t("currentBalance")}
                   </span>
                   <span
                     className={`mt-0.5 text-2xl font-bold tracking-tight ${
@@ -290,9 +293,9 @@ export function MemberCards({
                   }`}
                 >
                   {tone === "surplus"
-                    ? "In surplus"
+                    ? t("surplus")
                     : tone === "due"
-                      ? "Owes money"
+                      ? t("owesMoney")
                       : "Settled"}
                 </span>
               </div>
@@ -301,33 +304,33 @@ export function MemberCards({
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 <Stat
                   icon={<ChefHat size={15} />}
-                  label="Meals"
+                  label={t("meals")}
                   value={`${formatCompact(m.total_meals)}`}
                 />
                 <Stat
                   icon={<WalletCards size={15} />}
-                  label="Deposits"
+                  label={t("deposits")}
                   value={formatMoney(m.deposit_amount)}
                   highlight
                 />
                 <Stat
                   icon={<Utensils size={15} />}
-                  label="Meal cost"
+                  label={t("mealCost")}
                   value={formatMoney(m.meal_cost)}
                 />
                 <Stat
                   icon={<Users size={15} />}
-                  label="Shared"
+                  label={t("shared")}
                   value={formatMoney(m.shared_cost)}
                 />
                 <Stat
                   icon={<UserRound size={15} />}
-                  label="Individual"
+                  label={t("individual")}
                   value={formatMoney(m.individual_cost)}
                 />
                 <Stat
                   icon={<ReceiptText size={15} />}
-                  label="Total bill"
+                  label={t("totalBill")}
                   value={formatMoney(m.final_bill)}
                 />
               </div>
@@ -336,13 +339,13 @@ export function MemberCards({
               {m.previous_balance !== 0 && (
                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-background/40 px-3.5 py-2">
                   <BalanceChip
-                    label="Carried"
+                    label={t("carried")}
                     value={m.previous_balance}
                     positive={m.previous_balance >= 0}
                   />
                   <span className="text-foreground-muted/40">·</span>
                   <span className="text-[10px] uppercase tracking-wider text-foreground-muted">
-                    from previous month
+                    {t("fromPreviousMonth")}
                   </span>
                 </div>
               )}

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Alkatra } from "next/font/google";
+import { Inter, JetBrains_Mono, Noto_Sans_Bengali } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Analytics } from "@vercel/analytics/next";
@@ -17,51 +19,60 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const alkatra = Alkatra({
+const notoBengali = Noto_Sans_Bengali({
   subsets: ["bengali"],
-  weight: ["400", "500", "600"],
-  variable: "--font-alkatra",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-bangla",
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "MessMate — মেস ম্যানেজমেন্ট সহজ করুন | Smart Mess Management",
-  description:
-    "MessMate simplifies meal tracking, expense management, deposits, and monthly accounting for shared living. Built for students and bachelor messes in Bangladesh.",
-  icons: {
-    icon: "/messmate-icon.png",
-  },
-  keywords: [
-    "mess management",
-    "meal tracking",
-    "mess accounting",
-    "shared living",
-    "bachelor mess",
-    "student mess",
-    "Bangladesh",
-    "expense tracker",
-  ],
-  openGraph: {
-    title: "MessMate — Smart Mess Management",
-    description: "Simplify meal tracking, expenses & accounting for your mess.",
-    type: "website",
-    locale: "en_US",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata");
+  const locale = await getLocale();
+  return {
+    title: t("title"),
+    description: t("description"),
+    icons: {
+      icon: "/messmate-icon.png",
+    },
+    keywords: [
+      "mess management",
+      "meal tracking",
+      "mess accounting",
+      "shared living",
+      "bachelor mess",
+      "student mess",
+      "Bangladesh",
+      "expense tracker",
+      "মেস ম্যানেজমেন্ট",
+      "মিল হিসাব",
+    ],
+    openGraph: {
+      title: t("ogTitle"),
+      description: t("ogDescription"),
+      type: "website",
+      locale: locale === "bn" ? "bn_BD" : "en_US",
+    },
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
-      className={`${inter.variable} ${jetbrainsMono.variable} ${alkatra.variable}`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${notoBengali.variable}`}
     >
       <body className="font-body antialiased">
-        <Providers>{children}</Providers>
+        <NextIntlClientProvider>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
         <Analytics />
       </body>
     </html>

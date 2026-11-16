@@ -1,0 +1,42 @@
+{
+  "userSessionDisplay": {
+    "zustandStoreDemo": "Zustand স্টোর ডেমো",
+    "id": "আইডি:",
+    "email": "ইমেইল:",
+    "logout": "লগআউট",
+    "noUserSessionFound": "কোনো ইউজার সেশন পাওয়া যায়নি",
+    "loginDemoUser": "ডেমো ইউজার দিয়ে লগইন",
+    "currentZustandStoreDevtools": "Zustand স্টোর devtools চালু আছে। ব্রাউজারের DevTools, Extensions, Zustand দেখুন",
+    "welcome": "স্বাগতম,",
+    "state": "স্টেট:"
+  },
+  "themeToggle": {
+    "mode": "মোড"
+  },
+  "datePicker": {
+    "pickDate": "তারিখ বাছাই করুন"
+  },
+  "select": {
+    "select": "বাছাই করুন..."
+  },
+  "error": {
+    "somethingWentWrong": "কিছু একটা সমস্যা হয়েছে",
+    "unexpectedErrorOccurredWhile": "পেজটি লোড করার সময় একটি অপ্রত্যাশিত সমস্যা হয়েছে। আবার চেষ্টা করুন। বারবার হলে নিচের রেফারেন্সসহ আমাদের জানান।",
+    "goHome": "হোমে যান"
+  },
+  "globalError": {
+    "messmateCouldnTLoad": "মেসমেট লোড হয়নি",
+    "criticalErrorStoppedApp": "একটি গুরুতর সমস্যার কারণে অ্যাপ লোড হয়নি। একটু পরে আবার চেষ্টা করুন।",
+    "reloadHome": "হোম রিলোড করুন"
+  },
+  "notFound": {
+    "pageNotFound": "পেজ পাওয়া যায়নি",
+    "pageReLookingDoesn": "আপনি যে পেজটি খুঁজছেন তা নেই বা সরানো হয়েছে। ঠিকানাটা আবার দেখুন, অথবা হোমে ফিরে যান।",
+    "pageNotFoundMessmate": "পেজ পাওয়া যায়নি — মেসমেট",
+    "goHome": "হোমে যান"
+  },
+  "dashboard": {
+    "pageRanIntoProblem": "এই পেজে একটি সমস্যা হয়েছে",
+    "somethingUnexpectedHappenedWhile": "পেজটি দেখানোর সময় অপ্রত্যাশিত কিছু ঘটেছে। আপনার তথ্য নিরাপদ আছে। আবার চেষ্টা করুন, অথবা ড্যাশবোর্ডে ফিরে যান।"
+  }
+}

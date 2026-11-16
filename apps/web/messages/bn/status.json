@@ -1,0 +1,9 @@
+{
+  "ACTIVE": "চলমান",
+  "CLOSED": "বন্ধ",
+  "ARCHIVED": "আর্কাইভ",
+  "PENDING": "অপেক্ষমাণ",
+  "APPROVED": "অনুমোদিত",
+  "REJECTED": "বাতিল",
+  "REMOVED": "বাদ দেওয়া"
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetActiveMonth } from "../../hooks/use-months";
@@ -23,6 +24,7 @@ function formatMoney(n: number) {
 }
 
 export default function AddDepositPage() {
+  const t = useTranslations("pages.deposits");
   const messQuery = useGetMyMess();
   const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
@@ -51,12 +53,12 @@ export default function AddDepositPage() {
     setError("");
 
     if (!memberId) {
-      setError("Select a member.");
+      setError(t("selectMember2"));
       return;
     }
 
     if (!parsedAmount || parsedAmount <= 0) {
-      setError("Amount must be greater than zero.");
+      setError(t("amountMustGreaterThan"));
       return;
     }
 
@@ -122,7 +124,7 @@ export default function AddDepositPage() {
       <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
         <WalletCards size={32} className="mb-3 text-foreground-muted" />
         <p className="text-sm text-foreground-muted">
-          You need to be part of a mess to add deposits.
+          {t("needPartMessAdd")}
         </p>
       </div>
     );
@@ -135,10 +137,10 @@ export default function AddDepositPage() {
           <WalletCards size={26} className="text-foreground-muted" />
         </div>
         <p className="text-sm font-semibold text-foreground">
-          Only managers can add deposits
+          {t("onlyManagersCanAdd")}
         </p>
         <p className="mt-1 text-sm text-foreground-muted">
-          Ask a manager to record a deposit for this month.
+          {t("askManagerRecordDeposit")}
         </p>
       </div>
     );
@@ -149,7 +151,7 @@ export default function AddDepositPage() {
       <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
         <WalletCards size={32} className="mb-3 text-foreground-muted" />
         <p className="text-sm text-foreground-muted">
-          No active month. Start a month before adding deposits.
+          {t("noActiveMonthStart")}
         </p>
       </div>
     );
@@ -158,12 +160,12 @@ export default function AddDepositPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <p className="label-mono text-primary">Deposits</p>
+        <p className="label-mono text-primary">{t("deposits")}</p>
         <h1 className="mt-1 heading-tight text-3xl text-foreground">
-          Add Deposit
+          {t("addDeposit")}
         </h1>
         <p className="mt-1 text-sm text-foreground-muted">
-          Record the money a member deposits toward their mess bill.
+          {t("recordMoneyMemberDeposits")}
         </p>
       </div>
 
@@ -173,14 +175,14 @@ export default function AddDepositPage() {
             <Plus size={16} />
           </div>
           <h2 className="text-lg font-semibold text-foreground">
-            New deposit for {activeMonth.title ?? "this month"}
+            {t("newDeposit")}{" "}{activeMonth.title ?? "this month"}
           </h2>
         </div>
 
         <div className="space-y-5 px-6 py-6">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Member
+              {t("member")}
             </label>
             <Select
               value={memberId}
@@ -189,14 +191,14 @@ export default function AddDepositPage() {
                 value: m.id,
                 label: m.user.name,
               }))}
-              placeholder="Select a member..."
+              placeholder={t("selectMember")}
               className="w-full"
             />
           </div>
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Amount
+              {t("amount")}
             </label>
             <div className="relative">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-foreground-muted">
@@ -218,7 +220,7 @@ export default function AddDepositPage() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Deposit Date
+              {t("depositDate")}
             </label>
             <DatePicker
               date={depositDate}
@@ -232,7 +234,7 @@ export default function AddDepositPage() {
               <div className="mb-2 flex items-center gap-2 text-primary">
                 <WalletCards size={14} />
                 <span className="text-xs font-mono font-medium uppercase tracking-[0.1em]">
-                  Deposit preview
+                  {t("depositPreview")}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
@@ -257,12 +259,12 @@ export default function AddDepositPage() {
             {create.isPending ? (
               <>
                 <Loader2 size={15} className="animate-spin" />
-                Adding...
+                {t("adding")}
               </>
             ) : (
               <>
                 <Plus size={15} />
-                Add Deposit
+                {t("addDeposit")}
               </>
             )}
           </Button>

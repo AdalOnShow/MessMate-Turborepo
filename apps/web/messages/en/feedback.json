@@ -1,0 +1,23 @@
+{
+  "errorScreen": {
+    "tryAgain": "Try again",
+    "reference": "Reference:",
+    "goDashboard": "Go to dashboard"
+  },
+  "offlineBanner": {
+    "backOnline": "Back online"
+  },
+  "queryErrorState": {
+    "ref": "Ref:",
+    "reOfflineOrServer": "You’re offline or the server is unreachable",
+    "donTHaveAccess": "You don’t have access to this",
+    "notFound": "Not found",
+    "couldnTLoad": "Couldn’t load this",
+    "retrying": "Retrying...",
+    "tryAgain": "Try again"
+  },
+  "toaster": {
+    "copyReferenceCode": "Copy reference code",
+    "dismissNotification": "Dismiss notification"
+  }
+}

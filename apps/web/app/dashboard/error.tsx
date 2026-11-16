@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
 import { ErrorScreen } from "../components/feedback/ErrorScreen";
@@ -15,6 +16,7 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("misc.dashboard");
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -22,8 +24,8 @@ export default function DashboardError({
   return (
     <ErrorScreen
       icon={AlertTriangle}
-      title="This page ran into a problem"
-      description="Something unexpected happened while showing this page. Your data is safe. Try again, or head back to the dashboard."
+      title={t("pageRanIntoProblem")}
+      description={t("somethingUnexpectedHappenedWhile")}
       reference={error.digest}
       onRetry={reset}
     />

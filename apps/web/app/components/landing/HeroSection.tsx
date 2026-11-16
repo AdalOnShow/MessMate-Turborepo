@@ -1,11 +1,15 @@
+import { getTranslations } from "next-intl/server";
+import { richAccent } from "./ui";
 import { ArrowRight, Check, Play } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { DashboardPreview } from "./DashboardPreview";
 import { Reveal } from "./Reveal";
 
-const TRUST = ["Free to use", "No payment required", "Built for shared living"];
+const TRUST = ["trust1", "trust2", "trust3"] as const;
 
-export function HeroSection() {
+export async function HeroSection() {
+  const t = await getTranslations("landing.hero");
+  const tc = await getTranslations("common");
   return (
     <section className="relative overflow-hidden bg-background pt-32 pb-24 lg:pt-40 lg:pb-32">
       <div
@@ -18,26 +22,19 @@ export function HeroSection() {
           <div className="max-w-xl">
             <Reveal>
               <Badge variant="pill" pulse>
-                Mess management, simplified
+                {t("badge")}
               </Badge>
             </Reveal>
 
             <Reveal delay={80}>
               <h1 className="heading-tight mt-6 text-[clamp(2.25rem,4.4vw,3.75rem)] text-foreground">
-                Manage Your Mess.
-                <br />
-                Track Everything.
-                <br />
-                Stay <span className="text-primary">Accountable.</span>
+                {t.rich("title", richAccent)}
               </h1>
             </Reveal>
 
             <Reveal delay={160}>
               <p className="mt-6 text-base leading-relaxed text-foreground-muted sm:text-lg">
-                MessMate replaces the spreadsheets, notebook pages, and endless
-                WhatsApp debates with one calm, transparent place to track
-                meals, expenses, deposits, and monthly accounting for your
-                shared living.
+                {t("subtitle")}
               </p>
             </Reveal>
 
@@ -47,7 +44,7 @@ export function HeroSection() {
                   href="/signup"
                   className="bg-cta group inline-flex items-center justify-center gap-2 rounded-[9px] px-7 py-3.5 text-sm font-bold"
                 >
-                  Get Started Free
+                  {tc("getStartedFree")}
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </a>
                 <a
@@ -55,7 +52,7 @@ export function HeroSection() {
                   className="inline-flex items-center justify-center gap-2 rounded-[9px] border border-border-strong bg-transparent px-7 py-3.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-surface-raised"
                 >
                   <Play className="size-4" />
-                  See How It Works
+                  {t("secondary")}
                 </a>
               </div>
             </Reveal>
@@ -64,11 +61,11 @@ export function HeroSection() {
               <ul className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-2.5">
                 {TRUST.map((item) => (
                   <li
-                    key={item}
+                    key={t(item)}
                     className="label-mono flex items-center gap-1.5 text-[10px] text-foreground-muted"
                   >
                     <Check className="size-3.5 text-success" />
-                    {item}
+                    {t(item)}
                   </li>
                 ))}
               </ul>

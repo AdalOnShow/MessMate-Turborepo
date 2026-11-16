@@ -5,6 +5,8 @@ import { AuthInitializer } from "../components/AuthInitializer";
 import { ProtectedPage } from "../protected-page";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { BottomNav } from "../components/dashboard/BottomNav";
+import { LanguageToggle } from "../components/LanguageToggle";
+import { MobileTopBar } from "../components/dashboard/MobileTopBar";
 
 export default function DashboardLayout({
   children,
@@ -19,6 +21,9 @@ export default function DashboardLayout({
       <AuthInitializer>
         <ProtectedPage>
           <div className="min-h-screen bg-background px-4 py-8 md:px-6 md:py-10 lg:px-8">
+            <div className="mb-6 flex justify-end">
+              <LanguageToggle />
+            </div>
             {children}
           </div>
         </ProtectedPage>
@@ -31,6 +36,7 @@ export default function DashboardLayout({
       <ProtectedPage>
         <div className="min-h-screen bg-background pb-20 lg:ml-72 lg:pb-8">
           <Sidebar />
+          <MobileTopBar />
           <main className="px-4 py-8 lg:px-8">
             <div className="mx-auto max-w-6xl">{children}</div>
           </main>

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 
@@ -23,9 +24,10 @@ export function ErrorScreen({
   reference,
   onRetry,
   homeHref = "/dashboard",
-  homeLabel = "Go to dashboard",
+  homeLabel = "goDashboard",
   fullScreen,
 }: ErrorScreenProps) {
+  const t = useTranslations("feedback.errorScreen");
   return (
     <div
       className={
@@ -55,7 +57,7 @@ export function ErrorScreen({
               onClick={onRetry}
               className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover sm:w-auto"
             >
-              Try again
+              {t("tryAgain")}
             </button>
           )}
           <Link
@@ -68,7 +70,7 @@ export function ErrorScreen({
 
         {reference && (
           <p className="mt-8 font-mono text-[11px] text-foreground-muted/70">
-            Reference: {reference}
+            {t("reference")}{" "}{reference}
           </p>
         )}
       </div>

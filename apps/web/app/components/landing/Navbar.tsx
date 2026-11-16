@@ -4,16 +4,20 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { LanguageToggle } from "../LanguageToggle";
 
 const NAV_LINKS = [
-  { label: "Features", href: "/#features" },
-  { label: "How It Works", href: "/#how-it-works" },
-  { label: "Accounting", href: "/#accounting" },
-  { label: "Preview", href: "/#preview" },
-  { label: "FAQ", href: "/#faq" },
-];
+  { key: "features", href: "/#features" },
+  { key: "howItWorks", href: "/#how-it-works" },
+  { key: "accounting", href: "/#accounting" },
+  { key: "preview", href: "/#preview" },
+  { key: "faq", href: "/#faq" },
+] as const;
 
 export function Navbar() {
+  const t = useTranslations("landing.nav");
+  const tc = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -36,7 +40,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-2.5">
           <Image
             src="/messmate-logo.png"
-            alt="MessMate logo"
+            alt={t("logoAlt")}
             width={860}
             height={600}
             priority
@@ -51,35 +55,39 @@ export function Navbar() {
               href={link.href}
               className="text-sm font-medium text-foreground-muted transition-colors hover:text-foreground"
             >
-              {link.label}
+              {t(link.key)}
             </a>
           ))}
         </div>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <LanguageToggle />
           <a
             href="/signin"
             className="rounded-[7px] px-4 py-2 text-[13px] font-semibold text-foreground-muted transition-colors hover:text-foreground"
           >
-            Sign In
+            {tc("signIn")}
           </a>
           <a
             href="/signup"
             className="bg-cta rounded-[7px] px-[18px] py-2 text-[13px] font-bold"
           >
-            Get Started
+            {tc("getStarted")}
           </a>
         </div>
 
+        <div className="flex items-center gap-2 lg:hidden">
+          <LanguageToggle />
         <button
           type="button"
-          aria-label="Toggle menu"
+          aria-label={tc("toggleMenu")}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
           className="flex size-10 items-center justify-center rounded-xl border border-border bg-surface-raised text-foreground lg:hidden"
         >
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
+        </div>
       </nav>
 
       {open && (
@@ -92,7 +100,7 @@ export function Navbar() {
                 onClick={() => setOpen(false)}
                 className="rounded-xl px-4 py-3 text-sm font-medium text-foreground-muted transition-colors hover:bg-surface-raised hover:text-foreground"
               >
-                {link.label}
+                {t(link.key)}
               </a>
             ))}
           </div>
@@ -102,15 +110,15 @@ export function Navbar() {
               onClick={() => setOpen(false)}
               className="rounded-[9px] border border-border-strong px-5 py-2.5 text-center text-sm font-semibold text-foreground"
             >
-              Sign In
-            </a>
+            {tc("signIn")}
+          </a>
             <a
               href="/signup"
               onClick={() => setOpen(false)}
               className="bg-cta rounded-[9px] px-5 py-2.5 text-center text-sm font-bold"
             >
-              Get Started
-            </a>
+            {tc("getStarted")}
+          </a>
           </div>
         </div>
       )}

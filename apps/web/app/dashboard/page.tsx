@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useSessionStore } from "../store";
 import { useGetMyMess } from "../hooks/use-messes";
@@ -18,6 +19,7 @@ import { MemberQuickLinks } from "../components/dashboard/MemberQuickLinks";
 import { QueryErrorState } from "../components/feedback/QueryErrorState";
 
 function InviteBanner() {
+  const t = useTranslations("pages.home");
   const { data: invites } = usePendingInvites();
   const accept = useAcceptInvite();
   const reject = useRejectInvite();
@@ -34,11 +36,11 @@ function InviteBanner() {
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-semibold text-foreground">
-                You have been invited to join{" "}
+                {t("haveBeenInvitedJoin")}{" "}
                 <span className="text-primary">{invite.mess_name}</span>
               </p>
               <p className="mt-1 text-xs text-foreground-muted">
-                by {invite.requester_name} ({invite.requester_email})
+                {t("by")}{" "}{invite.requester_name} ({invite.requester_email})
               </p>
             </div>
             <div className="flex gap-2">
@@ -48,7 +50,7 @@ function InviteBanner() {
                 disabled={accept.isPending}
                 className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
               >
-                {accept.isPending ? "Accepting..." : "Accept"}
+                {accept.isPending ? t("accepting") : "Accept"}
               </button>
               <button
                 type="button"
@@ -56,7 +58,7 @@ function InviteBanner() {
                 disabled={reject.isPending}
                 className="rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
               >
-                {reject.isPending ? "Rejecting..." : "Reject"}
+                {reject.isPending ? t("rejecting") : "Reject"}
               </button>
             </div>
           </div>
@@ -67,6 +69,7 @@ function InviteBanner() {
 }
 
 export default function DashboardPage() {
+  const t = useTranslations("pages.home");
   const { user, isAuthenticated } = useSessionStore();
   const messQuery = useGetMyMess(isAuthenticated);
   const { data: myMess } = messQuery;
@@ -76,9 +79,9 @@ export default function DashboardPage() {
   return (
     <>
       <div className="mb-8">
-        <p className="label-mono text-primary">Dashboard</p>
+        <p className="label-mono text-primary">{t("dashboard")}</p>
         <h1 className="mt-2 heading-tight text-3xl text-foreground">
-          Welcome back{user?.name ? `, ${user.name}` : ""}
+          {t("welcomeBack")}{user?.name ? `, ${user.name}` : ""}
         </h1>
       </div>
 
@@ -117,15 +120,15 @@ export default function DashboardPage() {
         )
       ) : (
         <div className="rounded-2xl border border-border bg-surface p-8 text-center">
-          <p className="text-lg font-semibold text-foreground">No mess yet</p>
+          <p className="text-lg font-semibold text-foreground">{t("noMessYet")}</p>
           <p className="mt-1 text-sm text-foreground-muted">
-            Create a mess to start tracking meals, deposits, and expenses.
+            {t("createMessStartTracking")}
           </p>
           <Link
             href="/dashboard/create-mess"
             className="mt-5 inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
           >
-            Create Mess
+            {t("createMess")}
           </Link>
         </div>
       )}

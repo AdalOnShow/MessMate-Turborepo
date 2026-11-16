@@ -1,0 +1,408 @@
+{
+  "problem": {
+    "eyebrow": "The Problem",
+    "title": "Mess Accounting Gets <accent>Messy</accent> Fast",
+    "subtitle": "MessMate started with a simple frustration — shared-living money was always a mess. Notebook entries got lost, deposits became ambiguous, and every month-end turned into a three-hour argument.",
+    "items": {
+      "scattered": {
+        "title": "Scattered Records",
+        "p1": "Meals in a notebook",
+        "p2": "Bazaar in another",
+        "p3": "Deposits in the group chat"
+      },
+      "deposits": {
+        "title": "Ambiguous Deposits",
+        "p1": "\"Did I pay you already?\"",
+        "p2": "\"That was the other Rahim.\"",
+        "p3": "Half-paid / over-paid slates"
+      },
+      "math": {
+        "title": "Slow Month-End Math",
+        "p1": "Manual meal-rate division",
+        "p2": "Deposit take-offs by hand",
+        "p3": "Balances nobody can verify"
+      },
+      "trust": {
+        "title": "Trust Runs Thin",
+        "p1": "Arguments over who owes what",
+        "p2": "The manager looks like the bank",
+        "p3": "No single source of truth"
+      }
+    }
+  },
+  "howItWorks": {
+    "eyebrow": "How It Works",
+    "title": "Four Steps. <accent>No Spreadsheets.</accent>",
+    "subtitle": "From an empty flat to a fully accounted mess month in under ten minutes.",
+    "cta": "Start Your First Month",
+    "steps": {
+      "create": {
+        "title": "Create Your Mess",
+        "description": "Set up your mess profile, choose your meal types, and decide your monthly rules."
+      },
+      "invite": {
+        "title": "Invite Members",
+        "description": "Share a unique join code. Roommates sign up and join instantly."
+      },
+      "record": {
+        "title": "Record Meals & Expenses",
+        "description": "Log daily meals, add bazaar and utility costs, collect deposits."
+      },
+      "auto": {
+        "title": "Auto-Calculate Accounting",
+        "description": "Meal rate, bills, and balances are computed for you every month."
+      }
+    }
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Questions, <accent>Answered Honestly</accent>",
+    "subtitle": "The things flatmates actually ask before they convince the fourth member to sign up.",
+    "items": {
+      "what": {
+        "q": "What exactly is MessMate?",
+        "a": "MessMate is a free mess management app for shared living in Bangladesh. It replaces notebooks and spreadsheets with a calm dashboard for meal tracking, expenses, deposits, and automatic month-end accounting."
+      },
+      "free": {
+        "q": "Is MessMate really free?",
+        "a": "Yes. MessMate is 100% free to use, and there are no plans to charge for the core features. There is no pricing page, no trial window, no card asked — just create an account and go."
+      },
+      "accounting": {
+        "q": "Do I need to know accounting to use it?",
+        "a": "Not at all. MessMate computes the meal rate, each member's bill, and final balances automatically using total expenses divided by total meals. You just log what happened; the math is done for you."
+      },
+      "join": {
+        "q": "How do members join my mess?",
+        "a": "Create a mess and you get a unique, secure join code. Each flatmate signs up, enters the code, and is in — no approvals, no spreadsheets, no delays."
+      },
+      "months": {
+        "q": "How do months work?",
+        "a": "Months are manual: the mess runs open, and when the month ends a manager closes it. The month is frozen and archived, a new month opens, and balances carry forward automatically."
+      },
+      "manager": {
+        "q": "Who can be a manager?",
+        "a": "The person who creates the mess is the first manager and can promote one more. MessMate allows up to two managers per mess, both with the same equal permissions."
+      },
+      "balances": {
+        "q": "What happens to balances at month-end?",
+        "a": "A positive balance rolls forward as part of your next deposit. A negative balance becomes an individual expense you settle. Every month ends with a clear, fair number for everyone."
+      },
+      "visible": {
+        "q": "Is everything visible to everyone?",
+        "a": "Yes — that's the point. Meal rates, deposits, expenses, balances, and the full activity history are visible to every member of the mess. Nothing hides behind a manager's desk."
+      }
+    }
+  },
+  "features": {
+    "eyebrow": "Features",
+    "title": "Everything Your Mess Needs, <accent>Nothing It Doesn't</accent>",
+    "subtitle": "Six focused tools that replace the whole spreadsheet habit — clean, fast, and built specifically for shared living in Bangladesh.",
+    "week": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "lunchShort": "L",
+    "dinnerShort": "D",
+    "meals": {
+      "title": "Meal Tracking",
+      "description": "Record who ate what, when. Dynamic meal types per mess — Lunch, Dinner, Sehri, or your own — with one-tap entry and bulk mode for managers.",
+      "todayTally": "Today's tally",
+      "mealsCount": "{count} meals",
+      "membersCount": "{count} members"
+    },
+    "expenses": {
+      "title": "Expense Management",
+      "description": "Log every taka as it's spent. Bazaar, utilities, gas — categorised, searchable, and always tied to a month.",
+      "by": "by {name}",
+      "add": "Add Expense",
+      "rows": {
+        "bazaar": "Bazaar — Weekly",
+        "internet": "Internet bill",
+        "gas": "Gas refill"
+      },
+      "tags": {
+        "bazaar": "Bazaar",
+        "utility": "Utility"
+      }
+    },
+    "deposits": {
+      "title": "Deposit Tracking",
+      "description": "One running ledger per member. See exactly who has paid, who hasn't, and what your mess is up to.",
+      "collected": "Collected"
+    },
+    "accounting": {
+      "title": "Monthly Accounting",
+      "description": "Meal rates, member bills, and net balances are calculated the same way every month — no arithmetic, no disputes.",
+      "totalExpense": "Total Expense",
+      "totalMeals": "Total Meals",
+      "mealRate": "Meal Rate"
+    },
+    "activity": {
+      "title": "Activity History",
+      "description": "Every meal, expense, deposit, and month transition leaves a trace. Nobody can claim they didn't see it — the record is public to the mess.",
+      "label": "Mess-wide activity",
+      "live": "Live",
+      "rows": {
+        "deposit": "Deposit recorded",
+        "dinner": "Dinner meal added",
+        "bazaar": "Bazaar expense approved",
+        "month": "September month started"
+      },
+      "when": {
+        "today1120": "Today · 11:20 AM",
+        "today902": "Today · 9:02 AM",
+        "yesterday": "Yesterday",
+        "sep1": "Sep 1"
+      }
+    },
+    "members": {
+      "title": "Member Management",
+      "description": "Invite with a secure code, set roles, and let the app handle who is who — up to two managers, clearly marked.",
+      "invite": "Invite Member"
+    }
+  },
+  "roles": {
+    "eyebrow": "Roles, Not Tiers",
+    "title": "Managers Run It. <accent>Members Own It.</accent>",
+    "subtitle": "MessMate keeps two clear roles. No paid tiers, no paywalls — just a shared living arrangement that finally has structure.",
+    "footnote": "Max two managers per mess, both with equal permissions. No hierarchies, no owner seats — just two people keeping the books honest.",
+    "manager": {
+      "title": "Managers",
+      "badge": "Up to 2 per mess",
+      "tagline": "Run the mess. Keep everyone honest — by design.",
+      "note": "Every manager action is logged and visible to the mess.",
+      "f1": "Create the mess and configure meal types",
+      "f2": "Approve and manage all expenses",
+      "f3": "Bulk-enter meals to save time",
+      "f4": "Open and close monthly cycles",
+      "f5": "Invite members and manage roles"
+    },
+    "member": {
+      "title": "Members",
+      "badge": "Everyone else",
+      "tagline": "Just live in the mess. Stay fully in the loop.",
+      "note": "Members see everything managers see — no secrets, no surprises.",
+      "f1": "Record their own meals in one tap",
+      "f2": "Add and see every expense",
+      "f3": "Deposit money against the shared ledger",
+      "f4": "See the live meal rate and own balance",
+      "f5": "Audit the full mess-wide activity log"
+    }
+  },
+  "nav": {
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "accounting": "Accounting",
+    "preview": "Preview",
+    "faq": "FAQ",
+    "logoAlt": "MessMate logo"
+  },
+  "hero": {
+    "badge": "Mess management, simplified",
+    "title": "Manage Your Mess.<br></br>Track Everything.<br></br>Stay <accent>Accountable.</accent>",
+    "subtitle": "MessMate replaces the spreadsheets, notebook pages, and endless WhatsApp debates with one calm, transparent place to track meals, expenses, deposits, and monthly accounting for your shared living.",
+    "secondary": "See How It Works",
+    "trust1": "Free to use",
+    "trust2": "No payment required",
+    "trust3": "Built for shared living"
+  },
+  "free": {
+    "badge": "Free for every mess",
+    "title": "Ready to Make Your Mess <accent>Less Messy?</accent>",
+    "subtitle": "Create a mess, invite your flatmates, and close your first accountable month tonight. It costs nothing but a minute of your time.",
+    "p1": "No pricing plans",
+    "p2": "No trial windows",
+    "p3": "No payment required"
+  },
+  "finalCta": {
+    "title": "Stop Managing Your Mess <accent>in Spreadsheets.</accent>",
+    "subtitle": "Create your mess tonight, track tomorrow's meals, and be the first flatmate who shows up at month-end with the numbers — already done."
+  },
+  "footer": {
+    "tagline": "Simple mess management and transparent accounting. Meal tracking, expenses, deposits, and month-end — all in one calm place for shared living.",
+    "product": "Product",
+    "resources": "Resources",
+    "account": "Account",
+    "productPreview": "Product Preview",
+    "accountingSystem": "Accounting System",
+    "builtBy": "Built by <strong>Sharif H. Adal</strong>",
+    "builtByRole": "Developer & designer behind MessMate.",
+    "rights": "© 2026 MessMate. All rights reserved.",
+    "madeFor": "Made for messes in Bangladesh."
+  },
+  "accounting": {
+    "eyebrow": "The Accounting System",
+    "title": "One Formula. <accent>Every Member Sees It.</accent>",
+    "subtitle": "MessMate does the month-end that used to take a calculator and a whiteboard — with the math fully visible to everyone in the mess.",
+    "p1": "Meal Rate is total spend divided by meals — computed instantly, updated live.",
+    "p2": "Each member's bill is just their meals multiplied by the rate.",
+    "p3": "Deposits are tracked per member, so paying up is explicit and checkable.",
+    "p4": "Final balance = deposits paid minus meal share; carried forward clearly month to month.",
+    "formula": "Formula",
+    "mealRate": "Meal Rate",
+    "totalMealCost": "Total Meal Cost",
+    "totalMeals": "Total Meals",
+    "finalBalance": "Final Balance",
+    "depositsPaid": "Deposits Paid",
+    "mealShare": "Meal Share",
+    "settlement": "Month-End Settlement",
+    "month": "August 2026",
+    "expenses": "Expenses",
+    "meals": "Meals",
+    "member": "Member",
+    "paid": "Paid",
+    "balance": "Balance",
+    "rollNote": "Closing the month rolls balances forward",
+    "carryForward": "Carry forward"
+  },
+  "monthFlow": {
+    "eyebrow": "The Month Cycle",
+    "title": "One Clean Loop, <accent>Every Single Month</accent>",
+    "subtitle": "MessMate is built around a simple monthly rhythm that matches how messes actually run — open, fill, calculate, close, repeat.",
+    "steps": {
+      "current": {
+        "title": "Current Month",
+        "description": "Meals, expenses and deposits are logged live against the open month."
+      },
+      "calculate": {
+        "title": "Calculate",
+        "description": "Meal rate, member bills and net balances are computed automatically."
+      },
+      "close": {
+        "title": "Close & Archive",
+        "description": "A manager closes the month; it becomes a frozen, shareable record."
+      },
+      "start": {
+        "title": "Start New Month",
+        "description": "A fresh month opens right away — no setup, no resets, no confusion."
+      },
+      "carry": {
+        "title": "Carry Forward",
+        "description": "Positive balances roll into deposits. Negative balances become individual expenses."
+      }
+    },
+    "note": "<strong>Balance carried forward:</strong> if you're in credit it becomes your next deposit; if you owe, it becomes an individual expense to settle. Fair to everyone, every month."
+  },
+  "technology": {
+    "eyebrow": "Built To Last",
+    "title": "Stack You Can <accent>Trust</accent>",
+    "subtitle": "A modern, deliberately boring stack — fast to ship, easy to keep honest, and pleasant to maintain. No bloat, no mystery."
+  },
+  "activity": {
+    "eyebrow": "Radical Transparency",
+    "title": "Every Action Leaves a <accent>Trace</accent>",
+    "subtitle": "Activity history is built into the heart of MessMate, not bolted on. Every meal edit, expense, deposit, and month transition is logged and visible to the whole mess.",
+    "body1": "That means no more “I never saw that entry” — because the record is public to your mess and stamped with who did what and when.",
+    "body2": "Role changes are logged too. If a manager is added or removed, the mess can see exactly when it happened. Accountability isn't an afterthought.",
+    "audit": "<strong>Built-in audit trail.</strong> You can audit the whole month before you close it — from the same screen.",
+    "events": {
+      "meal": {
+        "actor": "Adal",
+        "text": "updated the Dinner meal record",
+        "when": "Just now",
+        "tag": "Meal"
+      },
+      "expense": {
+        "actor": "Rahim",
+        "text": "added Internet bill — ৳1,200",
+        "when": "2 hours ago",
+        "tag": "Expense"
+      },
+      "deposit": {
+        "actor": "Fahad",
+        "text": "deposited ৳5,000 to the mess account",
+        "when": "Yesterday",
+        "tag": "Deposit"
+      },
+      "month": {
+        "actor": "Manager",
+        "text": "closed August 2026 and carried balances forward",
+        "when": "3 days ago",
+        "tag": "Month"
+      }
+    }
+  },
+  "preview": {
+    "eyebrow": "Preview",
+    "title": "A Look Inside, <accent>Not a Screenshot in Sight</accent>",
+    "subtitle": "Real product screens drawn with the same interface you'll use — every figure is the actual design language of MessMate.",
+    "frames": {
+      "dashboard": "Dashboard",
+      "meals": "Meal Tracking",
+      "expenses": "Expense Management",
+      "report": "Monthly Report"
+    },
+    "messName": "Riverside Mess",
+    "month": "August 2026",
+    "perMeal": "৳68.50 / meal",
+    "stats": {
+      "meals": "Meals",
+      "expense": "Expense",
+      "deposits": "Deposits",
+      "balance": "Balance",
+      "mealRate": "Meal Rate",
+      "totalMeals": "Total Meals",
+      "netBalance": "Net Balance"
+    },
+    "mealSlot": "Wednesday · Lunch",
+    "saved": "Saved",
+    "ate": "Ate",
+    "skip": "Skip",
+    "total": "total",
+    "by": "by {name}",
+    "expenseRows": {
+      "bazaar": "Bazaar — Weekly",
+      "internet": "Internet bill",
+      "gas": "Gas refill",
+      "cleaning": "Cleaning supplies"
+    },
+    "tags": {
+      "bazaar": "Bazaar",
+      "utility": "Utility",
+      "other": "Other"
+    },
+    "summary": "August 2026 · Summary",
+    "archived": "Archived"
+  },
+  "dashPreview": {
+    "stats": {
+      "mealRate": {
+        "label": "Meal Rate",
+        "hint": "+৳2.00 vs yesterday"
+      },
+      "mealsToday": {
+        "label": "Meals Today",
+        "hint": "9 logged · 4 left"
+      },
+      "expenses": {
+        "label": "Total Expenses",
+        "hint": "12 records this month"
+      },
+      "deposits": {
+        "label": "Total Deposits",
+        "hint": "8 members paid"
+      }
+    },
+    "active": "Active",
+    "memberBalances": "Member Balances",
+    "recentActivity": "Recent Activity",
+    "activity": {
+      "dinner": "updated Dinner meal",
+      "internet": "added Internet bill",
+      "deposit": "deposited ৳5,000"
+    },
+    "yesterday": "Yesterday",
+    "todayRate": "Today's Meal Rate",
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+    "sehri": "Sehri",
+    "yourBalance": "Your Balance",
+    "thisMonth": "This month",
+    "month": "August 2026"
+  }
+}

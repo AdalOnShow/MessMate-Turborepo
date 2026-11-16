@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { AlertOctagon } from "lucide-react";
 import "./globals.css";
@@ -13,6 +14,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("misc.globalError");
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -23,12 +25,12 @@ export default function GlobalError({
         <ErrorScreen
           fullScreen
           icon={AlertOctagon}
-          title="MessMate couldn't load"
-          description="A critical error stopped the app from loading. Please try again in a moment."
+          title={t("messmateCouldnTLoad")}
+          description={t("criticalErrorStoppedApp")}
           reference={error.digest}
           onRetry={reset}
           homeHref="/"
-          homeLabel="Reload home"
+          homeLabel={t("reloadHome")}
         />
       </body>
     </html>

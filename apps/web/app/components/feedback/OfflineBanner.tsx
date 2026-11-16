@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { WifiOff } from "lucide-react";
 import { toast } from "@/app/store/toast";
@@ -22,6 +23,7 @@ const getServerSnapshot = () => true;
  * beyond telling the user what is going on.
  */
 export function OfflineBanner() {
+  const t = useTranslations("feedback.offlineBanner");
   const online = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -34,7 +36,7 @@ export function OfflineBanner() {
       wasOffline.current = true;
     } else if (wasOffline.current) {
       wasOffline.current = false;
-      toast.success("Back online");
+      toast.success(t("backOnline"));
     }
   }, [online]);
 

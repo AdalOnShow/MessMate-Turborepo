@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import { toActionError, unwrap } from "../../../lib/action-result";
 import { toast } from "../../../store/toast";
 
 export default function CreateAccountForm() {
+  const t = useTranslations("pages.membersCreateAccount_createAccountForm");
   const router = useRouter();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
@@ -42,12 +44,12 @@ export default function CreateAccountForm() {
         }),
       );
       await queryClient.invalidateQueries();
-      toast.success("Member account created");
+      toast.success(t("memberAccountCreated"));
       router.push("/dashboard/members");
     } catch (err: unknown) {
       const error = toActionError(err);
       toast.error(
-        error.isServerError ? "Couldn't create the account" : error.message,
+        error.isServerError ? t("couldnTCreateAccount") : error.message,
         {
           description: error.isServerError ? error.message : undefined,
           reference: error.isServerError ? error.requestId : undefined,
@@ -61,9 +63,9 @@ export default function CreateAccountForm() {
   return (
     <div className="mx-auto max-w-lg">
       <div className="mb-8">
-        <p className="label-mono text-primary">Members</p>
+        <p className="label-mono text-primary">{t("members")}</p>
         <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
-          Create Member Account
+          {t("createMemberAccount")}
         </h1>
       </div>
 
@@ -76,7 +78,7 @@ export default function CreateAccountForm() {
             htmlFor="name"
             className="mb-1 block text-sm font-medium text-foreground"
           >
-            Name
+            {t("name")}
           </label>
           <input
             id="name"
@@ -85,7 +87,7 @@ export default function CreateAccountForm() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full rounded-lg border border-border-strong bg-surface-sunken px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-            placeholder="Enter full name"
+            placeholder={t("enterFullName")}
           />
         </div>
 
@@ -94,7 +96,7 @@ export default function CreateAccountForm() {
             htmlFor="email"
             className="mb-1 block text-sm font-medium text-foreground"
           >
-            Email
+            {t("email")}
           </label>
           <input
             id="email"
@@ -104,7 +106,7 @@ export default function CreateAccountForm() {
             onChange={(e) => setEmail(e.target.value)}
             readOnly={false}
             className="w-full rounded-lg border border-border-strong bg-surface-sunken px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-            placeholder="Enter email address"
+            placeholder={t("enterEmailAddress")}
           />
         </div>
 
@@ -113,7 +115,7 @@ export default function CreateAccountForm() {
             htmlFor="password"
             className="mb-1 block text-sm font-medium text-foreground"
           >
-            Password
+            {t("password")}
           </label>
           <input
             id="password"
@@ -123,7 +125,7 @@ export default function CreateAccountForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-lg border border-border-strong bg-surface-sunken px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-            placeholder="Minimum 8 characters"
+            placeholder={t("minimum8Characters")}
           />
         </div>
 
@@ -132,7 +134,7 @@ export default function CreateAccountForm() {
             htmlFor="phone"
             className="mb-1 block text-sm font-medium text-foreground"
           >
-            Phone <span className="text-foreground-muted">(optional)</span>
+            {t("phone")}<span className="text-foreground-muted">(optional)</span>
           </label>
           <input
             id="phone"
@@ -140,7 +142,7 @@ export default function CreateAccountForm() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             className="w-full rounded-lg border border-border-strong bg-surface-sunken px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-            placeholder="Enter phone number"
+            placeholder={t("enterPhoneNumber")}
           />
         </div>
 
@@ -149,14 +151,14 @@ export default function CreateAccountForm() {
             href="/dashboard/members"
             className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
           >
-            Cancel
+            {t("cancel")}
           </Link>
           <button
             type="submit"
             disabled={loading || !myMess?.id || !name || !email || !password}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Creating..." : "Create Account"}
+            {loading ? t("creating") : t("createAccount")}
           </button>
         </div>
       </form>

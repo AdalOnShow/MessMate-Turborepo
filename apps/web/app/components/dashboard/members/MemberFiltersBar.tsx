@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import React, { useEffect, useRef, useState } from "react";
 import { Select } from "../../ui/select";
 import { useDebounce } from "../../../hooks/use-debounce";
@@ -28,6 +29,7 @@ export const MemberFiltersBar = React.memo(function MemberFiltersBar({
     updates: Partial<Pick<MemberFilters, "role" | "status">>,
   ) => void;
 }) {
+  const t = useTranslations("members.memberFiltersBar");
   const [localSearch, setLocalSearch] = useState(filters.search ?? "");
   const debouncedSearch = useDebounce(localSearch, 300);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +47,7 @@ export const MemberFiltersBar = React.memo(function MemberFiltersBar({
       <input
         ref={inputRef}
         type="text"
-        placeholder="Search by name or email..."
+        placeholder={t("searchByNameOr")}
         value={localSearch}
         onChange={(e) => setLocalSearch(e.target.value)}
         className="flex-1 rounded-lg border border-border-strong bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { useDebounce } from "../../../hooks/use-debounce";
@@ -23,6 +24,7 @@ export function AddMemberDialog({
   onInvite: (email: string) => void;
   isPending: boolean;
 }) {
+  const t = useTranslations("members.addMemberDialog");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState<{
     id: string;
@@ -44,13 +46,13 @@ export function AddMemberDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-xl border border-border bg-background p-6">
-        <h2 className="mb-4 text-lg font-bold text-foreground">Add Member</h2>
+        <h2 className="mb-4 text-lg font-bold text-foreground">{t("addMember")}</h2>
 
         {!selectedUser ? (
           <>
             <input
               type="text"
-              placeholder="Search by name or email..."
+              placeholder={t("searchByNameOr")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
@@ -58,7 +60,7 @@ export function AddMemberDialog({
             />
 
             {searching && debouncedQuery.length >= 2 && (
-              <p className="text-sm text-foreground-muted">Searching...</p>
+              <p className="text-sm text-foreground-muted">{t("searching")}</p>
             )}
 
             {!searching && searchResults.length > 0 && (
@@ -101,17 +103,17 @@ export function AddMemberDialog({
             {showNotFound && isEmail && (
               <div className="mb-4 rounded-lg border border-accent-warm/30 bg-accent-warm/10 p-4">
                 <p className="text-sm font-medium text-foreground">
-                  No account found for{" "}
+                  {t("noAccountFound")}{" "}
                   <span className="font-semibold">{searchQuery}</span>
                 </p>
                 <p className="mt-1 text-xs text-foreground-muted">
-                  Would you like to create an account for this person?
+                  {t("wouldLikeCreateAccount")}
                 </p>
                 <Link
                   href={`/dashboard/members/create-account?email=${encodeURIComponent(searchQuery)}`}
                   className="mt-3 inline-flex rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-hover"
                 >
-                  Create Account
+                  {t("createAccount")}
                 </Link>
               </div>
             )}
@@ -119,8 +121,8 @@ export function AddMemberDialog({
             {showNotFound && !isEmail && (
               <p className="mb-4 text-sm text-foreground-muted">
                 {searchResults.length > 0
-                  ? "All matching users are already members"
-                  : "No users found"}
+                  ? t("allMatchingUsersAlready")
+                  : t("noUsersFound")}
               </p>
             )}
           </>
@@ -151,7 +153,7 @@ export function AddMemberDialog({
               onClick={() => setSelectedUser(null)}
               className="text-xs text-foreground-muted hover:text-foreground"
             >
-              Change
+              {t("change")}
             </button>
           </div>
         )}
@@ -162,7 +164,7 @@ export function AddMemberDialog({
             onClick={onClose}
             className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -170,7 +172,7 @@ export function AddMemberDialog({
             disabled={!selectedUser || isPending}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isPending ? "Sending..." : "Send Invite"}
+            {isPending ? t("sending") : t("sendInvite")}
           </button>
         </div>
       </div>

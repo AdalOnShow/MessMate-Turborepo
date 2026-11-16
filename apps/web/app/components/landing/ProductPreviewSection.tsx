@@ -4,7 +4,8 @@ import {
   ReceiptText,
   FileBarChart,
 } from "lucide-react";
-import { SectionHeading, Avatar } from "./ui";
+import { getTranslations } from "next-intl/server";
+import { SectionHeading, Avatar, richAccent } from "./ui";
 import { Reveal } from "./Reveal";
 
 function BrowserFrame({
@@ -38,34 +39,35 @@ function BrowserFrame({
   );
 }
 
-function DashboardMock() {
+async function DashboardMock() {
+  const t = await getTranslations("landing.preview");
   return (
-    <BrowserFrame title="Dashboard" icon={LayoutDashboard}>
+    <BrowserFrame title={t("frames.dashboard")} icon={LayoutDashboard}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <Avatar initials="RM" className="!size-8" />
           <div>
-            <p className="text-xs font-bold text-foreground">Riverside Mess</p>
-            <p className="text-[10px] text-foreground-muted">August 2026</p>
+            <p className="text-xs font-bold text-foreground">{t("messName")}</p>
+            <p className="text-[10px] text-foreground-muted">{t("month")}</p>
           </div>
         </div>
         <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">
-          ৳68.50 / meal
+          {t("perMeal")}
         </span>
       </div>
       <div className="mt-3.5 grid grid-cols-4 gap-2">
-        {[
-          { l: "Meals", v: "324" },
-          { l: "Expense", v: "৳22k" },
-          { l: "Deposits", v: "৳28.5k" },
-          { l: "Balance", v: "৳2.3k" },
-        ].map((s) => (
+        {([
+          { l: "meals", v: "324" },
+          { l: "expense", v: "৳22k" },
+          { l: "deposits", v: "৳28.5k" },
+          { l: "balance", v: "৳2.3k" },
+        ] as const).map((s) => (
           <div
-            key={s.l}
+            key={t(`stats.${s.l}`)}
             className="rounded-lg bg-surface-raised/70 p-2 text-center"
           >
             <p className="text-[9px] uppercase tracking-wide text-foreground-muted">
-              {s.l}
+              {t(`stats.${s.l}`)}
             </p>
             <p className="mt-0.5 text-[11px] font-bold text-foreground">
               {s.v}
@@ -88,15 +90,16 @@ function DashboardMock() {
   );
 }
 
-function MealsMock() {
+async function MealsMock() {
+  const t = await getTranslations("landing.preview");
   return (
-    <BrowserFrame title="Meal Tracking" icon={UtensilsCrossed}>
+    <BrowserFrame title={t("frames.meals")} icon={UtensilsCrossed}>
       <div className="mb-2.5 flex items-center justify-between">
-        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
-          Wednesday · Lunch
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+          {t("mealSlot")}
         </p>
         <span className="rounded bg-success/10 px-1.5 py-0.5 text-[9px] font-bold text-success">
-          Saved
+          {t("saved")}
         </span>
       </div>
       <div className="space-y-1.5">
@@ -123,7 +126,7 @@ function MealsMock() {
                   : "bg-surface-raised text-foreground-muted"
               }`}
             >
-              {m.yes ? "Ate" : "Skip"}
+              {m.yes ? t("ate") : t("skip")}
             </span>
           </div>
         ))}
@@ -132,41 +135,42 @@ function MealsMock() {
   );
 }
 
-function ExpensesMock() {
+async function ExpensesMock() {
+  const t = await getTranslations("landing.preview");
   return (
-    <BrowserFrame title="Expense Management" icon={ReceiptText}>
+    <BrowserFrame title={t("frames.expenses")} icon={ReceiptText}>
       <div className="mb-2.5 flex items-center justify-between">
-        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
-          August 2026
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+          {t("month")}
         </p>
         <span className="text-[11px] font-bold text-foreground">
           ৳22,180{" "}
-          <span className="font-normal text-foreground-muted">total</span>
+          <span className="font-normal text-foreground-muted">{t("total")}</span>
         </span>
       </div>
       <div className="space-y-1.5">
-        {[
-          { l: "Bazaar — Weekly", by: "Adal", a: "৳4,250", c: "Bazaar" },
-          { l: "Internet bill", by: "Rahim", a: "৳1,200", c: "Utility" },
-          { l: "Gas refill", by: "Fahad", a: "৳950", c: "Utility" },
-          { l: "Cleaning supplies", by: "Karim", a: "৳480", c: "Other" },
-        ].map((e) => (
+        {([
+          { l: "bazaar", by: "Adal", a: "৳4,250", c: "bazaar" },
+          { l: "internet", by: "Rahim", a: "৳1,200", c: "utility" },
+          { l: "gas", by: "Fahad", a: "৳950", c: "utility" },
+          { l: "cleaning", by: "Karim", a: "৳480", c: "other" },
+        ] as const).map((e) => (
           <div
-            key={e.l}
+            key={t(`expenseRows.${e.l}`)}
             className="flex items-center justify-between rounded-lg bg-surface-raised/70 px-2.5 py-1.5"
           >
             <div className="min-w-0">
               <p className="truncate text-[11px] font-semibold text-foreground">
-                {e.l}
+                {t(`expenseRows.${e.l}`)}
               </p>
               <span className="text-[9px] text-foreground-muted">
-                by {e.by}
+                {t("by", { name: e.by })}
               </span>
             </div>
             <div className="text-right">
               <p className="text-[11px] font-bold text-foreground">{e.a}</p>
               <span className="rounded bg-primary/10 px-1 py-0.5 text-[8px] font-semibold text-primary">
-                {e.c}
+                {t(`tags.${e.c}`)}
               </span>
             </div>
           </div>
@@ -176,29 +180,30 @@ function ExpensesMock() {
   );
 }
 
-function ReportMock() {
+async function ReportMock() {
+  const t = await getTranslations("landing.preview");
   return (
-    <BrowserFrame title="Monthly Report" icon={FileBarChart}>
+    <BrowserFrame title={t("frames.report")} icon={FileBarChart}>
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
-          August 2026 · Summary
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+          {t("summary")}
         </p>
         <span className="rounded bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary">
-          Archived
+          {t("archived")}
         </span>
       </div>
       <div className="mt-2.5 grid grid-cols-3 gap-2">
-        {[
-          { l: "Meal Rate", v: "৳68.50", c: "text-primary" },
-          { l: "Total Meals", v: "324", c: "text-foreground" },
-          { l: "Net Balance", v: "+৳814", c: "text-success" },
-        ].map((s) => (
+        {([
+          { l: "mealRate", v: "৳68.50", c: "text-primary" },
+          { l: "totalMeals", v: "324", c: "text-foreground" },
+          { l: "netBalance", v: "+৳814", c: "text-success" },
+        ] as const).map((s) => (
           <div
-            key={s.l}
+            key={t(`stats.${s.l}`)}
             className="rounded-lg bg-surface-raised/70 p-2.5 text-center"
           >
             <p className="text-[9px] uppercase tracking-wide text-foreground-muted">
-              {s.l}
+              {t(`stats.${s.l}`)}
             </p>
             <p className={`mt-0.5 text-sm font-bold ${s.c}`}>{s.v}</p>
           </div>
@@ -229,7 +234,8 @@ function ReportMock() {
   );
 }
 
-export function ProductPreviewSection() {
+export async function ProductPreviewSection() {
+  const t = await getTranslations("landing.preview");
   return (
     <section
       id="preview"
@@ -237,14 +243,9 @@ export function ProductPreviewSection() {
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Preview"
-          title={
-            <>
-              A Look Inside,{" "}
-              <span className="text-primary">Not a Screenshot in Sight</span>
-            </>
-          }
-          subtitle="Real product screens drawn with the same interface you'll use — every figure is the actual design language of MessMate."
+          eyebrow={t("eyebrow")}
+          title={t.rich("title", richAccent)}
+          subtitle={t("subtitle")}
         />
 
         <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">

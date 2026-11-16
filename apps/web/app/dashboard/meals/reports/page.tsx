@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState, useMemo, useCallback } from "react";
 import { useGetMyMess } from "../../../hooks/use-messes";
 import { useGetActiveMonth } from "../../../hooks/use-months";
@@ -71,6 +72,7 @@ function MealCell({
 }
 
 function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
+  const t = useTranslations("pages.mealsReports");
   const [date, setDate] = useState(() => {
     const d = new Date();
     return d.toISOString().split("T")[0] ?? "";
@@ -176,7 +178,7 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-foreground">Date:</label>
+        <label className="text-sm font-medium text-foreground">{t("date")}</label>
         <input
           type="date"
           value={date}
@@ -194,7 +196,7 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
             className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
           >
             <Edit3 size={14} />
-            Edit Meals
+            {t("editMeals")}
           </button>
         )}
         {isEditing && (
@@ -206,7 +208,7 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
               className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
             >
               <X size={14} />
-              Cancel
+              {t("cancel")}
             </button>
             <button
               type="button"
@@ -219,7 +221,7 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
               ) : (
                 <Save size={14} />
               )}
-              Save Changes
+              {t("saveChanges")}
             </button>
           </>
         )}
@@ -242,20 +244,20 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
           <Calendar size={32} className="mx-auto mb-3 text-foreground-muted" />
           <p className="text-sm text-foreground-muted">
-            No meals recorded for this date.
+            {t("noMealsRecordedDate")}
           </p>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-lg border border-border bg-surface p-3">
-              <p className="text-xs text-foreground-muted">Members</p>
+              <p className="text-xs text-foreground-muted">{t("members")}</p>
               <p className="text-lg font-bold text-foreground">
                 {report.summary.total_members}
               </p>
             </div>
             <div className="rounded-lg border border-border bg-surface p-3">
-              <p className="text-xs text-foreground-muted">Total Meals</p>
+              <p className="text-xs text-foreground-muted">{t("totalMeals")}</p>
               <p className="text-lg font-bold text-foreground">
                 {report.summary.total_meals}
               </p>
@@ -282,7 +284,7 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
               <thead>
                 <tr className="border-b border-border">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-foreground-muted">
-                    Member
+                    {t("member")}
                   </th>
                   {Object.entries(report.summary.meal_type_totals).map(
                     ([key]) => (
@@ -295,7 +297,7 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
                     ),
                   )}
                   <th className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted">
-                    Total
+                    {t("total")}
                   </th>
                 </tr>
               </thead>
@@ -351,11 +353,12 @@ function EditDailyGrid({
   getValue: (memberId: string, mealTypeId: string) => number;
   updateValue: (memberId: string, mealTypeId: string, delta: number) => void;
 }) {
+  const t = useTranslations("pages.mealsReports");
   if (members.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-surface p-8 text-center">
         <p className="text-sm text-foreground-muted">
-          No members in this mess yet.
+          {t("noMembersMessYet")}
         </p>
       </div>
     );
@@ -365,7 +368,7 @@ function EditDailyGrid({
     return (
       <div className="rounded-xl border border-border bg-surface p-8 text-center">
         <p className="text-sm text-foreground-muted">
-          No active meal types. Add meal types from the main meals page.
+          {t("noActiveMealTypes")}
         </p>
       </div>
     );
@@ -377,7 +380,7 @@ function EditDailyGrid({
         <thead>
           <tr className="border-b border-border">
             <th className="px-4 py-3 text-left text-xs font-semibold text-foreground-muted">
-              Member
+              {t("member")}
             </th>
             {mealTypes.map((mt) => (
               <th
@@ -391,7 +394,7 @@ function EditDailyGrid({
               </th>
             ))}
             <th className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted">
-              Total
+              {t("total")}
             </th>
           </tr>
         </thead>
@@ -448,6 +451,7 @@ function MemberReport({
   messId: string;
   monthId: string;
 }) {
+  const t = useTranslations("pages.mealsReports");
   const [selectedMemberId, setSelectedMemberId] = useState<string>("");
   const { data: members } = useMembers(messId, { status: "ACTIVE" });
   const { data: mealTypes } = useGetMealTypes(messId);
@@ -470,13 +474,13 @@ function MemberReport({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-foreground">Member:</label>
+        <label className="text-sm font-medium text-foreground">{t("member2")}</label>
         <select
           value={selectedMemberId}
           onChange={(e) => setSelectedMemberId(e.target.value)}
           className="rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
         >
-          <option value="">Select a member</option>
+          <option value="">{t("selectMember")}</option>
           {(members ?? []).map((m) => (
             <option key={m.user_id} value={m.id}>
               {m.user.name}
@@ -489,7 +493,7 @@ function MemberReport({
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
           <User size={32} className="mx-auto mb-3 text-foreground-muted" />
           <p className="text-sm text-foreground-muted">
-            Select a member to view their meal report.
+            {t("selectMemberViewTheir")}
           </p>
         </div>
       ) : isLoading ? (
@@ -506,26 +510,26 @@ function MemberReport({
       ) : !report || report.entries.length === 0 ? (
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
           <p className="text-sm text-foreground-muted">
-            No meals recorded for this member in this month.
+            {t("noMealsRecordedMember")}
           </p>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-lg border border-border bg-surface p-3">
-              <p className="text-xs text-foreground-muted">Total Meals</p>
+              <p className="text-xs text-foreground-muted">{t("totalMeals")}</p>
               <p className="text-lg font-bold text-foreground">
                 {report.summary.total_meals}
               </p>
             </div>
             <div className="rounded-lg border border-border bg-surface p-3">
-              <p className="text-xs text-foreground-muted">Days with Meals</p>
+              <p className="text-xs text-foreground-muted">{t("daysMeals")}</p>
               <p className="text-lg font-bold text-foreground">
                 {report.summary.total_entries}
               </p>
             </div>
             <div className="rounded-lg border border-border bg-surface p-3">
-              <p className="text-xs text-foreground-muted">Avg/Day</p>
+              <p className="text-xs text-foreground-muted">{t("avgDay")}</p>
               <p className="text-lg font-bold text-foreground">
                 {report.summary.average_meals_per_day}
               </p>
@@ -552,7 +556,7 @@ function MemberReport({
               <thead>
                 <tr className="border-b border-border">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-foreground-muted">
-                    Date
+                    {t("date2")}
                   </th>
                   {Object.entries(report.summary.meal_type_totals).map(
                     ([key]) => (
@@ -565,7 +569,7 @@ function MemberReport({
                     ),
                   )}
                   <th className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted">
-                    Total
+                    {t("total")}
                   </th>
                 </tr>
               </thead>
@@ -616,6 +620,7 @@ function MonthlySummary({
   messId: string;
   monthId: string;
 }) {
+  const t = useTranslations("pages.mealsReports");
   const summaryQuery = useGetMonthMealSummary(messId, monthId);
   const { data: summary, isLoading } = summaryQuery;
   const { data: mealTypes } = useGetMealTypes(messId);
@@ -652,7 +657,7 @@ function MonthlySummary({
       <div className="rounded-xl border border-border bg-surface p-8 text-center">
         <BarChart3 size={32} className="mx-auto mb-3 text-foreground-muted" />
         <p className="text-sm text-foreground-muted">
-          No meal data available for this month.
+          {t("noMealDataAvailable")}
         </p>
       </div>
     );
@@ -662,19 +667,19 @@ function MonthlySummary({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-lg border border-border bg-surface p-3">
-          <p className="text-xs text-foreground-muted">Total Meals</p>
+          <p className="text-xs text-foreground-muted">{t("totalMeals")}</p>
           <p className="text-lg font-bold text-foreground">
             {summary.total_meals}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-surface p-3">
-          <p className="text-xs text-foreground-muted">Active Days</p>
+          <p className="text-xs text-foreground-muted">{t("activeDays")}</p>
           <p className="text-lg font-bold text-foreground">
             {summary.active_days}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-surface p-3">
-          <p className="text-xs text-foreground-muted">Total Entries</p>
+          <p className="text-xs text-foreground-muted">{t("totalEntries")}</p>
           <p className="text-lg font-bold text-foreground">
             {summary.total_entries}
           </p>
@@ -699,10 +704,10 @@ function MonthlySummary({
           <thead>
             <tr className="border-b border-border">
               <th className="px-4 py-3 text-left text-xs font-semibold text-foreground-muted">
-                Member
+                {t("member")}
               </th>
               <th className="px-3 py-3 text-center text-xs font-semibold text-foreground-muted">
-                Days
+                {t("days")}
               </th>
               {Object.entries(summary.meal_type_totals).map(([key]) => (
                 <th
@@ -713,7 +718,7 @@ function MonthlySummary({
                 </th>
               ))}
               <th className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted">
-                Total
+                {t("total")}
               </th>
             </tr>
           </thead>
@@ -756,6 +761,7 @@ function MonthlySummary({
 }
 
 export default function MealReportsPage() {
+  const t = useTranslations("pages.mealsReports");
   const messQuery = useGetMyMess();
   const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
@@ -766,9 +772,9 @@ export default function MealReportsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("monthly");
 
   const tabs: { key: Tab; label: string; icon: typeof Calendar }[] = [
-    { key: "monthly", label: "Monthly Summary", icon: BarChart3 },
-    { key: "daily", label: "Daily Report", icon: Calendar },
-    { key: "member", label: "Member Report", icon: User },
+    { key: "monthly", label: t("monthlySummary"), icon: BarChart3 },
+    { key: "daily", label: t("dailyReport"), icon: Calendar },
+    { key: "member", label: t("memberReport"), icon: User },
   ];
 
   const isLoading = messLoading || monthLoading;
@@ -794,14 +800,14 @@ export default function MealReportsPage() {
     return (
       <>
         <div className="mb-8">
-          <p className="label-mono text-primary">Meal Reports</p>
+          <p className="label-mono text-primary">{t("mealReports")}</p>
           <h1 className="mt-2 heading-tight text-3xl text-foreground">
-            Meal Reports
+            {t("mealReports")}
           </h1>
         </div>
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
           <p className="text-sm text-foreground-muted">
-            No active month. Start a month from the dashboard to view reports.
+            {t("noActiveMonthStart")}
           </p>
         </div>
       </>
@@ -811,7 +817,7 @@ export default function MealReportsPage() {
   return (
     <>
       <div className="mb-8">
-        <p className="label-mono text-primary">Meal Reports</p>
+        <p className="label-mono text-primary">{t("mealReports")}</p>
         <h1 className="mt-2 heading-tight text-3xl text-foreground">
           {activeMonth.title}
         </h1>

@@ -10,38 +10,41 @@ import {
   Wallet,
   Users,
 } from "lucide-react";
-import { SectionHeading } from "./ui";
+import { getTranslations } from "next-intl/server";
+import { SectionHeading, richAccent } from "./ui";
 import { Reveal } from "./Reveal";
 
 const MANAGER_FEATURES = [
-  { icon: Settings2, text: "Create the mess and configure meal types" },
-  { icon: ReceiptText, text: "Approve and manage all expenses" },
-  { icon: NotebookPen, text: "Bulk-enter meals to save time" },
-  { icon: CalendarRange, text: "Open and close monthly cycles" },
-  { icon: Users, text: "Invite members and manage roles" },
-];
+  { icon: Settings2, key: "f1" },
+  { icon: ReceiptText, key: "f2" },
+  { icon: NotebookPen, key: "f3" },
+  { icon: CalendarRange, key: "f4" },
+  { icon: Users, key: "f5" },
+] as const;
 
 const MEMBER_FEATURES = [
-  { icon: UtensilsCrossed, text: "Record their own meals in one tap" },
-  { icon: ReceiptText, text: "Add and see every expense" },
-  { icon: Wallet, text: "Deposit money against the shared ledger" },
-  { icon: Users, text: "See the live meal rate and own balance" },
-  { icon: CalendarRange, text: "Audit the full mess-wide activity log" },
-];
+  { icon: UtensilsCrossed, key: "f1" },
+  { icon: ReceiptText, key: "f2" },
+  { icon: Wallet, key: "f3" },
+  { icon: Users, key: "f4" },
+  { icon: CalendarRange, key: "f5" },
+] as const;
 
-function RoleCard({
+async function RoleCard({
   icon: Icon,
-  title,
-  badge,
+  role,
   accent,
   features,
 }: {
   icon: React.ElementType;
-  title: string;
-  badge: string;
+  role: "manager" | "member";
   accent: string;
-  features: { icon: React.ElementType; text: string }[];
+  features: ReadonlyArray<{
+    icon: React.ElementType;
+    key: "f1" | "f2" | "f3" | "f4" | "f5";
+  }>;
 }) {
+  const t = await getTranslations(`landing.roles.${role}`);
   return (
     <div className="flex h-full flex-col rounded-2xl border border-border bg-surface-raised/50 p-6 transition-all duration-300 hover:border-primary/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 lg:p-8">
       <div className="flex items-center justify-between">
@@ -52,30 +55,28 @@ function RoleCard({
         </span>
         <span
           className={`rounded-full px-3 py-1 text-[11px] font-bold ${
-            title === "Managers"
+            role === "manager"
               ? "bg-accent-warm/15 text-accent-warm"
               : "bg-primary/15 text-primary"
           }`}
         >
-          {badge}
+          {t("badge")}
         </span>
       </div>
       <h3 className="mt-5 text-xl font-bold text-foreground font-heading">
-        {title}
+        {t("title")}
       </h3>
       <p className="mt-1.5 text-sm text-foreground-muted">
-        {title === "Managers"
-          ? "Run the mess. Keep everyone honest — by design."
-          : "Just live in the mess. Stay fully in the loop."}
+        {t("tagline")}
       </p>
       <ul className="mt-6 space-y-3.5">
         {features.map((f) => (
-          <li key={f.text} className="flex items-start gap-3">
+          <li key={f.key} className="flex items-start gap-3">
             <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <f.icon className="size-3.5" />
             </span>
             <span className="text-sm leading-relaxed text-foreground-muted">
-              {f.text}
+              {t(f.key)}
             </span>
           </li>
         ))}
@@ -84,9 +85,7 @@ function RoleCard({
         <div className="flex items-start gap-2 rounded-xl border border-success/25 bg-success/5 p-3">
           <Check className="mt-0.5 size-4 shrink-0 text-success" />
           <p className="text-xs leading-relaxed text-foreground-muted">
-            {title === "Managers"
-              ? "Every manager action is logged and visible to the mess."
-              : "Members see everything managers see — no secrets, no surprises."}
+            {t("note")}
           </p>
         </div>
       </div>
@@ -94,27 +93,22 @@ function RoleCard({
   );
 }
 
-export function RoleSection() {
+export async function RoleSection() {
+  const t = await getTranslations("landing.roles");
   return (
     <section className="border-y border-border bg-surface-sunken py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Roles, Not Tiers"
-          title={
-            <>
-              Managers Run It.{" "}
-              <span className="text-primary">Members Own It.</span>
-            </>
-          }
-          subtitle="MessMate keeps two clear roles. No paid tiers, no paywalls — just a shared living arrangement that finally has structure."
+          eyebrow={t("eyebrow")}
+          title={t.rich("title", richAccent)}
+          subtitle={t("subtitle")}
         />
 
         <div className="mx-auto mt-14 grid max-w-4xl grid-cols-1 gap-6 lg:grid-cols-2">
           <Reveal>
             <RoleCard
               icon={Crown}
-              title="Managers"
-              badge="Up to 2 per mess"
+              role="manager"
               accent="text-accent-warm bg-accent-warm/10 ring-accent-warm/25"
               features={MANAGER_FEATURES}
             />
@@ -122,8 +116,7 @@ export function RoleSection() {
           <Reveal delay={120}>
             <RoleCard
               icon={UserRound}
-              title="Members"
-              badge="Everyone else"
+              role="member"
               accent="text-primary bg-primary/10 ring-primary/25"
               features={MEMBER_FEATURES}
             />
@@ -132,9 +125,7 @@ export function RoleSection() {
 
         <Reveal delay={120}>
           <p className="mx-auto mt-8 max-w-xl text-center text-sm text-foreground-muted">
-            Max two managers per mess, both with equal permissions. No
-            hierarchies, no owner seats — just two people keeping the books
-            honest.
+            {t("footnote")}
           </p>
         </Reveal>
       </div>

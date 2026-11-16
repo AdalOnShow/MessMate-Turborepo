@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
@@ -10,6 +11,7 @@ interface GoogleSignInButtonProps {
 export function GoogleSignInButton({
   isLoading = false,
 }: GoogleSignInButtonProps) {
+  const t = useTranslations("auth.google");
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleGoogleSignIn = () => {
@@ -54,7 +56,7 @@ export function GoogleSignInButton({
           />
         </svg>
       )}
-      {isRedirecting ? "Redirecting to Google..." : "Continue with Google"}
+      {isRedirecting ? t("redirecting") : t("continue")}
     </button>
   );
 }

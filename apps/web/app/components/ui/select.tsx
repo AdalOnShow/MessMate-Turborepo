@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 interface SelectOption {
@@ -19,7 +20,7 @@ export function Select({
   value,
   onValueChange,
   options,
-  placeholder = "Select...",
+  placeholder = "select",
   className = "",
 }: SelectProps) {
   const [open, setOpen] = useState(false);

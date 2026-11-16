@@ -15,20 +15,22 @@ import {
   WalletCards,
 } from "lucide-react";
 import { useGetMyMess } from "../../hooks/use-messes";
+import { useTranslations } from "next-intl";
 
 const navItems = [
-  { href: "/dashboard", label: "Home", icon: Home },
-  { href: "/dashboard/members", label: "Members", icon: Users },
-  { href: "/dashboard/months", label: "Months", icon: Calendar },
-  { href: "/dashboard/meals", label: "Meals", icon: Utensils },
-  { href: "/dashboard/bazaar", label: "Bazaar", icon: ShoppingCart },
-  { href: "/dashboard/expenses", label: "Expenses", icon: ReceiptText },
-  { href: "/dashboard/deposits", label: "Deposits", icon: WalletCards },
-  { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-  { href: "/dashboard/profile", label: "Profile", icon: User },
-];
+  { href: "/dashboard", label: "home", icon: Home },
+  { href: "/dashboard/members", label: "members", icon: Users },
+  { href: "/dashboard/months", label: "months", icon: Calendar },
+  { href: "/dashboard/meals", label: "meals", icon: Utensils },
+  { href: "/dashboard/bazaar", label: "bazaar", icon: ShoppingCart },
+  { href: "/dashboard/expenses", label: "expenses", icon: ReceiptText },
+  { href: "/dashboard/deposits", label: "deposits", icon: WalletCards },
+  { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
+  { href: "/dashboard/profile", label: "profile", icon: User },
+] as const;
 
 export function BottomNav() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const { data: myMess } = useGetMyMess();
   const isManager = myMess?.current_user_role === "MANAGER";
@@ -57,7 +59,7 @@ export function BottomNav() {
                 aria-hidden="true"
               />
               <span className="font-mono text-[9px] font-medium uppercase leading-none tracking-wider">
-                {item.label}
+                {t(item.label)}
               </span>
             </Link>
           );
@@ -78,7 +80,7 @@ export function BottomNav() {
               aria-hidden="true"
             />
             <span className="font-mono text-[9px] font-medium uppercase leading-none tracking-wider">
-              Settings
+              {t("settings")}
             </span>
           </Link>
         )}

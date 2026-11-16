@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import {
   ArrowDownLeft,
@@ -56,6 +57,7 @@ function FinanceRow({
 }
 
 export function MemberMonthSummary() {
+  const t = useTranslations("dashboard.memberMonthSummary");
   const { data: myMess } = useGetMyMess();
   const messId = myMess?.id;
   const memberQuery = useMemberDashboard(messId);
@@ -67,16 +69,20 @@ export function MemberMonthSummary() {
     balance > 0 ? "success" : balance < 0 ? "destructive" : "neutral";
   const balanceSign = balance > 0 ? "+" : balance < 0 ? "−" : "";
   const balanceLabel =
-    balance > 0 ? "In surplus" : balance < 0 ? "Amount due" : "Settled";
+    balance > 0
+      ? t("inSurplus")
+      : balance < 0
+        ? t("amountDue")
+        : t("settled");
 
   return (
     <BentoCard className="p-6 lg:col-span-2">
       <CardHeading
         icon={<UserRound size={15} />}
-        title="Your month summary"
+        title={t("monthSummary")}
         action={
           <CardActionLink href="/dashboard/months">
-            View Month <BarChart3 size={12} />
+            {t("viewMonth")}<BarChart3 size={12} />
           </CardActionLink>
         }
       />
@@ -105,34 +111,34 @@ export function MemberMonthSummary() {
               {member?.month_title}
             </span>
             <span className="rounded-[5px] border border-success/25 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] bg-success/10 text-success">
-              Active
+              {t("active")}
             </span>
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             <FinanceRow
               icon={<Landmark size={15} />}
-              label="My deposits"
+              label={t("myDeposits")}
               value={formatMoney(member?.deposit_amount ?? 0)}
             />
             <FinanceRow
               icon={<ReceiptText size={15} />}
-              label="My bill"
+              label={t("myBill")}
               value={formatMoney(member?.final_bill ?? 0)}
             />
             <FinanceRow
               icon={<ChefHat size={15} />}
-              label="Meal cost"
+              label={t("mealCost")}
               value={formatMoney(member?.meal_cost ?? 0)}
             />
             <FinanceRow
               icon={<UserRound size={15} />}
-              label="Shared cost"
+              label={t("sharedCost")}
               value={formatMoney(member?.shared_cost ?? 0)}
             />
             <FinanceRow
               icon={<UserRound size={15} />}
-              label="Individual cost"
+              label={t("individualCost")}
               value={formatMoney(member?.individual_cost ?? 0)}
             />
             <div className="rounded-xl border border-success/15 bg-success/[0.06] px-4 py-3">
@@ -146,7 +152,7 @@ export function MemberMonthSummary() {
                     ) : (
                       <Scale size={13} className="text-primary" />
                     )}
-                    Current balance
+                    {t("currentBalance")}
                   </p>
                   <p
                     className={`mt-1 text-[11px] font-medium ${
@@ -190,7 +196,7 @@ export function MemberMonthSummary() {
               </span>
               <span className="text-foreground-muted/40">·</span>
               <span className="text-[10px] uppercase tracking-wider text-foreground-muted">
-                carried from previous month
+                {t("carriedFromPreviousMonth")}
               </span>
             </div>
           ) : null}
@@ -198,7 +204,7 @@ export function MemberMonthSummary() {
           <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 border-t border-border pt-4">
             <div>
               <p className="text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
-                My meals
+                {t("myMeals")}
               </p>
               <p className="mt-0.5 text-lg font-bold text-foreground">
                 {member?.total_meals ?? 0}
@@ -206,7 +212,7 @@ export function MemberMonthSummary() {
             </div>
             <div>
               <p className="text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
-                Meal rate
+                {t("mealRate")}
               </p>
               <p className="mt-0.5 text-lg font-bold text-foreground">
                 {typeof member?.meal_rate === "number"
@@ -216,10 +222,10 @@ export function MemberMonthSummary() {
             </div>
             <div>
               <p className="text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
-                Meals report
+                {t("mealsReport")}
               </p>
               <CardActionLink href="/dashboard/meals/reports">
-                Open reports <BarChart3 size={12} />
+                {t("openReports")}<BarChart3 size={12} />
               </CardActionLink>
             </div>
           </div>
@@ -227,11 +233,10 @@ export function MemberMonthSummary() {
       ) : (
         <div>
           <h2 className="text-xl font-bold tracking-tight text-foreground">
-            No active month
+            {t("noActiveMonth")}
           </h2>
           <p className="mt-2 max-w-sm text-sm text-foreground-muted">
-            Once a month is started, your personal meals, deposits, expenses,
-            and balance will show up here.
+            {t("onceMonthStartedPersonal")}
           </p>
         </div>
       )}

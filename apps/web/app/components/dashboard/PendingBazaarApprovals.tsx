@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { CheckCircle2, Loader2, ShoppingCart, XCircle } from "lucide-react";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetActiveMonth } from "../../hooks/use-months";
@@ -13,6 +14,7 @@ import { BentoCard, CardHeading } from "./bento";
 import { QueryErrorState } from "../feedback/QueryErrorState";
 
 export function PendingBazaarApprovals() {
+  const t = useTranslations("dashboard.pendingBazaarApprovals");
   const { data: myMess } = useGetMyMess();
   const messId = myMess?.id;
   const isManager = myMess?.current_user_role === "MANAGER";
@@ -30,11 +32,11 @@ export function PendingBazaarApprovals() {
     <BentoCard className="flex flex-col p-6 lg:col-span-2">
       <CardHeading
         icon={<ShoppingCart size={15} />}
-        title="Bazaar approvals"
+        title={t("bazaarApprovals")}
         action={
           pending.length > 0 ? (
             <span className="rounded-[5px] border border-accent-warm/25 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] bg-accent-warm/10 text-accent-warm">
-              {pending.length} pending
+              {pending.length}{" "}{t("pending")}
             </span>
           ) : undefined
         }
@@ -55,7 +57,7 @@ export function PendingBazaarApprovals() {
       ) : pending.length === 0 ? (
         <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border py-6">
           <p className="text-sm text-foreground-muted">
-            No bazaar submissions awaiting approval.
+            {t("noBazaarSubmissionsAwaiting")}
           </p>
         </div>
       ) : (
@@ -96,7 +98,7 @@ export function PendingBazaarApprovals() {
                   ) : (
                     <CheckCircle2 size={12} />
                   )}
-                  Approve
+                  {t("approve")}
                 </button>
                 <button
                   type="button"
@@ -109,7 +111,7 @@ export function PendingBazaarApprovals() {
                   ) : (
                     <XCircle size={12} />
                   )}
-                  Reject
+                  {t("reject")}
                 </button>
               </div>
             </div>

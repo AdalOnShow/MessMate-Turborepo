@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSessionStore } from "../../../store";
@@ -22,6 +23,7 @@ import {
 } from "../../feedback/QueryErrorState";
 
 export function MembersContent() {
+  const t = useTranslations("members.membersContent");
   const { user, isAuthenticated } = useSessionStore();
   const messQuery = useGetMyMess(isAuthenticated);
   const { data: myMess, isLoading: messLoading } = messQuery;
@@ -79,9 +81,9 @@ export function MembersContent() {
     <>
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="label-mono text-primary">Members</p>
+          <p className="label-mono text-primary">{t("members")}</p>
           <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
-            Mess Members
+            {t("messMembers")}
           </h1>
         </div>
         {isManager && (
@@ -91,13 +93,13 @@ export function MembersContent() {
               onClick={() => setAddDialogOpen(true)}
               className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
             >
-              Invite Member
+              {t("inviteMember")}
             </button>
             <Link
               href="/dashboard/members/create-account"
               className="rounded-lg border border-border-strong px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
             >
-              Create Member
+              {t("createMember")}
             </Link>
           </div>
         )}
@@ -122,12 +124,12 @@ export function MembersContent() {
               />
               <div className="rounded-xl border border-border bg-surface p-8 text-center sm:p-12">
                 <p className="text-lg font-semibold text-foreground">
-                  No members found
+                  {t("noMembersFound")}
                 </p>
                 <p className="mt-2 text-sm text-foreground-muted">
                   {filters.search || filters.role || filters.status
-                    ? "No members match your filters. Try adjusting your search."
-                    : "Add members to your mess to get started."}
+                    ? t("noMembersMatchFilters")
+                    : t("addMembersMessGet")}
                 </p>
                 <div className="mt-4 flex justify-center gap-3">
                   <button
@@ -135,13 +137,13 @@ export function MembersContent() {
                     onClick={() => setAddDialogOpen(true)}
                     className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
                   >
-                    Invite Member
+                    {t("inviteMember")}
                   </button>
                   <Link
                     href="/dashboard/members/create-account"
                     className="rounded-lg border border-border-strong px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
                   >
-                    Create Member
+                    {t("createMember")}
                   </Link>
                 </div>
               </div>
@@ -151,10 +153,10 @@ export function MembersContent() {
           {!isManager && (
             <div className="rounded-xl border border-border bg-surface p-8 text-center sm:p-12">
               <p className="text-lg font-semibold text-foreground">
-                No members found
+                {t("noMembersFound")}
               </p>
               <p className="mt-2 text-sm text-foreground-muted">
-                No members in this mess yet.
+                {t("noMembersMessYet")}
               </p>
             </div>
           )}

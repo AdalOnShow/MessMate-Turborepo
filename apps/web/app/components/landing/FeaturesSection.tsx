@@ -8,10 +8,11 @@ import {
   Check,
   Plus,
 } from "lucide-react";
-import { SectionHeading, Avatar } from "./ui";
+import { getTranslations } from "next-intl/server";
+import { SectionHeading, Avatar, richAccent } from "./ui";
 import { Reveal } from "./Reveal";
 
-const WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEK = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
 const MEAL_DAYS = [
   { lunch: 6, dinner: 5 },
@@ -24,10 +25,10 @@ const MEAL_DAYS = [
 ];
 
 const EXPENSES = [
-  { label: "Bazaar — Weekly", amount: "৳4,250", tag: "Bazaar", by: "Adal" },
-  { label: "Internet bill", amount: "৳1,200", tag: "Utility", by: "Rahim" },
-  { label: "Gas refill", amount: "৳950", tag: "Utility", by: "Fahad" },
-];
+  { key: "bazaar", amount: "৳4,250", tag: "bazaar", by: "Adal" },
+  { key: "internet", amount: "৳1,200", tag: "utility", by: "Rahim" },
+  { key: "gas", amount: "৳950", tag: "utility", by: "Fahad" },
+] as const;
 
 const DEPOSITS = [
   { name: "Adal Nawab", amount: "৳6,000", pct: "75%" },
@@ -36,18 +37,18 @@ const DEPOSITS = [
 ];
 
 const MEMBER_ROWS = [
-  { initials: "AN", name: "Adal Nawab", role: "Manager", highlight: true },
-  { initials: "FK", name: "Fahad Karim", role: "Manager", highlight: true },
-  { initials: "RU", name: "Rahim Uddin", role: "Member", highlight: false },
-  { initials: "KM", name: "Karim Mia", role: "Member", highlight: false },
-];
+  { initials: "AN", name: "Adal Nawab", role: "MANAGER", highlight: true },
+  { initials: "FK", name: "Fahad Karim", role: "MANAGER", highlight: true },
+  { initials: "RU", name: "Rahim Uddin", role: "MEMBER", highlight: false },
+  { initials: "KM", name: "Karim Mia", role: "MEMBER", highlight: false },
+] as const;
 
 const TIMELINE = [
-  { text: "Deposit recorded", who: "Rahim", when: "Today · 11:20 AM" },
-  { text: "Dinner meal added", who: "Adal", when: "Today · 9:02 AM" },
-  { text: "Bazaar expense approved", who: "Fahad", when: "Yesterday" },
-  { text: "September month started", who: "Adal", when: "Sep 1" },
-];
+  { key: "deposit", who: "Rahim", when: "today1120" },
+  { key: "dinner", who: "Adal", when: "today902" },
+  { key: "bazaar", who: "Fahad", when: "yesterday" },
+  { key: "month", who: "Adal", when: "sep1" },
+] as const;
 
 function CardShell({
   icon: Icon,
@@ -82,7 +83,9 @@ function CardShell({
   );
 }
 
-export function FeaturesSection() {
+export async function FeaturesSection() {
+  const t = await getTranslations("landing.features");
+  const tRole = await getTranslations("role");
   return (
     <section
       id="features"
@@ -90,31 +93,26 @@ export function FeaturesSection() {
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Features"
-          title={
-            <>
-              Everything Your Mess Needs,{" "}
-              <span className="text-primary">Nothing It Doesn&apos;t</span>
-            </>
-          }
-          subtitle="Six focused tools that replace the whole spreadsheet habit — clean, fast, and built specifically for shared living in Bangladesh."
+          eyebrow={t("eyebrow")}
+          title={t.rich("title", richAccent)}
+          subtitle={t("subtitle")}
         />
 
         <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-6">
           <Reveal className="md:col-span-4">
             <CardShell
               icon={UtensilsCrossed}
-              title="Meal Tracking"
-              description="Record who ate what, when. Dynamic meal types per mess — Lunch, Dinner, Sehri, or your own — with one-tap entry and bulk mode for managers."
+              title={t("meals.title")}
+              description={t("meals.description")}
             >
               <div className="h-full rounded-xl border border-border bg-background p-4">
                 <div className="grid grid-cols-7 gap-1.5 text-center">
                   {WEEK.map((d) => (
                     <span
                       key={d}
-                      className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted"
+                      className="text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted"
                     >
-                      {d}
+                      {t(`week.${d}`)}
                     </span>
                   ))}
                   {MEAL_DAYS.map((day, i) => (
@@ -140,7 +138,8 @@ export function FeaturesSection() {
                             : "bg-primary/10 text-primary"
                         }`}
                       >
-                        {day.lunch}L
+                        {day.lunch}
+                        {t("lunchShort")}
                       </span>
                       <span
                         className={`mt-0.5 block rounded px-0.5 text-[9px] font-bold ${
@@ -149,18 +148,21 @@ export function FeaturesSection() {
                             : "bg-accent-warm/10 text-accent-warm"
                         }`}
                       >
-                        {day.dinner}D
+                        {day.dinner}
+                        {t("dinnerShort")}
                       </span>
                     </div>
                   ))}
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs">
                   <span className="font-semibold text-foreground">
-                    Today&apos;s tally
+                    {t("meals.todayTally")}
                   </span>
                   <span className="text-foreground-muted">
-                    14 meals ·{" "}
-                    <span className="font-bold text-primary">5 members</span>
+                    {t("meals.mealsCount", { count: 14 })} ·{" "}
+                    <span className="font-bold text-primary">
+                      {t("meals.membersCount", { count: 5 })}
+                    </span>
                   </span>
                 </div>
               </div>
@@ -170,21 +172,21 @@ export function FeaturesSection() {
           <Reveal delay={90} className="md:col-span-2">
             <CardShell
               icon={ReceiptText}
-              title="Expense Management"
-              description="Log every taka as it's spent. Bazaar, utilities, gas — categorised, searchable, and always tied to a month."
+              title={t("expenses.title")}
+              description={t("expenses.description")}
             >
               <div className="space-y-2 rounded-xl border border-border bg-background p-3.5">
                 {EXPENSES.map((e) => (
                   <div
-                    key={e.label}
+                    key={e.key}
                     className="flex items-center justify-between gap-2 rounded-lg bg-surface-raised/70 px-3 py-2"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-xs font-semibold text-foreground">
-                        {e.label}
+                        {t(`expenses.rows.${e.key}`)}
                       </p>
                       <span className="text-[10px] text-foreground-muted">
-                        by {e.by}
+                        {t("expenses.by", { name: e.by })}
                       </span>
                     </div>
                     <div className="text-right">
@@ -192,7 +194,7 @@ export function FeaturesSection() {
                         {e.amount}
                       </p>
                       <span className="inline-flex rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold text-primary">
-                        {e.tag}
+                        {t(`expenses.tags.${e.tag}`)}
                       </span>
                     </div>
                   </div>
@@ -201,7 +203,7 @@ export function FeaturesSection() {
                   type="button"
                   className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border-strong py-2 text-[11px] font-semibold text-foreground-muted transition-colors hover:border-primary/40 hover:text-primary"
                 >
-                  <Plus className="size-3.5" /> Add Expense
+                  <Plus className="size-3.5" /> {t("expenses.add")}
                 </button>
               </div>
             </CardShell>
@@ -210,8 +212,8 @@ export function FeaturesSection() {
           <Reveal delay={90} className="md:col-span-2">
             <CardShell
               icon={Wallet}
-              title="Deposit Tracking"
-              description="One running ledger per member. See exactly who has paid, who hasn't, and what your mess is up to."
+              title={t("deposits.title")}
+              description={t("deposits.description")}
             >
               <div className="space-y-2.5 rounded-xl border border-border bg-background p-3.5">
                 {DEPOSITS.map((d) => (
@@ -231,7 +233,9 @@ export function FeaturesSection() {
                   </div>
                 ))}
                 <div className="flex items-center justify-between rounded-lg bg-primary/5 px-3 py-2 text-xs">
-                  <span className="text-foreground-muted">Collected</span>
+                  <span className="text-foreground-muted">
+                    {t("deposits.collected")}
+                  </span>
                   <span className="font-bold text-primary">
                     ৳28,500 / ৳30,000
                   </span>
@@ -243,33 +247,33 @@ export function FeaturesSection() {
           <Reveal className="md:col-span-4">
             <CardShell
               icon={Calculator}
-              title="Monthly Accounting"
-              description="Meal rates, member bills, and net balances are calculated the same way every month — no arithmetic, no disputes."
+              title={t("accounting.title")}
+              description={t("accounting.description")}
             >
               <div className="rounded-xl border border-border bg-background p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="flex-1 rounded-lg bg-surface-raised/80 px-3.5 py-2.5 min-w-[130px]">
                     <p className="text-[10px] uppercase tracking-wider text-foreground-muted">
-                      Total Expense
+                      {t("accounting.totalExpense")}
                     </p>
                     <p className="text-sm font-bold text-foreground">৳22,180</p>
                   </div>
                   <span className="font-bold text-primary">÷</span>
                   <div className="flex-1 rounded-lg bg-surface-raised/80 px-3.5 py-2.5 min-w-[110px]">
                     <p className="text-[10px] uppercase tracking-wider text-foreground-muted">
-                      Total Meals
+                      {t("accounting.totalMeals")}
                     </p>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-bold text-foreground">324</p>
                       <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold text-primary">
-                        8 members
+                        {t("meals.membersCount", { count: 8 })}
                       </span>
                     </div>
                   </div>
                   <span className="font-bold text-primary">=</span>
                   <div className="flex-1 rounded-lg bg-primary/10 ring-1 ring-primary/30 px-3.5 py-2.5 min-w-[130px]">
                     <p className="text-[10px] uppercase tracking-wider text-primary">
-                      Meal Rate
+                      {t("accounting.mealRate")}
                     </p>
                     <p className="text-sm font-bold text-primary">৳68.50</p>
                   </div>
@@ -290,7 +294,7 @@ export function FeaturesSection() {
                       </span>{" "}
                       {m.meals} × ৳68.50 ={" "}
                       <span className="font-bold text-foreground">
-                        ৳{(m.meals * 68.5).toLocaleString()}
+                        ৳{(m.meals * 68.5).toLocaleString("en-US")}
                       </span>
                     </span>
                   ))}
@@ -302,21 +306,21 @@ export function FeaturesSection() {
           <Reveal className="md:col-span-4">
             <CardShell
               icon={Activity}
-              title="Activity History"
-              description="Every meal, expense, deposit, and month transition leaves a trace. Nobody can claim they didn't see it — the record is public to the mess."
+              title={t("activity.title")}
+              description={t("activity.description")}
             >
               <div className="relative rounded-xl border border-border bg-background p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
-                    Mess-wide activity
+                  <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+                    {t("activity.label")}
                   </p>
                   <span className="rounded bg-success/10 px-1.5 py-0.5 text-[10px] font-bold text-success">
-                    Live
+                    {t("activity.live")}
                   </span>
                 </div>
                 <div className="mt-3 space-y-3">
                   {TIMELINE.map((row, i) => (
-                    <div key={row.text} className="flex gap-3">
+                    <div key={row.key} className="flex gap-3">
                       <div className="flex flex-col items-center">
                         <span className="size-2 rounded-full bg-primary" />
                         {i < TIMELINE.length - 1 && (
@@ -328,10 +332,10 @@ export function FeaturesSection() {
                           <span className="font-semibold text-foreground">
                             {row.who}
                           </span>{" "}
-                          {row.text}
+                          {t(`activity.rows.${row.key}`)}
                         </p>
                         <span className="text-[10px] text-foreground-muted/70">
-                          {row.when}
+                          {t(`activity.when.${row.when}`)}
                         </span>
                       </div>
                     </div>
@@ -344,8 +348,8 @@ export function FeaturesSection() {
           <Reveal delay={90} className="md:col-span-2">
             <CardShell
               icon={Users}
-              title="Member Management"
-              description="Invite with a secure code, set roles, and let the app handle who is who — up to two managers, clearly marked."
+              title={t("members.title")}
+              description={t("members.description")}
             >
               <div className="space-y-2 rounded-xl border border-border bg-background p-3.5">
                 {MEMBER_ROWS.map((m) => (
@@ -363,7 +367,7 @@ export function FeaturesSection() {
                       </p>
                       {m.highlight && (
                         <span className="text-[10px] font-semibold text-accent-warm">
-                          {m.role}
+                          {tRole(m.role)}
                         </span>
                       )}
                     </div>
@@ -371,13 +375,13 @@ export function FeaturesSection() {
                       <Check className="size-4 text-success" />
                     ) : (
                       <span className="text-[10px] text-foreground-muted">
-                        {m.role}
+                        {tRole(m.role)}
                       </span>
                     )}
                   </div>
                 ))}
                 <div className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-border-strong py-2 text-[11px] font-semibold text-foreground-muted">
-                  <Users className="size-3.5" /> Invite Member
+                  <Users className="size-3.5" /> {t("members.invite")}
                 </div>
               </div>
             </CardShell>

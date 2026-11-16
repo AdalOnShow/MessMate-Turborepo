@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
 import { ErrorScreen } from "./components/feedback/ErrorScreen";
@@ -11,6 +12,7 @@ export default function RootError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("misc.error");
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -19,12 +21,12 @@ export default function RootError({
     <ErrorScreen
       fullScreen
       icon={AlertTriangle}
-      title="Something went wrong"
-      description="An unexpected error occurred while loading this page. Please try again. If it keeps happening, let us know with the reference below."
+      title={t("somethingWentWrong")}
+      description={t("unexpectedErrorOccurredWhile")}
       reference={error.digest}
       onRetry={reset}
       homeHref="/"
-      homeLabel="Go home"
+      homeLabel={t("goHome")}
     />
   );
 }

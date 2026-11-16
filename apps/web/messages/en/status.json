@@ -1,0 +1,9 @@
+{
+  "ACTIVE": "Active",
+  "CLOSED": "Closed",
+  "ARCHIVED": "Archived",
+  "PENDING": "Pending",
+  "APPROVED": "Approved",
+  "REJECTED": "Rejected",
+  "REMOVED": "Removed"
+}

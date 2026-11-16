@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ChefHat, Landmark, Receipt, SquarePen, Users } from "lucide-react";
 import { useGetMyMess } from "../../hooks/use-messes";
@@ -9,34 +10,35 @@ const ACTIONS = [
   {
     href: "/dashboard/meals",
     icon: ChefHat,
-    label: "Add Meal",
-    hint: "Record today's meals",
+    label: "addMeal",
+    hint: "recordTodaySMeals",
     managerOnly: false,
   },
   {
     href: "/dashboard/expenses",
     icon: Receipt,
-    label: "Add Expense",
-    hint: "Create shared or individual expense",
+    label: "addExpense",
+    hint: "createSharedOrIndividual",
     managerOnly: true,
   },
   {
     href: "/dashboard/deposits",
     icon: Landmark,
-    label: "Add Deposit",
-    hint: "Record a member deposit",
+    label: "addDeposit",
+    hint: "recordMemberDeposit",
     managerOnly: true,
   },
   {
     href: "/dashboard/members",
     icon: Users,
-    label: "Manage Members",
-    hint: "Roles, invites, and removal",
+    label: "manageMembers",
+    hint: "rolesInvitesRemoval",
     managerOnly: true,
   },
 ] as const;
 
 export function QuickActions() {
+  const t = useTranslations("dashboard.quickActions");
   const { data: myMess } = useGetMyMess();
   const isManager = myMess?.current_user_role === "MANAGER";
 
@@ -44,7 +46,7 @@ export function QuickActions() {
 
   return (
     <BentoCard className="flex flex-col p-6 lg:col-span-1">
-      <CardHeading icon={<SquarePen size={15} />} title="Quick actions" />
+      <CardHeading icon={<SquarePen size={15} />} title={t("quickActions")} />
 
       <div className="flex-1 space-y-2">
         {actions.map((a) => (
@@ -58,10 +60,10 @@ export function QuickActions() {
             </span>
             <span className="min-w-0">
               <span className="block text-sm font-semibold text-foreground">
-                {a.label}
+                {t(a.label)}
               </span>
               <span className="block truncate text-xs text-foreground-muted">
-                {a.hint}
+                {t(a.hint)}
               </span>
             </span>
           </Link>

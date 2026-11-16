@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../store";
@@ -14,6 +15,7 @@ import { Check, Loader2, Pencil, Settings, X } from "lucide-react";
 import { QueryErrorState } from "../../components/feedback/QueryErrorState";
 
 function EditableMessInfo() {
+  const t = useTranslations("pages.settings");
   const { data: myMess } = useGetMyMess();
   const updateMess = useUpdateMess(myMess?.id);
   const [editing, setEditing] = useState(false);
@@ -55,17 +57,17 @@ function EditableMessInfo() {
       newErrors.name = "Name must be at most 80 characters";
     }
     if (!slug.trim() || slug.trim().length < 2) {
-      newErrors.slug = "Slug must be at least 2 characters";
+      newErrors.slug = t("slugMustAtLeast");
     }
     if (slug.trim().length > 80) {
-      newErrors.slug = "Slug must be at most 80 characters";
+      newErrors.slug = t("slugMustAtMost");
     }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.trim())) {
       newErrors.slug =
-        "Slug must contain only lowercase letters, numbers, and hyphens";
+        t("slugMustContainOnly");
     }
     if (description.trim().length > 0 && description.trim().length > 300) {
-      newErrors.description = "Description must be at most 300 characters";
+      newErrors.description = t("descriptionMustAtMost");
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -93,7 +95,7 @@ function EditableMessInfo() {
             htmlFor="mess-name"
             className="mb-1.5 block text-sm font-medium text-foreground"
           >
-            Mess Name
+            {t("messName")}
           </label>
           <input
             id="mess-name"
@@ -120,7 +122,7 @@ function EditableMessInfo() {
             htmlFor="mess-slug"
             className="mb-1.5 block text-sm font-medium text-foreground"
           >
-            Slug
+            {t("slug")}
           </label>
           <input
             id="mess-slug"
@@ -147,7 +149,7 @@ function EditableMessInfo() {
             htmlFor="mess-description"
             className="mb-1.5 block text-sm font-medium text-foreground"
           >
-            Description{" "}
+            {t("description")}{" "}
             <span className="text-foreground-muted">(optional)</span>
           </label>
           <textarea
@@ -157,7 +159,7 @@ function EditableMessInfo() {
               setDescription(e.target.value);
               setErrors((prev) => ({ ...prev, description: "" }));
             }}
-            placeholder="Brief description of your mess..."
+            placeholder={t("briefDescriptionMess")}
             rows={3}
             className={`w-full rounded-lg border bg-background px-4 py-2.5 text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 ${
               errors.description
@@ -181,7 +183,7 @@ function EditableMessInfo() {
             className="flex items-center gap-2 rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
           >
             <X size={14} />
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -192,12 +194,12 @@ function EditableMessInfo() {
             {updateMess.isPending ? (
               <>
                 <Loader2 size={14} className="animate-spin" />
-                Saving...
+                {t("saving")}
               </>
             ) : (
               <>
                 <Check size={14} />
-                Save Changes
+                {t("saveChanges")}
               </>
             )}
           </button>
@@ -211,7 +213,7 @@ function EditableMessInfo() {
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Settings size={18} className="text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">Mess Info</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t("messInfo")}</h2>
         </div>
         <button
           type="button"
@@ -219,22 +221,22 @@ function EditableMessInfo() {
           className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
         >
           <Pencil size={12} />
-          Edit
+          {t("edit")}
         </button>
       </div>
       <dl className="space-y-3 text-sm">
         <div>
-          <dt className="text-foreground-muted">Name</dt>
+          <dt className="text-foreground-muted">{t("name")}</dt>
           <dd className="font-medium text-foreground">{myMess.name}</dd>
         </div>
         <div>
-          <dt className="text-foreground-muted">Slug</dt>
+          <dt className="text-foreground-muted">{t("slug")}</dt>
           <dd className="font-medium text-foreground">{myMess.slug}</dd>
         </div>
         <div>
-          <dt className="text-foreground-muted">Description</dt>
+          <dt className="text-foreground-muted">{t("description")}</dt>
           <dd className="font-medium text-foreground">
-            {myMess.description || "No description"}
+            {myMess.description || t("noDescription")}
           </dd>
         </div>
       </dl>
@@ -243,6 +245,7 @@ function EditableMessInfo() {
 }
 
 function MealTypesConfig() {
+  const t = useTranslations("pages.settings");
   const { data: myMess } = useGetMyMess();
   const messId = myMess?.id;
   const mealTypesQuery = useGetMealTypes(messId);
@@ -272,7 +275,7 @@ function MealTypesConfig() {
   if (!mealTypes || mealTypes.length === 0) {
     return (
       <p className="text-sm text-foreground-muted">
-        No meal types configured for this mess.
+        {t("noMealTypesConfigured")}
       </p>
     );
   }
@@ -296,8 +299,7 @@ function MealTypesConfig() {
   return (
     <div className="space-y-3">
       <p className="text-sm text-foreground-muted">
-        Toggle meal types on/off and adjust their values. Active meal types are
-        used when recording daily meals.
+        {t("toggleMealTypesOff")}
       </p>
 
       <div className="space-y-2">
@@ -331,7 +333,7 @@ function MealTypesConfig() {
             </div>
             {mt.is_active && (
               <div className="flex items-center gap-2">
-                <label className="text-xs text-foreground-muted">Value:</label>
+                <label className="text-xs text-foreground-muted">{t("value")}</label>
                 <input
                   type="number"
                   step="0.1"
@@ -356,6 +358,7 @@ function MealTypesConfig() {
 }
 
 function SettingsContent() {
+  const t = useTranslations("pages.settings");
   const { isAuthenticated } = useSessionStore();
   const router = useRouter();
   const messQuery = useGetMyMess(isAuthenticated);
@@ -389,7 +392,7 @@ function SettingsContent() {
   if (!myMess) {
     return (
       <p className="text-sm text-foreground-muted">
-        You need to be part of a mess to access settings.
+        {t("needPartMessAccess")}
       </p>
     );
   }
@@ -397,9 +400,9 @@ function SettingsContent() {
   return (
     <>
       <div className="mb-8">
-        <p className="label-mono text-primary">Settings</p>
+        <p className="label-mono text-primary">{t("settings")}</p>
         <h1 className="mt-2 heading-tight text-3xl text-foreground">
-          Mess Settings
+          {t("messSettings")}
         </h1>
       </div>
 
@@ -411,10 +414,10 @@ function SettingsContent() {
         <div className="rounded-xl border border-border bg-surface p-6">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-foreground">
-              Meal Types
+              {t("mealTypes")}
             </h2>
             <p className="mt-1 text-xs text-foreground-muted">
-              Toggle active meal types and adjust values
+              {t("toggleActiveMealTypes")}
             </p>
           </div>
           <MealTypesConfig />

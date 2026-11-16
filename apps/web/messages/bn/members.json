@@ -1,0 +1,67 @@
+{
+  "addMemberDialog": {
+    "addMember": "সদস্য যোগ করুন",
+    "searching": "খোঁজা হচ্ছে...",
+    "wouldLikeCreateAccount": "এই ব্যক্তির জন্য কি একটি অ্যাকাউন্ট তৈরি করবেন?",
+    "createAccount": "অ্যাকাউন্ট তৈরি করুন",
+    "change": "পরিবর্তন",
+    "cancel": "বাতিল",
+    "noAccountFound": "কোনো অ্যাকাউন্ট পাওয়া যায়নি:",
+    "searchByNameOr": "নাম বা ইমেইল দিয়ে খুঁজুন...",
+    "allMatchingUsersAlready": "মিলে যাওয়া সবাই আগেই সদস্য",
+    "noUsersFound": "কোনো ব্যবহারকারী পাওয়া যায়নি",
+    "sending": "পাঠানো হচ্ছে...",
+    "sendInvite": "আমন্ত্রণ পাঠান"
+  },
+  "memberCards": {
+    "noActiveMembers": "কোনো সক্রিয় সদস্য নেই",
+    "addMembersSeeTheir": "সদস্য যোগ করলে তাদের লাইভ হিসাব এখানে দেখা যাবে।",
+    "activeMonth": "চলতি মাস",
+    "manager": "ম্যানেজার",
+    "role": "ভূমিকা",
+    "remove": "বাদ দিন",
+    "currentBalance": "বর্তমান ব্যালেন্স",
+    "fromPreviousMonth": "আগের মাস থেকে",
+    "meals": "মিল",
+    "deposits": "জমা",
+    "mealCost": "মিল খরচ",
+    "shared": "শেয়ার্ড",
+    "individual": "ব্যক্তিগত",
+    "totalBill": "মোট বিল",
+    "carried": "আগের মাসের",
+    "surplus": "টাকা বেশি আছে",
+    "owesMoney": "টাকা বাকি"
+  },
+  "memberFiltersBar": {
+    "searchByNameOr": "নাম বা ইমেইল দিয়ে খুঁজুন..."
+  },
+  "membersContent": {
+    "members": "সদস্য",
+    "messMembers": "মেসের সদস্যরা",
+    "inviteMember": "সদস্য আমন্ত্রণ",
+    "createMember": "সদস্য তৈরি করুন",
+    "noMembersFound": "কোনো সদস্য পাওয়া যায়নি",
+    "noMembersMessYet": "এই মেসে এখনো কোনো সদস্য নেই।",
+    "noMembersMatchFilters": "ফিল্টারের সাথে কোনো সদস্য মেলেনি। খোঁজ একটু বদলে দেখুন।",
+    "addMembersMessGet": "শুরু করতে মেসে সদস্য যোগ করুন।"
+  },
+  "removeMemberDialog": {
+    "removeMember": "সদস্য বাদ দিন",
+    "cancel": "বাতিল",
+    "sureWantRemove": "আপনি কি নিশ্চিতভাবে বাদ দিতে চান",
+    "fromMessActionCannot": "এই মেস থেকে? এটি আর ফেরানো যাবে না।",
+    "removing": "বাদ দেওয়া হচ্ছে..."
+  },
+  "roleChangeDialog": {
+    "changeRole": "ভূমিকা পরিবর্তন",
+    "manager": "ম্যানেজার",
+    "canManageMembersMeals": "সদস্য, মিল ও খরচ পরিচালনা করতে পারবেন",
+    "member": "সদস্য",
+    "canViewDataAdd": "তথ্য দেখতে ও মিল যোগ করতে পারবেন",
+    "maximum2ManagersAllowed": "প্রতি মেসে সর্বোচ্চ ২ জন ম্যানেজার",
+    "cannotDemoteLastManager": "শেষ ম্যানেজারকে সরানো যাবে না",
+    "cancel": "বাতিল",
+    "updateRole": "ভূমিকা আপডেট করুন:",
+    "updating": "আপডেট হচ্ছে..."
+  }
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import * as React from "react";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -25,7 +26,7 @@ interface DatePickerProps {
 export function DatePicker({
   date,
   onSelect,
-  placeholder = "Pick a date",
+  placeholder = "pickDate",
   disabled = false,
   className,
   fromYear = 2000,

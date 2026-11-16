@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useSessionStore } from "../../store";
 import { useGetMyMess } from "../../hooks/use-messes";
@@ -62,6 +63,7 @@ function BazaarForm({
   editing?: BazaarSubmissionInfo | null;
   onDone?: () => void;
 }) {
+  const t = useTranslations("pages.bazaar");
   const submit = useSubmitBazaar(messId, monthId);
   const update = useUpdateBazaar(messId, monthId);
 
@@ -106,7 +108,7 @@ function BazaarForm({
       .filter((item) => item.name.length > 0 && item.amount > 0);
 
     if (cleanedItems.length === 0) {
-      setError("Add at least one item with a name and amount.");
+      setError(t("addAtLeastOne"));
       return;
     }
 
@@ -139,13 +141,13 @@ function BazaarForm({
       <div className="mb-5 flex items-center gap-2">
         <ShoppingCart size={18} className="text-primary" />
         <h2 className="text-lg font-semibold text-foreground">
-          {editing ? "Edit Bazaar Submission" : "Submit Bazaar"}
+          {editing ? t("editBazaarSubmission") : t("submitBazaar")}
         </h2>
       </div>
 
       <div className="space-y-4">
         <div>
-          <p className="mb-2 text-sm font-medium text-foreground">Items</p>
+          <p className="mb-2 text-sm font-medium text-foreground">{t("items")}</p>
           <div className="space-y-2">
             {items.map((item, index) => (
               <div key={index} className="flex items-center gap-2">
@@ -153,7 +155,7 @@ function BazaarForm({
                   type="text"
                   value={item.name}
                   onChange={(e) => updateItem(index, { name: e.target.value })}
-                  placeholder="Item name (e.g. Rice)"
+                  placeholder={t("itemNameEG")}
                   className="flex-1 rounded-lg border border-border bg-surface-sunken px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
                   disabled={isPending}
                 />
@@ -167,7 +169,7 @@ function BazaarForm({
                       amount: parseFloat(e.target.value) || 0,
                     })
                   }
-                  placeholder="Amount"
+                  placeholder={t("amount")}
                   className="w-32 rounded-lg border border-border bg-surface-sunken px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
                   disabled={isPending}
                 />
@@ -175,7 +177,7 @@ function BazaarForm({
                   type="button"
                   onClick={() => removeItem(index)}
                   disabled={isPending}
-                  aria-label="Remove item"
+                  aria-label={t("removeItem")}
                   className="rounded-lg p-2 text-foreground-muted transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
                 >
                   <X size={16} />
@@ -190,7 +192,7 @@ function BazaarForm({
             className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 hover:text-primary-hover active:bg-primary/15 disabled:opacity-50"
           >
             <Plus size={16} />
-            Add Item
+            {t("addItem")}
           </button>
         </div>
 
@@ -201,7 +203,7 @@ function BazaarForm({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Short note about this purchase"
+            placeholder={t("shortNoteAboutPurchase")}
             rows={2}
             className="w-full rounded-lg border border-border bg-surface-sunken px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
             disabled={isPending}
@@ -210,7 +212,7 @@ function BazaarForm({
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-foreground">
-            Expense Date
+            {t("expenseDate")}
           </label>
           <DatePicker
             date={expenseDate}
@@ -221,7 +223,7 @@ function BazaarForm({
 
         <div className="flex items-center justify-between rounded-lg bg-background px-4 py-3">
           <span className="text-sm font-medium text-foreground-muted">
-            Total
+            {t("total")}
           </span>
           <span className="text-lg font-bold text-foreground">
             {formatMoney(total)}
@@ -238,7 +240,7 @@ function BazaarForm({
               disabled={isPending}
               className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
             >
-              Cancel
+              {t("cancel")}
             </button>
           )}
           <button
@@ -250,12 +252,12 @@ function BazaarForm({
             {isPending ? (
               <>
                 <Loader2 size={14} className="animate-spin" />
-                Saving...
+                {t("saving")}
               </>
             ) : (
               <>
                 {editing ? <Check size={14} /> : <ShoppingCart size={14} />}
-                {editing ? "Save Changes" : "Submit Bazaar"}
+                {editing ? t("saveChanges") : t("submitBazaar")}
               </>
             )}
           </button>
@@ -278,6 +280,7 @@ function BazaarCard({
   isManager: boolean;
   currentUserId: string;
 }) {
+  const t = useTranslations("pages.bazaar");
   const approve = useApproveBazaar(messId, monthId);
   const reject = useRejectBazaar(messId, monthId);
   const remove = useDeleteBazaar(messId, monthId);
@@ -364,7 +367,7 @@ function BazaarCard({
                 ))}
                 <tr className="bg-background">
                   <td className="px-3 py-2 font-semibold text-foreground">
-                    Total
+                    {t("total")}
                   </td>
                   <td className="px-3 py-2 text-right font-bold text-foreground">
                     {formatMoney(submission.total_amount)}
@@ -398,7 +401,7 @@ function BazaarCard({
                   ) : (
                     <CheckCircle2 size={12} />
                   )}
-                  Approve
+                  {t("approve")}
                 </button>
                 <button
                   type="button"
@@ -411,7 +414,7 @@ function BazaarCard({
                   ) : (
                     <XCircle size={12} />
                   )}
-                  Reject
+                  {t("reject")}
                 </button>
               </>
             )}
@@ -424,13 +427,13 @@ function BazaarCard({
                   className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
                 >
                   <Pencil size={12} />
-                  Edit
+                  {t("edit")}
                 </button>
 
                 {confirmDelete ? (
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-foreground-muted">
-                      Delete?
+                      {t("delete")}
                     </span>
                     <button
                       type="button"
@@ -438,14 +441,14 @@ function BazaarCard({
                       disabled={remove.isPending}
                       className="rounded bg-destructive/10 px-2 py-1 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-60"
                     >
-                      {remove.isPending ? "Deleting..." : "Yes"}
+                      {remove.isPending ? t("deleting") : "Yes"}
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfirmDelete(false)}
                       className="rounded bg-surface-raised px-2 py-1 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-overlay"
                     >
-                      No
+                      {t("no")}
                     </button>
                   </div>
                 ) : (
@@ -455,7 +458,7 @@ function BazaarCard({
                     className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
                   >
                     <Trash2 size={12} />
-                    Delete
+                    {t("delete2")}
                   </button>
                 )}
               </>
@@ -468,6 +471,7 @@ function BazaarCard({
 }
 
 export default function BazaarPage() {
+  const t = useTranslations("pages.bazaar");
   const user = useSessionStore((state) => state.user);
   const messQuery = useGetMyMess();
   const { data: myMess, isLoading: messLoading } = messQuery;
@@ -515,7 +519,7 @@ export default function BazaarPage() {
     return (
       <div className="rounded-xl border border-border bg-surface p-8 text-center">
         <p className="text-sm text-foreground-muted">
-          You need to be part of a mess to manage bazaar submissions.
+          {t("needPartMessManage")}
         </p>
       </div>
     );
@@ -525,7 +529,7 @@ export default function BazaarPage() {
     return (
       <div className="rounded-xl border border-border bg-surface p-8 text-center">
         <p className="text-sm text-foreground-muted">
-          No active month. Start a month before submitting bazaar expenses.
+          {t("noActiveMonthStart")}
         </p>
       </div>
     );
@@ -540,22 +544,22 @@ export default function BazaarPage() {
 
   const emptyMessage =
     activeTab === "pending"
-      ? "No pending bazaar submissions."
+      ? t("noPendingBazaarSubmissions")
       : activeTab === "approved"
-        ? "No approved bazaar submissions yet."
-        : "No rejected bazaar submissions.";
+        ? t("noApprovedBazaarSubmissions")
+        : t("noRejectedBazaarSubmissions");
 
   return (
     <>
       <div className="mb-4">
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="label-mono text-primary">Bazaar</p>
+            <p className="label-mono text-primary">{t("bazaar")}</p>
             <h1 className="mt-2 heading-tight text-3xl text-foreground">
-              Bazaar Management
+              {t("bazaarManagement")}
             </h1>
             <p className="mt-1 text-sm text-foreground-muted">
-              Submit daily grocery/bazaar expenses for manager approval.
+              {t("submitDailyGroceryBazaar")}
             </p>
           </div>
         </div>

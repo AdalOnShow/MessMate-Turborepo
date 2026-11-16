@@ -1,9 +1,13 @@
+import { getTranslations } from "next-intl/server";
+import { richAccent } from "./ui";
 import { ArrowRight, Check } from "lucide-react";
 import { Reveal } from "./Reveal";
 
-const POINTS = ["No pricing plans", "No trial windows", "No payment required"];
+const POINTS = ["p1", "p2", "p3"] as const;
 
-export function FreeSection() {
+export async function FreeSection() {
+  const t = await getTranslations("landing.free");
+  const tc = await getTranslations("common");
   return (
     <section className="bg-background py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -12,16 +16,13 @@ export function FreeSection() {
             <div className="relative">
               <span className="inline-flex items-center gap-2 rounded-full border border-success/25 bg-success/10 px-4 py-1.5 text-xs font-bold text-success">
                 <span className="size-1.5 rounded-full bg-success" />
-                Free for every mess
+                {t("badge")}
               </span>
               <h2 className="mx-auto mt-6 max-w-2xl text-3xl heading-tight text-foreground font-heading sm:text-4xl lg:text-5xl">
-                Ready to Make Your Mess{" "}
-                <span className="text-primary">Less Messy?</span>
+                {t.rich("title", richAccent)}
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-foreground-muted">
-                Create a mess, invite your flatmates, and close your first
-                accountable month tonight. It costs nothing but a minute of your
-                time.
+                {t("subtitle")}
               </p>
 
               <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
@@ -29,25 +30,25 @@ export function FreeSection() {
                   href="/signup"
                   className="group inline-flex w-full items-center justify-center gap-2 bg-cta rounded-[9px] px-8 py-3.5 text-sm font-bold sm:w-auto"
                 >
-                  Get Started Free
+                  {tc("getStartedFree")}
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </a>
                 <a
                   href="/signin"
                   className="inline-flex w-full items-center justify-center rounded-[9px] border border-border-strong bg-transparent px-8 py-3.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-surface-raised sm:w-auto"
                 >
-                  Sign In
+                  {tc("signIn")}
                 </a>
               </div>
 
               <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5">
                 {POINTS.map((point) => (
                   <li
-                    key={point}
+                    key={t(point)}
                     className="flex items-center gap-1.5 text-sm text-foreground-muted"
                   >
                     <Check className="size-4 text-success" />
-                    {point}
+                    {t(point)}
                   </li>
                 ))}
               </ul>

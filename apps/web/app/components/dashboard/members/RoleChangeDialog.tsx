@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { MemberData } from "../../../hooks/use-members";
 
@@ -16,6 +17,7 @@ export function RoleChangeDialog({
   onConfirm: (role: "MANAGER" | "MEMBER") => void;
   isPending: boolean;
 }) {
+  const t = useTranslations("members.roleChangeDialog");
   const [selectedRole, setSelectedRole] = useState<"MANAGER" | "MEMBER">(
     member.mess_role,
   );
@@ -27,9 +29,9 @@ export function RoleChangeDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-sm rounded-xl border border-border bg-background p-6">
-        <h2 className="mb-2 text-lg font-bold text-foreground">Change Role</h2>
+        <h2 className="mb-2 text-lg font-bold text-foreground">{t("changeRole")}</h2>
         <p className="mb-4 text-sm text-foreground-muted">
-          Update role for {member.user.name}
+          {t("updateRole")}{" "}{member.user.name}
         </p>
 
         <div className="mb-4 space-y-2">
@@ -50,9 +52,9 @@ export function RoleChangeDialog({
               className="accent-primary"
             />
             <div>
-              <p className="text-sm font-semibold text-foreground">Manager</p>
+              <p className="text-sm font-semibold text-foreground">{t("manager")}</p>
               <p className="text-xs text-foreground-muted">
-                Can manage members, meals, and expenses
+                {t("canManageMembersMeals")}
               </p>
             </div>
           </label>
@@ -74,9 +76,9 @@ export function RoleChangeDialog({
               className="accent-primary"
             />
             <div>
-              <p className="text-sm font-semibold text-foreground">Member</p>
+              <p className="text-sm font-semibold text-foreground">{t("member")}</p>
               <p className="text-xs text-foreground-muted">
-                Can view data and add meal entries
+                {t("canViewDataAdd")}
               </p>
             </div>
           </label>
@@ -84,13 +86,13 @@ export function RoleChangeDialog({
 
         {isMaxManagers && (
           <p className="mb-4 text-xs text-destructive">
-            Maximum 2 managers allowed per mess
+            {t("maximum2ManagersAllowed")}
           </p>
         )}
 
         {isLastManager && (
           <p className="mb-4 text-xs text-destructive">
-            Cannot demote the last manager
+            {t("cannotDemoteLastManager")}
           </p>
         )}
 
@@ -100,7 +102,7 @@ export function RoleChangeDialog({
             onClick={onClose}
             className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -113,7 +115,7 @@ export function RoleChangeDialog({
             }
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isPending ? "Updating..." : "Confirm"}
+            {isPending ? t("updating") : "Confirm"}
           </button>
         </div>
       </div>

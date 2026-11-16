@@ -6,24 +6,21 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSignin } from "../hooks/use-auth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
+import { useTranslations } from "next-intl";
+import { LanguageToggle } from "../components/LanguageToggle";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { formatZodError, signInSchema } from "@repo/shared";
 
-function getErrorMessage(error: string): string {
-  switch (error) {
-    case "ACCOUNT_EXISTS":
-      return "An account with this email already exists. Please sign in with your password.";
-    case "NO_EMAIL":
-      return "Google did not provide an email address. Please try again or use email sign in.";
-    case "EMAIL_NOT_VERIFIED":
-      return "Your Google email is not verified. Please verify it in your Google account settings.";
-    case "google_auth_failed":
-    default:
-      return "Google sign in failed. Please try again.";
-  }
+const OAUTH_ERRORS = ["ACCOUNT_EXISTS", "NO_EMAIL", "EMAIL_NOT_VERIFIED"] as const;
+
+function oauthErrorKey(error: string) {
+  return (OAUTH_ERRORS as readonly string[]).includes(error)
+    ? (error as (typeof OAUTH_ERRORS)[number])
+    : "failed";
 }
 
 export default function SignInForm() {
+  const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -37,11 +34,11 @@ export default function SignInForm() {
   useEffect(() => {
     const error = searchParams.get("error");
     if (error) {
-      setOauthError(getErrorMessage(error));
+      setOauthError(t(`oauth.${oauthErrorKey(error)}`));
       // Clean up URL
       router.replace("/signin");
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, t]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,10 +94,10 @@ export default function SignInForm() {
             </span>
           </div>
           <h1 className="heading-tight text-2xl text-foreground font-heading text-center mb-1">
-            Welcome back
+            {t("signin.title")}
           </h1>
           <p className="text-sm text-foreground-muted text-center mb-8">
-            Sign in to continue to your mess
+            {t("signin.subtitle")}
           </p>
 
           <div className="space-y-4">
@@ -112,7 +109,7 @@ export default function SignInForm() {
               </div>
               <div className="relative flex justify-center font-mono text-[10px] uppercase tracking-[0.12em]">
                 <span className="bg-surface px-2 text-foreground-muted">
-                  or
+                  {t("or")}
                 </span>
               </div>
             </div>
@@ -123,14 +120,14 @@ export default function SignInForm() {
                   htmlFor="email"
                   className="label-mono text-[10px] text-foreground-muted"
                 >
-                  Email
+                  {t("email")}
                 </label>
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder={t("emailPlaceholder")}
                   required
                   autoComplete="email"
                   className="w-full h-11 px-3.5 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
@@ -147,7 +144,7 @@ export default function SignInForm() {
                   htmlFor="password"
                   className="label-mono text-[10px] text-foreground-muted"
                 >
-                  Password
+                  {t("password")}
                 </label>
                 <div className="relative">
                   <input
@@ -155,7 +152,7 @@ export default function SignInForm() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
+                    placeholder={t("signin.passwordPlaceholder")}
                     required
                     autoComplete="current-password"
                     className="w-full h-11 px-3.5 pr-11 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
@@ -165,7 +162,7 @@ export default function SignInForm() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
                     aria-label={
-                      showPassword ? "Hide password" : "Show password"
+                      showPassword ? t("hidePassword") : t("showPassword")
                     }
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -183,7 +180,7 @@ export default function SignInForm() {
                   <AlertCircle size={16} />
                   {oauthError ||
                     signin.error?.message ||
-                    "Invalid email or password"}
+                    t("signin.fallbackError")}
                 </p>
               )}
 
@@ -195,22 +192,22 @@ export default function SignInForm() {
                 {signin.isPending ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    Signing in...
+                    {t("signin.pending")}
                   </>
                 ) : (
-                  "Sign in"
+                  t("signin.submit")
                 )}
               </button>
             </form>
           </div>
 
           <p className="text-sm text-foreground-muted text-center mt-6">
-            Don&apos;t have an account?{" "}
+            {t("signin.noAccount")}{" "}
             <Link
               href="/signup"
               className="text-primary hover:text-primary-hover font-medium transition-colors"
             >
-              Sign up
+              {t("signin.switch")}
             </Link>
           </p>
         </div>

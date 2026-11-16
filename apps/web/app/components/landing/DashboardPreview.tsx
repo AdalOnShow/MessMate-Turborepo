@@ -8,82 +8,69 @@ import {
   UserPlus,
   Plus,
 } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { Avatar } from "./ui";
 
 const STATS = [
   {
-    label: "Meal Rate",
+    key: "mealRate",
     value: "৳68.50",
-    hint: "+৳2.00 vs yesterday",
     icon: TrendingUp,
     accent: true,
   },
   {
-    label: "Meals Today",
+    key: "mealsToday",
     value: "14",
-    hint: "9 logged · 4 left",
     icon: UtensilsCrossed,
   },
   {
-    label: "Total Expenses",
+    key: "expenses",
     value: "৳22,180",
-    hint: "12 records this month",
     icon: ReceiptText,
   },
   {
-    label: "Total Deposits",
+    key: "deposits",
     value: "৳28,500",
-    hint: "8 members paid",
     icon: Wallet,
   },
-];
+] as const;
 
 const BALANCES = [
   {
     name: "Adal Nawab",
     initials: "AN",
-    role: "Manager",
+    role: "MANAGER",
     amount: "+৳1,250",
     positive: true,
   },
   {
     name: "Fahad Karim",
     initials: "FK",
-    role: "Member",
+    role: "MEMBER",
     amount: "+৳320",
     positive: true,
   },
   {
     name: "Rahim Uddin",
     initials: "RU",
-    role: "Member",
+    role: "MEMBER",
     amount: "-৳480",
     positive: false,
   },
   {
     name: "Karim Mia",
     initials: "KM",
-    role: "Member",
+    role: "MEMBER",
     amount: "+৳610",
     positive: true,
   },
-];
+] as const;
 
 const ACTIVITY = [
-  {
-    text: "updated Dinner meal",
-    who: "Adal",
-    time: "10:42 AM",
-    initials: "AN",
-  },
-  {
-    text: "added Internet bill",
-    who: "Rahim",
-    time: "9:18 AM",
-    initials: "RU",
-  },
-  { text: "deposited ৳5,000", who: "Fahad", time: "Yesterday", initials: "FK" },
-];
+  { key: "dinner", who: "Adal", time: "10:42 AM", initials: "AN" },
+  { key: "internet", who: "Rahim", time: "9:18 AM", initials: "RU" },
+  { key: "deposit", who: "Fahad", time: null, initials: "FK" },
+] as const;
 
 function StatTile({
   label,
@@ -91,7 +78,13 @@ function StatTile({
   hint,
   icon: Icon,
   accent,
-}: (typeof STATS)[number]) {
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  icon: React.ElementType;
+  accent?: boolean;
+}) {
   return (
     <div className="rounded-xl border border-border bg-surface-raised/70 p-3">
       <div className="flex items-center justify-between">
@@ -114,7 +107,9 @@ function StatTile({
   );
 }
 
-export function DashboardPreview() {
+export async function DashboardPreview() {
+  const t = await getTranslations("landing.dashPreview");
+  const tRole = await getTranslations("role");
   return (
     <div className="relative">
       <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-panel">
@@ -143,26 +138,33 @@ export function DashboardPreview() {
                 </p>
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-success">
                   <span className="size-1.5 rounded-full bg-success" />
-                  Active
+                  {t("active")}
                 </span>
               </div>
             </div>
             <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface-raised px-2.5 py-1.5 text-[11px] font-semibold text-foreground-muted">
-              August 2026 <ChevronDown className="size-3" />
+              {t("month")} <ChevronDown className="size-3" />
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
             {STATS.map((stat) => (
-              <StatTile key={stat.label} {...stat} />
+              <StatTile
+                key={stat.key}
+                label={t(`stats.${stat.key}.label`)}
+                hint={t(`stats.${stat.key}.hint`)}
+                value={stat.value}
+                icon={stat.icon}
+                accent={"accent" in stat ? stat.accent : false}
+              />
             ))}
           </div>
 
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             <div className="rounded-xl border border-border bg-surface-raised/70 p-3.5">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
-                  Member Balances
+                <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+                  {t("memberBalances")}
                 </p>
                 <Plus className="size-3.5 text-foreground-muted" />
               </div>
@@ -178,7 +180,7 @@ export function DashboardPreview() {
                         {row.name}
                       </p>
                       <p className="text-[10px] text-foreground-muted">
-                        {row.role}
+                        {tRole(row.role)}
                       </p>
                     </div>
                     <span
@@ -194,13 +196,13 @@ export function DashboardPreview() {
             </div>
 
             <div className="rounded-xl border border-border bg-surface-raised/70 p-3.5">
-              <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
-                Recent Activity
+              <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+                {t("recentActivity")}
               </p>
               <div className="mt-2.5 space-y-2.5">
                 {ACTIVITY.map((row) => (
                   <div
-                    key={`${row.who}-${row.text}`}
+                    key={`${row.who}-${t(`activity.${row.key}`)}`}
                     className="flex items-start gap-2.5"
                   >
                     <Avatar
@@ -212,10 +214,10 @@ export function DashboardPreview() {
                         <span className="font-semibold text-foreground">
                           {row.who}
                         </span>{" "}
-                        {row.text}
+                        {t(`activity.${row.key}`)}
                       </p>
                       <p className="text-[10px] text-foreground-muted/70">
-                        {row.time}
+                        {row.time ?? t("yesterday")}
                       </p>
                     </div>
                   </div>
@@ -227,21 +229,21 @@ export function DashboardPreview() {
       </div>
 
       <div className="absolute -right-4 -top-6 hidden w-44 rounded-2xl border border-border bg-surface-raised p-4 shadow-panel md:block">
-        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
-          Today&apos;s Meal Rate
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+          {t("todayRate")}
         </p>
         <p className="mt-1 text-xl font-bold text-primary font-heading">
           ৳68.50
         </p>
         <div className="mt-2.5 space-y-1.5">
-          {[
-            { label: "Lunch", pct: "82%" },
-            { label: "Dinner", pct: "64%" },
-            { label: "Sehri", pct: "28%" },
-          ].map((row) => (
+          {([
+            { label: "lunch", pct: "82%" },
+            { label: "dinner", pct: "64%" },
+            { label: "sehri", pct: "28%" },
+          ] as const).map((row) => (
             <div key={row.label}>
               <div className="flex justify-between text-[10px] text-foreground-muted">
-                <span>{row.label}</span>
+                <span>{t(row.label)}</span>
                 <span>{row.pct}</span>
               </div>
               <div className="mt-0.5 h-1 overflow-hidden rounded-full bg-surface-raised">
@@ -256,8 +258,8 @@ export function DashboardPreview() {
       </div>
 
       <div className="absolute -bottom-6 -left-4 hidden w-40 rounded-2xl border border-border bg-surface-raised p-4 shadow-panel md:block">
-        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
-          Your Balance
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+          {t("yourBalance")}
         </p>
         <p className="mt-1 text-lg font-bold text-success font-heading">
           +৳1,250
@@ -271,7 +273,7 @@ export function DashboardPreview() {
             />
           ))}
         </div>
-        <p className="mt-1.5 text-[10px] text-foreground-muted">This month</p>
+        <p className="mt-1.5 text-[10px] text-foreground-muted">{t("thisMonth")}</p>
       </div>
     </div>
   );

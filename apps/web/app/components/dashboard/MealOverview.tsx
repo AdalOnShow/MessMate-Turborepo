@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ArrowRight, ChefHat, Utensils } from "lucide-react";
 import { useGetActiveMonth } from "../../hooks/use-months";
 import { useGetMonthMealSummary } from "../../hooks/use-meals";
@@ -18,6 +19,7 @@ function initials(name?: string | null, email?: string | null) {
 }
 
 export function MealOverview({ messId }: { messId: string | undefined }) {
+  const t = useTranslations("dashboard.mealOverview");
   const monthQuery = useGetActiveMonth(messId);
   const { data: activeMonth } = monthQuery;
   const summaryQuery = useGetMonthMealSummary(messId, activeMonth?.id);
@@ -36,10 +38,10 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
     <BentoCard className="flex flex-col p-6 lg:col-span-1 lg:row-span-2">
       <CardHeading
         icon={<Utensils size={15} />}
-        title="Meal overview"
+        title={t("mealOverview")}
         action={
           <CardActionLink href="/dashboard/meals/reports">
-            Reports <ArrowRight size={12} />
+            {t("reports")}<ArrowRight size={12} />
           </CardActionLink>
         }
       />
@@ -57,7 +59,7 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
             <div className="rounded-xl border border-border bg-background/40 p-3">
               <p className="flex items-center gap-1.5 text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 <ChefHat size={12} className="text-primary" />
-                Meals
+                {t("meals")}
               </p>
               <p className="mt-1.5 text-xl font-bold text-foreground">
                 {formatCompact(dashboard?.total_meals ?? 0)}
@@ -65,7 +67,7 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
             </div>
             <div className="rounded-xl border border-border bg-background/40 p-3">
               <p className="text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
-                Rate
+                {t("rate")}
               </p>
               <p className="mt-1.5 text-xl font-bold text-foreground">
                 {typeof dashboard?.meal_rate === "number"
@@ -75,7 +77,7 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
             </div>
             <div className="rounded-xl border border-border bg-background/40 p-3">
               <p className="text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
-                Days
+                {t("days")}
               </p>
               <p className="mt-1.5 text-xl font-bold text-foreground">
                 {summary?.active_days ?? 0}
@@ -86,7 +88,7 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
           {summary?.member_summaries?.length ? (
             <div className="mt-5">
               <p className="mb-2.5 text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
-                Top members
+                {t("topMembers")}
               </p>
               <div className="space-y-2.5">
                 {topMembers.map((m) => (
@@ -129,7 +131,7 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
             </div>
           ) : (
             <p className="mt-5 text-sm text-foreground-muted">
-              No meals recorded this month yet.
+              {t("noMealsRecordedMonth")}
             </p>
           )}
         </>

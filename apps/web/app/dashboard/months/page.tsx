@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetMonthHistory, useGetMonthSummary } from "../../hooks/use-months";
@@ -12,6 +13,7 @@ import {
 } from "../../components/feedback/QueryErrorState";
 
 function MonthSummary({ month }: { month: MonthInfo }) {
+  const t = useTranslations("pages.months");
   const { data: myMess } = useGetMyMess();
   const messId = myMess?.id;
   const summaryQuery = useGetMonthSummary(messId, month.id);
@@ -91,31 +93,31 @@ function MonthSummary({ month }: { month: MonthInfo }) {
             />
           ) : !summary || summary.member_summaries.length === 0 ? (
             <p className="text-sm text-foreground-muted">
-              No summary data available for this month.
+              {t("noSummaryDataAvailable")}
             </p>
           ) : (
             <div className="space-y-3">
               <p className="text-xs font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
-                Member Summaries
+                {t("memberSummaries")}
               </p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
                       <th className="pb-2 text-left text-xs font-semibold text-foreground-muted">
-                        Member
+                        {t("member")}
                       </th>
                       <th className="pb-2 text-right text-xs font-semibold text-foreground-muted">
-                        Meals
+                        {t("meals")}
                       </th>
                       <th className="pb-2 text-right text-xs font-semibold text-foreground-muted">
-                        Bill
+                        {t("bill")}
                       </th>
                       <th className="pb-2 text-right text-xs font-semibold text-foreground-muted">
-                        Deposit
+                        {t("deposit")}
                       </th>
                       <th className="pb-2 text-right text-xs font-semibold text-foreground-muted">
-                        Balance
+                        {t("balance")}
                       </th>
                     </tr>
                   </thead>
@@ -165,6 +167,7 @@ function MonthSummary({ month }: { month: MonthInfo }) {
 }
 
 export default function MonthsPage() {
+  const t = useTranslations("pages.months");
   const messQuery = useGetMyMess();
   const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
@@ -182,9 +185,9 @@ export default function MonthsPage() {
   return (
     <>
       <div className="mb-8">
-        <p className="label-mono text-primary">Months</p>
+        <p className="label-mono text-primary">{t("months")}</p>
         <h1 className="mt-2 heading-tight text-3xl text-foreground">
-          Month History
+          {t("monthHistory")}
         </h1>
       </div>
 
@@ -197,7 +200,7 @@ export default function MonthsPage() {
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
           <Calendar size={32} className="mx-auto mb-3 text-foreground-muted" />
           <p className="text-sm text-foreground-muted">
-            No months found. Start a new month from the dashboard.
+            {t("noMonthsFoundStart")}
           </p>
         </div>
       ) : (

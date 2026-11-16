@@ -1,0 +1,67 @@
+{
+  "addMemberDialog": {
+    "addMember": "Add Member",
+    "searching": "Searching...",
+    "wouldLikeCreateAccount": "Would you like to create an account for this person?",
+    "createAccount": "Create Account",
+    "change": "Change",
+    "cancel": "Cancel",
+    "noAccountFound": "No account found for",
+    "searchByNameOr": "Search by name or email...",
+    "allMatchingUsersAlready": "All matching users are already members",
+    "noUsersFound": "No users found",
+    "sending": "Sending...",
+    "sendInvite": "Send Invite"
+  },
+  "memberCards": {
+    "noActiveMembers": "No active members",
+    "addMembersSeeTheir": "Add members to see their live calculation summary.",
+    "activeMonth": "Active month",
+    "manager": "Manager",
+    "role": "Role",
+    "remove": "Remove",
+    "currentBalance": "Current balance",
+    "fromPreviousMonth": "from previous month",
+    "meals": "Meals",
+    "deposits": "Deposits",
+    "mealCost": "Meal cost",
+    "shared": "Shared",
+    "individual": "Individual",
+    "totalBill": "Total bill",
+    "carried": "Carried",
+    "surplus": "In surplus",
+    "owesMoney": "Owes money"
+  },
+  "memberFiltersBar": {
+    "searchByNameOr": "Search by name or email..."
+  },
+  "membersContent": {
+    "members": "Members",
+    "messMembers": "Mess Members",
+    "inviteMember": "Invite Member",
+    "createMember": "Create Member",
+    "noMembersFound": "No members found",
+    "noMembersMessYet": "No members in this mess yet.",
+    "noMembersMatchFilters": "No members match your filters. Try adjusting your search.",
+    "addMembersMessGet": "Add members to your mess to get started."
+  },
+  "removeMemberDialog": {
+    "removeMember": "Remove Member",
+    "cancel": "Cancel",
+    "sureWantRemove": "Are you sure you want to remove",
+    "fromMessActionCannot": "from this mess? This action cannot be undone.",
+    "removing": "Removing..."
+  },
+  "roleChangeDialog": {
+    "changeRole": "Change Role",
+    "manager": "Manager",
+    "canManageMembersMeals": "Can manage members, meals, and expenses",
+    "member": "Member",
+    "canViewDataAdd": "Can view data and add meal entries",
+    "maximum2ManagersAllowed": "Maximum 2 managers allowed per mess",
+    "cannotDemoteLastManager": "Cannot demote the last manager",
+    "cancel": "Cancel",
+    "updateRole": "Update role for",
+    "updating": "Updating..."
+  }
+}

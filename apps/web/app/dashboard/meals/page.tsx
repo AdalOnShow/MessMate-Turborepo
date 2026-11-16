@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState, useMemo, useCallback } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
@@ -81,6 +82,7 @@ function MealCell({
 }
 
 export default function MealsPage() {
+  const t = useTranslations("pages.meals");
   const messQuery = useGetMyMess();
   const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
@@ -202,14 +204,14 @@ export default function MealsPage() {
     return (
       <>
         <div className="mb-8">
-          <p className="label-mono text-primary">Meals</p>
+          <p className="label-mono text-primary">{t("meals")}</p>
           <h1 className="mt-2 heading-tight text-3xl text-foreground">
-            Meal Management
+            {t("mealManagement")}
           </h1>
         </div>
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
           <p className="text-sm text-foreground-muted">
-            No active month. Start a month from the dashboard to record meals.
+            {t("noActiveMonthStart")}
           </p>
         </div>
       </>
@@ -220,7 +222,7 @@ export default function MealsPage() {
     <>
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="label-mono text-primary">Meals</p>
+          <p className="label-mono text-primary">{t("meals")}</p>
           <h1 className="mt-2 heading-tight text-3xl text-foreground">
             {activeMonth.title}
           </h1>
@@ -244,7 +246,7 @@ export default function MealsPage() {
             className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
           >
             <BarChart3 size={14} />
-            Reports
+            {t("reports")}
           </Link>
         </div>
       </div>
@@ -271,7 +273,7 @@ export default function MealsPage() {
                 {saveMutation.isPending ? (
                   <>
                     <Loader2 size={14} className="animate-spin" />
-                    Saving...
+                    {t("saving")}
                   </>
                 ) : (
                   <>
@@ -282,7 +284,7 @@ export default function MealsPage() {
               </button>
               {hasChanges && (
                 <span className="text-xs text-foreground-muted">
-                  Unsaved changes
+                  {t("unsavedChanges")}
                 </span>
               )}
             </div>
@@ -293,7 +295,7 @@ export default function MealsPage() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-foreground-muted">
-                    Member
+                    {t("member")}
                   </th>
                   {activeMealTypes.map((mt) => (
                     <th
@@ -307,7 +309,7 @@ export default function MealsPage() {
                     </th>
                   ))}
                   <th className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted">
-                    Total
+                    {t("total")}
                   </th>
                 </tr>
               </thead>
@@ -328,8 +330,7 @@ export default function MealsPage() {
                       className="px-4 py-12 text-center"
                     >
                       <p className="text-sm text-foreground-muted">
-                        No active meal types. Add meal types below to start
-                        recording meals.
+                        {t("noActiveMealTypes")}
                       </p>
                     </td>
                   </tr>
@@ -339,7 +340,7 @@ export default function MealsPage() {
                       colSpan={activeMealTypes.length + 2}
                       className="px-4 py-8 text-center text-sm text-foreground-muted"
                     >
-                      No members in this mess yet.
+                      {t("noMembersMessYet")}
                     </td>
                   </tr>
                 ) : (
@@ -410,6 +411,7 @@ function CreateMealTypeForm({
   messId: string;
   onCancel: () => void;
 }) {
+  const t = useTranslations("pages.meals");
   const createMealType = useCreateMealType(messId);
   const [name, setName] = useState("");
   const [value, setValue] = useState("1");
@@ -420,12 +422,12 @@ function CreateMealTypeForm({
     const trimmed = name.trim();
 
     if (!trimmed) {
-      setError("Name is required");
+      setError(t("nameRequired"));
       return;
     }
 
     if (trimmed.length > 50) {
-      setError("Name must be at most 50 characters");
+      setError(t("nameMustAtMost"));
       return;
     }
 
@@ -451,7 +453,7 @@ function CreateMealTypeForm({
     <div className="rounded-lg border border-border bg-background p-4">
       <div className="mb-3 flex items-center gap-2">
         <Plus size={16} className="text-primary" />
-        <p className="text-sm font-semibold text-foreground">New Meal Type</p>
+        <p className="text-sm font-semibold text-foreground">{t("newMealType")}</p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -463,7 +465,7 @@ function CreateMealTypeForm({
               setName(e.target.value);
               setError("");
             }}
-            placeholder="e.g. Breakfast, Lunch, Dinner"
+            placeholder={t("eGBreakfastLunch")}
             className={`w-full rounded-lg border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 ${
               error
                 ? "border-destructive focus:ring-destructive/40"
@@ -480,7 +482,7 @@ function CreateMealTypeForm({
             max="10"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="Value"
+            placeholder={t("value2")}
             className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             disabled={createMealType.isPending}
           />
@@ -493,7 +495,7 @@ function CreateMealTypeForm({
             className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
           >
             <X size={14} />
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -506,7 +508,7 @@ function CreateMealTypeForm({
             ) : (
               <Plus size={14} />
             )}
-            Add
+            {t("add")}
           </button>
         </div>
       </div>
@@ -523,6 +525,7 @@ function MealTypeRow({
   mealType: MealTypeInfo;
   messId: string;
 }) {
+  const t = useTranslations("pages.meals");
   const updateMealType = useUpdateMealType(messId);
   const deleteMealType = useDeleteMealType(messId);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -583,7 +586,7 @@ function MealTypeRow({
       <div className="flex items-center gap-3">
         {mealType.is_active && (
           <div className="flex items-center gap-2">
-            <label className="text-xs text-foreground-muted">Value:</label>
+            <label className="text-xs text-foreground-muted">{t("value")}</label>
             <input
               type="number"
               step="0.1"
@@ -603,7 +606,7 @@ function MealTypeRow({
 
         {confirmDelete ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-foreground-muted">Delete?</span>
+            <span className="text-xs text-foreground-muted">{t("delete")}</span>
             <button
               type="button"
               onClick={handleDelete}
@@ -621,7 +624,7 @@ function MealTypeRow({
               onClick={() => setConfirmDelete(false)}
               className="rounded bg-surface-raised px-2 py-1 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-overlay"
             >
-              No
+              {t("no")}
             </button>
           </div>
         ) : (
@@ -645,6 +648,7 @@ function MealTypeManager({
   messId: string;
   mealTypes: MealTypeInfo[];
 }) {
+  const t = useTranslations("pages.meals");
   const [showCreate, setShowCreate] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -662,10 +666,10 @@ function MealTypeManager({
           <Settings size={18} className="text-foreground-muted" />
           <div>
             <p className="text-sm font-semibold text-foreground">
-              Meal Type Settings
+              {t("mealTypeSettings")}
             </p>
             <p className="text-xs text-foreground-muted">
-              {activeTypes.length} active, {inactiveTypes.length} inactive
+              {activeTypes.length} active, {inactiveTypes.length}{" "}{t("inactive")}
             </p>
           </div>
         </div>
@@ -679,7 +683,7 @@ function MealTypeManager({
         <div className="border-t border-border px-5 py-4">
           <div className="mb-4 flex items-center justify-between">
             <p className="text-xs text-foreground-muted">
-              Configure meal types for your mess.
+              {t("configureMealTypesMess")}
             </p>
             {!showCreate && (
               <button
@@ -688,7 +692,7 @@ function MealTypeManager({
                 className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
               >
                 <Plus size={12} />
-                Add Type
+                {t("addType")}
               </button>
             )}
           </div>
@@ -705,8 +709,7 @@ function MealTypeManager({
           {mealTypes.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border-strong p-6 text-center">
               <p className="text-sm text-foreground-muted">
-                No meal types configured. Add your first meal type to start
-                recording meals.
+                {t("noMealTypesConfigured")}
               </p>
             </div>
           ) : (

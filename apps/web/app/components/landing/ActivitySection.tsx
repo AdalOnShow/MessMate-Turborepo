@@ -5,49 +5,39 @@ import {
   CalendarRange,
   ShieldCheck,
 } from "lucide-react";
-import { SectionHeading, Avatar } from "./ui";
+import { getTranslations } from "next-intl/server";
+import { SectionHeading, Avatar, richAccent } from "./ui";
 import { Reveal } from "./Reveal";
 
 const EVENTS = [
   {
     icon: UtensilsCrossed,
-    actor: "Adal",
+    key: "meal",
     initials: "AN",
-    text: "updated the Dinner meal record",
-    when: "Just now",
-    tag: "Meal",
     color: "text-primary bg-primary/10",
   },
   {
     icon: ReceiptText,
-    actor: "Rahim",
+    key: "expense",
     initials: "RU",
-    text: "added Internet bill — ৳1,200",
-    when: "2 hours ago",
-    tag: "Expense",
     color: "text-accent-warm bg-accent-warm/10",
   },
   {
     icon: Wallet,
-    actor: "Fahad",
+    key: "deposit",
     initials: "FK",
-    text: "deposited ৳5,000 to the mess account",
-    when: "Yesterday",
-    tag: "Deposit",
     color: "text-success bg-success/10",
   },
   {
     icon: CalendarRange,
-    actor: "Manager",
+    key: "month",
     initials: "MGR",
-    text: "closed August 2026 and carried balances forward",
-    when: "3 days ago",
-    tag: "Month",
     color: "text-destructive bg-destructive/10",
   },
-];
+] as const;
 
-export function ActivitySection() {
+export async function ActivitySection() {
+  const t = await getTranslations("landing.activity");
   return (
     <section className="bg-background py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -58,7 +48,7 @@ export function ActivitySection() {
               <div className="space-y-6">
                 {EVENTS.map((ev, i) => (
                   <div
-                    key={`${ev.actor}-${ev.text}`}
+                    key={ev.key}
                     className="relative flex gap-4 pl-0"
                   >
                     <div className="z-10 mt-0.5 flex flex-col items-center">
@@ -79,17 +69,17 @@ export function ActivitySection() {
                         />
                         <p className="text-sm leading-snug text-foreground-muted">
                           <span className="font-semibold text-foreground">
-                            {ev.actor}
+                            {t(`events.${ev.key}.actor`)}
                           </span>{" "}
-                          {ev.text}
+                          {t(`events.${ev.key}.text`)}
                         </p>
                       </div>
                       <div className="mt-1.5 flex items-center gap-2">
                         <span className="text-[11px] text-foreground-muted/70">
-                          {ev.when}
+                          {t(`events.${ev.key}.when`)}
                         </span>
                         <span className="rounded bg-surface-raised px-1.5 py-0.5 text-[9px] font-bold text-foreground-muted">
-                          {ev.tag}
+                          {t(`events.${ev.key}.tag`)}
                         </span>
                       </div>
                     </div>
@@ -102,37 +92,24 @@ export function ActivitySection() {
           <div>
             <SectionHeading
               align="left"
-              eyebrow="Radical Transparency"
-              title={
-                <>
-                  Every Action Leaves a{" "}
-                  <span className="text-primary">Trace</span>
-                </>
-              }
-              subtitle="Activity history is built into the heart of MessMate, not bolted on. Every meal edit, expense, deposit, and month transition is logged and visible to the whole mess."
+              eyebrow={t("eyebrow")}
+              title={t.rich("title", richAccent)}
+              subtitle={t("subtitle")}
             />
             <div className="mt-8 space-y-4 text-sm leading-relaxed text-foreground-muted">
-              <p>
-                That means no more &ldquo;I never saw that entry&rdquo; —
-                because the record is public to your mess and stamped with who
-                did what and when.
-              </p>
-              <p>
-                Role changes are logged too. If a manager is added or removed,
-                the mess can see exactly when it happened. Accountability
-                isn&apos;t an afterthought.
-              </p>
+              <p>{t("body1")}</p>
+              <p>{t("body2")}</p>
             </div>
             <div className="mt-8 flex items-center gap-3 rounded-2xl border border-success/25 bg-success/5 p-4">
               <span className="flex size-10 items-center justify-center rounded-xl bg-success/15 text-success">
                 <ShieldCheck className="size-5" />
               </span>
               <p className="text-sm text-foreground-muted">
-                <span className="font-semibold text-foreground">
-                  Built-in audit trail.
-                </span>{" "}
-                You can audit the whole month before you close it — from the
-                same screen.
+                {t.rich("audit", {
+                  strong: (c) => (
+                    <span className="font-semibold text-foreground">{c}</span>
+                  ),
+                })}
               </p>
             </div>
           </div>

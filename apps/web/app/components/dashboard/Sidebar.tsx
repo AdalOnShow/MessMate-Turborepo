@@ -19,18 +19,20 @@ import {
 import { useSessionStore } from "../../store";
 import { useLogout } from "../../hooks/use-auth";
 import { useGetMyMess } from "../../hooks/use-messes";
+import { useTranslations } from "next-intl";
+import { LanguageToggle } from "../LanguageToggle";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: Home },
-  { href: "/dashboard/members", label: "Members", icon: Users },
-  { href: "/dashboard/months", label: "Months", icon: Calendar },
-  { href: "/dashboard/meals", label: "Meals", icon: Utensils },
-  { href: "/dashboard/bazaar", label: "Bazaar", icon: ShoppingCart },
-  { href: "/dashboard/expenses", label: "Expenses", icon: ReceiptText },
-  { href: "/dashboard/deposits", label: "Deposits", icon: WalletCards },
-  { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-  { href: "/dashboard/profile", label: "Profile", icon: User },
-];
+  { href: "/dashboard", label: "dashboard", icon: Home },
+  { href: "/dashboard/members", label: "members", icon: Users },
+  { href: "/dashboard/months", label: "months", icon: Calendar },
+  { href: "/dashboard/meals", label: "meals", icon: Utensils },
+  { href: "/dashboard/bazaar", label: "bazaar", icon: ShoppingCart },
+  { href: "/dashboard/expenses", label: "expenses", icon: ReceiptText },
+  { href: "/dashboard/deposits", label: "deposits", icon: WalletCards },
+  { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
+  { href: "/dashboard/profile", label: "profile", icon: User },
+] as const;
 
 function initials(name?: string | null, email?: string | null) {
   const source = name?.trim() || email?.split("@")[0] || "User";
@@ -42,8 +44,10 @@ function initials(name?: string | null, email?: string | null) {
 }
 
 export function Sidebar() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const user = useSessionStore((state) => state.user);
+  const tc = useTranslations("common");
   const logout = useLogout();
   const { data: myMess } = useGetMyMess();
   const isManager = myMess?.current_user_role === "MANAGER";
@@ -66,11 +70,12 @@ export function Sidebar() {
         >
           Mess<span className="text-primary">Mate</span>
         </Link>
+        <LanguageToggle className="ml-auto" />
       </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-5">
         <p className="label-mono mb-2 px-3 text-[10px] text-foreground-muted">
-          Workspace
+          {t("workspace")}
         </p>
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -90,7 +95,7 @@ export function Sidebar() {
               }`}
             >
               <Icon size={18} aria-hidden="true" />
-              {item.label}
+              {t(item.label)}
             </Link>
           );
         })}
@@ -98,8 +103,8 @@ export function Sidebar() {
         {isManager && (
           <>
             <p className="label-mono mb-2 mt-5 px-3 text-[10px] text-foreground-muted">
-              Manager
-            </p>
+            {t("manager")}
+          </p>
             <Link
               href="/dashboard/settings"
               className={`relative flex h-10 items-center gap-3 rounded-lg border px-3 text-sm font-medium transition-colors ${
@@ -109,8 +114,8 @@ export function Sidebar() {
               }`}
             >
               <Settings size={18} aria-hidden="true" />
-              Mess Settings
-            </Link>
+            {t("messSettings")}
+          </Link>
           </>
         )}
       </nav>
@@ -131,7 +136,7 @@ export function Sidebar() {
           )}
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-foreground">
-              {user?.name || "MessMate user"}
+              {user?.name || t("userFallback")}
             </p>
             <p className="truncate font-mono text-[11px] text-foreground-muted">
               {user?.email}
@@ -145,7 +150,7 @@ export function Sidebar() {
           className="flex h-10 w-full items-center justify-center gap-2 rounded-[9px] border border-border text-sm font-semibold text-foreground-muted transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-60"
         >
           <LogOut size={16} aria-hidden="true" />
-          Logout
+          {tc("logout")}
         </button>
       </div>
     </aside>

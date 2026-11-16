@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import {
   Activity,
@@ -21,40 +22,40 @@ const ACTION_META: Record<
   ActivityLogInfo["action"],
   { label: string; icon: ReactNode }
 > = {
-  MEMBER_ADDED: { label: "Member added", icon: <UserPlus size={14} /> },
-  MEMBER_REMOVED: { label: "Member removed", icon: <UserMinus size={14} /> },
-  MANAGER_ASSIGNED: { label: "Manager assigned", icon: <Crown size={14} /> },
-  MANAGER_REMOVED: { label: "Manager removed", icon: <Crown size={14} /> },
-  MEAL_ADDED: { label: "Meals added", icon: <ChefHat size={14} /> },
-  MEAL_UPDATED: { label: "Meals updated", icon: <ChefHat size={14} /> },
-  MEAL_DELETED: { label: "Meals deleted", icon: <ChefHat size={14} /> },
-  EXPENSE_ADDED: { label: "Expense added", icon: <Receipt size={14} /> },
-  EXPENSE_UPDATED: { label: "Expense updated", icon: <Receipt size={14} /> },
-  EXPENSE_DELETED: { label: "Expense deleted", icon: <Receipt size={14} /> },
-  DEPOSIT_ADDED: { label: "Deposit added", icon: <Landmark size={14} /> },
-  DEPOSIT_UPDATED: { label: "Deposit updated", icon: <Landmark size={14} /> },
-  DEPOSIT_DELETED: { label: "Deposit deleted", icon: <Landmark size={14} /> },
-  MONTH_OPENED: { label: "Month opened", icon: <Activity size={14} /> },
-  MONTH_CLOSED: { label: "Month closed", icon: <Activity size={14} /> },
+  MEMBER_ADDED: { label: "memberAdded", icon: <UserPlus size={14} /> },
+  MEMBER_REMOVED: { label: "memberRemoved", icon: <UserMinus size={14} /> },
+  MANAGER_ASSIGNED: { label: "managerAssigned", icon: <Crown size={14} /> },
+  MANAGER_REMOVED: { label: "managerRemoved", icon: <Crown size={14} /> },
+  MEAL_ADDED: { label: "mealsAdded", icon: <ChefHat size={14} /> },
+  MEAL_UPDATED: { label: "mealsUpdated", icon: <ChefHat size={14} /> },
+  MEAL_DELETED: { label: "mealsDeleted", icon: <ChefHat size={14} /> },
+  EXPENSE_ADDED: { label: "expenseAdded", icon: <Receipt size={14} /> },
+  EXPENSE_UPDATED: { label: "expenseUpdated", icon: <Receipt size={14} /> },
+  EXPENSE_DELETED: { label: "expenseDeleted", icon: <Receipt size={14} /> },
+  DEPOSIT_ADDED: { label: "depositAdded", icon: <Landmark size={14} /> },
+  DEPOSIT_UPDATED: { label: "depositUpdated", icon: <Landmark size={14} /> },
+  DEPOSIT_DELETED: { label: "depositDeleted", icon: <Landmark size={14} /> },
+  MONTH_OPENED: { label: "monthOpened", icon: <Activity size={14} /> },
+  MONTH_CLOSED: { label: "monthClosed", icon: <Activity size={14} /> },
   MEMBER_BALANCE_CREATED: {
-    label: "Balance created",
+    label: "balanceCreated",
     icon: <Users size={14} />,
   },
   DEFAULT_MEALS_UPDATED: {
-    label: "Default meals updated",
+    label: "defaultMealsUpdated",
     icon: <ChefHat size={14} />,
   },
   BAZAAR_SUBMITTED: {
-    label: "Bazaar submitted",
+    label: "bazaarSubmitted",
     icon: <ShoppingCart size={14} />,
   },
-  BAZAAR_UPDATED: { label: "Bazaar updated", icon: <ShoppingCart size={14} /> },
+  BAZAAR_UPDATED: { label: "bazaarUpdated", icon: <ShoppingCart size={14} /> },
   BAZAAR_APPROVED: {
-    label: "Bazaar approved",
+    label: "bazaarApproved",
     icon: <ShoppingCart size={14} />,
   },
   BAZAAR_REJECTED: {
-    label: "Bazaar rejected",
+    label: "bazaarRejected",
     icon: <ShoppingCart size={14} />,
   },
 };
@@ -75,12 +76,13 @@ function timeAgo(iso: string) {
 }
 
 export function RecentActivity({ messId }: { messId: string | undefined }) {
+  const t = useTranslations("dashboard.recentActivity");
   const activitiesQuery = useRecentActivities(messId);
   const { data: activities, isLoading } = activitiesQuery;
 
   return (
     <BentoCard className="flex flex-col p-6 lg:col-span-3">
-      <CardHeading icon={<Activity size={15} />} title="Recent activity" />
+      <CardHeading icon={<Activity size={15} />} title={t("recentActivity")} />
 
       {isLoading ? (
         <div className="space-y-3">
@@ -129,9 +131,9 @@ export function RecentActivity({ messId }: { messId: string | undefined }) {
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
           <Activity size={28} className="mb-3 text-foreground-muted/40" />
-          <p className="text-sm font-medium text-foreground">No activity yet</p>
+          <p className="text-sm font-medium text-foreground">{t("noActivityYet")}</p>
           <p className="mt-1 max-w-[220px] text-xs text-foreground-muted">
-            Actions in your mess will appear here.
+            {t("actionsMessAppearHere")}
           </p>
         </div>
       )}

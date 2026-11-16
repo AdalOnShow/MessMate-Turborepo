@@ -1,0 +1,17 @@
+{
+  "dashboard": "ড্যাশবোর্ড",
+  "home": "হোম",
+  "members": "সদস্য",
+  "months": "মাস",
+  "meals": "মিল",
+  "bazaar": "বাজার",
+  "expenses": "খরচ",
+  "deposits": "জমা",
+  "reports": "রিপোর্ট",
+  "profile": "প্রোফাইল",
+  "messSettings": "মেস সেটিংস",
+  "settings": "সেটিংস",
+  "workspace": "ওয়ার্কস্পেস",
+  "manager": "ম্যানেজার",
+  "userFallback": "মেসমেট ব্যবহারকারী"
+}

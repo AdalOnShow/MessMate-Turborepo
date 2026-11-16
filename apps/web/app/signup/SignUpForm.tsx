@@ -6,24 +6,21 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSignup } from "../hooks/use-auth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
+import { useTranslations } from "next-intl";
+import { LanguageToggle } from "../components/LanguageToggle";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { formatZodError, signUpSchema } from "@repo/shared";
 
-function getErrorMessage(error: string): string {
-  switch (error) {
-    case "ACCOUNT_EXISTS":
-      return "An account with this email already exists. Please sign in with your password.";
-    case "NO_EMAIL":
-      return "Google did not provide an email address. Please try again or use email sign up.";
-    case "EMAIL_NOT_VERIFIED":
-      return "Your Google email is not verified. Please verify it in your Google account settings.";
-    case "google_auth_failed":
-    default:
-      return "Google sign up failed. Please try again.";
-  }
+const OAUTH_ERRORS = ["ACCOUNT_EXISTS", "NO_EMAIL", "EMAIL_NOT_VERIFIED"] as const;
+
+function oauthErrorKey(error: string) {
+  return (OAUTH_ERRORS as readonly string[]).includes(error)
+    ? (error as (typeof OAUTH_ERRORS)[number])
+    : "failed";
 }
 
 export default function SignUpForm() {
+  const t = useTranslations("auth");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,10 +35,10 @@ export default function SignUpForm() {
   useEffect(() => {
     const error = searchParams.get("error");
     if (error) {
-      setOauthError(getErrorMessage(error));
+      setOauthError(t(`oauth.${oauthErrorKey(error)}`));
       router.replace("/signup");
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, t]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,10 +94,10 @@ export default function SignUpForm() {
             </span>
           </div>
           <h1 className="heading-tight text-2xl text-foreground font-heading text-center mb-1">
-            Create your account
+            {t("signup.title")}
           </h1>
           <p className="text-sm text-foreground-muted text-center mb-8">
-            Start managing your mess in minutes
+            {t("signup.subtitle")}
           </p>
 
           <div className="space-y-4">
@@ -112,7 +109,7 @@ export default function SignUpForm() {
               </div>
               <div className="relative flex justify-center font-mono text-[10px] uppercase tracking-[0.12em]">
                 <span className="bg-surface px-2 text-foreground-muted">
-                  or
+                  {t("or")}
                 </span>
               </div>
             </div>
@@ -123,14 +120,14 @@ export default function SignUpForm() {
                   htmlFor="name"
                   className="label-mono text-[10px] text-foreground-muted"
                 >
-                  Full name
+                  {t("fullName")}
                 </label>
                 <input
                   id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="John Doe"
+                  placeholder={t("namePlaceholder")}
                   required
                   autoComplete="name"
                   className="w-full h-11 px-3.5 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
@@ -145,14 +142,14 @@ export default function SignUpForm() {
                   htmlFor="email"
                   className="label-mono text-[10px] text-foreground-muted"
                 >
-                  Email
+                  {t("email")}
                 </label>
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder={t("emailPlaceholder")}
                   required
                   autoComplete="email"
                   className="w-full h-11 px-3.5 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
@@ -169,7 +166,7 @@ export default function SignUpForm() {
                   htmlFor="password"
                   className="label-mono text-[10px] text-foreground-muted"
                 >
-                  Password
+                  {t("password")}
                 </label>
                 <div className="relative">
                   <input
@@ -177,7 +174,7 @@ export default function SignUpForm() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Min. 8 characters"
+                    placeholder={t("signup.passwordPlaceholder")}
                     required
                     minLength={8}
                     autoComplete="new-password"
@@ -188,7 +185,7 @@ export default function SignUpForm() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
                     aria-label={
-                      showPassword ? "Hide password" : "Show password"
+                      showPassword ? t("hidePassword") : t("showPassword")
                     }
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -200,7 +197,7 @@ export default function SignUpForm() {
                   </p>
                 )}
                 <p className="text-xs text-foreground-muted/70">
-                  Must be at least 8 characters
+                  {t("signup.passwordHint")}
                 </p>
               </div>
 
@@ -209,7 +206,7 @@ export default function SignUpForm() {
                   <AlertCircle size={16} />
                   {oauthError ||
                     signup.error?.message ||
-                    "Something went wrong. Please try again."}
+                    t("signup.fallbackError")}
                 </p>
               )}
 
@@ -221,22 +218,22 @@ export default function SignUpForm() {
                 {signup.isPending ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    Creating account...
+                    {t("signup.pending")}
                   </>
                 ) : (
-                  "Create account"
+                  t("signup.submit")
                 )}
               </button>
             </form>
           </div>
 
           <p className="text-sm text-foreground-muted text-center mt-6">
-            Already have an account?{" "}
+            {t("signup.haveAccount")}{" "}
             <Link
               href="/signin"
               className="text-primary hover:text-primary-hover font-medium transition-colors"
             >
-              Sign in
+              {t("signup.switch")}
             </Link>
           </p>
         </div>

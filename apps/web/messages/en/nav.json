@@ -1,0 +1,17 @@
+{
+  "dashboard": "Dashboard",
+  "home": "Home",
+  "members": "Members",
+  "months": "Months",
+  "meals": "Meals",
+  "bazaar": "Bazaar",
+  "expenses": "Expenses",
+  "deposits": "Deposits",
+  "reports": "Reports",
+  "profile": "Profile",
+  "messSettings": "Mess Settings",
+  "settings": "Settings",
+  "workspace": "Workspace",
+  "manager": "Manager",
+  "userFallback": "MessMate user"
+}

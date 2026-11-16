@@ -1,5 +1,6 @@
 import { Wrench } from "lucide-react";
-import { SectionHeading } from "./ui";
+import { getTranslations } from "next-intl/server";
+import { SectionHeading, richAccent } from "./ui";
 import { Reveal } from "./Reveal";
 
 const STACK = [
@@ -25,19 +26,16 @@ const STACK = [
   { name: "Tailwind CSS", color: "text-primary bg-primary/10 ring-primary/25" },
 ];
 
-export function TechnologySection() {
+export async function TechnologySection() {
+  const t = await getTranslations("landing.technology");
   return (
     <section className="border-y border-border bg-surface-sunken py-20 lg:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <SectionHeading
-            eyebrow="Built To Last"
-            title={
-              <>
-                Stack You Can <span className="text-primary">Trust</span>
-              </>
-            }
-            subtitle="A modern, deliberately boring stack — fast to ship, easy to keep honest, and pleasant to maintain. No bloat, no mystery."
+            eyebrow={t("eyebrow")}
+            title={t.rich("title", richAccent)}
+            subtitle={t("subtitle")}
           />
         </div>
 

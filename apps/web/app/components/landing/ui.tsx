@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
 
+/** Rich-text tags for translated headings: `<accent>word</accent>` → blue highlight. */
+export const richAccent = {
+  accent: (chunks: ReactNode) => <span className="text-primary">{chunks}</span>,
+  br: () => <br />,
+};
+
 export function SectionEyebrow({
   children,
   align = "center",

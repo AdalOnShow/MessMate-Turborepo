@@ -1,21 +1,23 @@
+import { useTranslations } from "next-intl";
 import type { Metadata } from "next";
 import { Compass } from "lucide-react";
 import { ErrorScreen } from "./components/feedback/ErrorScreen";
 
 export const metadata: Metadata = {
-  title: "Page not found — MessMate",
+  title: "pageNotFoundMessmate",
 };
 
 export default function NotFound() {
+  const t = useTranslations("misc.notFound");
   return (
     <ErrorScreen
       fullScreen
       icon={Compass}
       code="404"
-      title="Page not found"
-      description="The page you're looking for doesn't exist or has been moved. Check the address, or head back home."
+      title={t("pageNotFound")}
+      description={t("pageReLookingDoesn")}
       homeHref="/"
-      homeLabel="Go home"
+      homeLabel={t("goHome")}
     />
   );
 }

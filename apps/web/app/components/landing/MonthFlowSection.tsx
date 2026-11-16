@@ -6,60 +6,47 @@ import {
   ArrowLeftRight,
   ChevronRight,
 } from "lucide-react";
-import { SectionHeading } from "./ui";
+import { getTranslations } from "next-intl/server";
+import { SectionHeading, richAccent } from "./ui";
 import { Reveal } from "./Reveal";
 
 const FLOW = [
   {
     icon: CalendarRange,
-    title: "Current Month",
-    description:
-      "Meals, expenses and deposits are logged live against the open month.",
+    key: "current",
   },
   {
     icon: Calculator,
-    title: "Calculate",
-    description:
-      "Meal rate, member bills and net balances are computed automatically.",
+    key: "calculate",
   },
   {
     icon: Archive,
-    title: "Close & Archive",
-    description:
-      "A manager closes the month; it becomes a frozen, shareable record.",
+    key: "close",
   },
   {
     icon: CalendarPlus,
-    title: "Start New Month",
-    description:
-      "A fresh month opens right away — no setup, no resets, no confusion.",
+    key: "start",
   },
   {
     icon: ArrowLeftRight,
-    title: "Carry Forward",
-    description:
-      "Positive balances roll into deposits. Negative balances become individual expenses.",
+    key: "carry",
   },
-];
+] as const;
 
-export function MonthFlowSection() {
+export async function MonthFlowSection() {
+  const t = await getTranslations("landing.monthFlow");
   return (
     <section className="bg-background py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="The Month Cycle"
-          title={
-            <>
-              One Clean Loop,{" "}
-              <span className="text-primary">Every Single Month</span>
-            </>
-          }
-          subtitle="MessMate is built around a simple monthly rhythm that matches how messes actually run — open, fill, calculate, close, repeat."
+          eyebrow={t("eyebrow")}
+          title={t.rich("title", richAccent)}
+          subtitle={t("subtitle")}
         />
 
         <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5 lg:gap-3">
           {FLOW.map((step, idx) => (
-            <Reveal key={step.title} delay={idx * 100}>
+            <Reveal key={step.key} delay={idx * 100}>
               <div className="relative flex h-full flex-col rounded-2xl border border-border bg-surface-raised/50 p-6 transition-all duration-300 hover:border-primary/30 hover:bg-surface-raised">
                 <div className="flex items-center justify-between">
                   <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/25">
@@ -70,10 +57,10 @@ export function MonthFlowSection() {
                   </span>
                 </div>
                 <h3 className="mt-5 text-base font-bold text-foreground font-heading">
-                  {step.title}
+                  {t(`steps.${step.key}.title`)}
                 </h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-foreground-muted">
-                  {step.description}
+                  {t(`steps.${step.key}.description`)}
                 </p>
               </div>
             </Reveal>
@@ -86,12 +73,11 @@ export function MonthFlowSection() {
               <ChevronRight className="size-5 text-primary" />
             </span>
             <p className="text-sm leading-relaxed text-foreground-muted">
-              <span className="font-semibold text-foreground">
-                Balance carried forward:
-              </span>{" "}
-              if you&apos;re in credit it becomes your next deposit; if you owe,
-              it becomes an individual expense to settle. Fair to everyone,
-              every month.
+              {t.rich("note", {
+                strong: (c) => (
+                  <span className="font-semibold text-foreground">{c}</span>
+                ),
+              })}
             </p>
           </div>
         </Reveal>

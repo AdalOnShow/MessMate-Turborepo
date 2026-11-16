@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../store";
@@ -8,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { QueryErrorState } from "../../components/feedback/QueryErrorState";
 
 function CreateMessForm() {
+  const t = useTranslations("pages.createMess");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [nameError, setNameError] = useState("");
@@ -19,12 +21,12 @@ function CreateMessForm() {
     setNameError("");
 
     if (!name.trim()) {
-      setNameError("Mess name is required");
+      setNameError(t("messNameRequired"));
       return;
     }
 
     if (name.trim().length < 2) {
-      setNameError("Name must be at least 2 characters");
+      setNameError(t("nameMustAtLeast"));
       return;
     }
 
@@ -44,13 +46,12 @@ function CreateMessForm() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6 md:mb-8">
-        <p className="label-mono text-primary">Mess Setup</p>
+        <p className="label-mono text-primary">{t("messSetup")}</p>
         <h1 className="mt-2 heading-tight text-2xl text-foreground md:text-3xl">
-          Create New Mess
+          {t("createNewMess")}
         </h1>
         <p className="mt-2 text-sm text-foreground-muted md:text-base">
-          You will become the manager of this mess. You can add meal types and
-          manage members after creation.
+          {t("becomeManagerMessCan")}
         </p>
       </div>
 
@@ -62,7 +63,7 @@ function CreateMessForm() {
                 htmlFor="mess-name"
                 className="mb-1.5 block text-sm font-medium text-foreground"
               >
-                Mess Name <span className="text-destructive">*</span>
+                {t("messName")}<span className="text-destructive">*</span>
               </label>
               <input
                 id="mess-name"
@@ -72,7 +73,7 @@ function CreateMessForm() {
                   setName(e.target.value);
                   setNameError("");
                 }}
-                placeholder="e.g. Bashundhara Mess"
+                placeholder={t("eGBashundharaMess")}
                 className={`w-full rounded-lg border bg-background px-4 py-2.5 text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 ${
                   nameError
                     ? "border-destructive focus:ring-destructive/40"
@@ -90,14 +91,14 @@ function CreateMessForm() {
                 htmlFor="mess-description"
                 className="mb-1.5 block text-sm font-medium text-foreground"
               >
-                Description{" "}
+                {t("description")}{" "}
                 <span className="text-foreground-muted">(optional)</span>
               </label>
               <textarea
                 id="mess-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Brief description of your mess..."
+                placeholder={t("briefDescriptionMess")}
                 rows={4}
                 className="w-full rounded-lg border border-border bg-surface-sunken px-4 py-2.5 text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
                 disabled={createMess.isPending}
@@ -113,14 +114,14 @@ function CreateMessForm() {
             className="rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-foreground-muted transition-colors hover:bg-surface-raised"
             disabled={createMess.isPending}
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="submit"
             disabled={createMess.isPending}
             className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {createMess.isPending ? "Creating..." : "Create Mess"}
+            {createMess.isPending ? t("creating") : t("createMess")}
           </button>
         </div>
       </form>
@@ -129,6 +130,7 @@ function CreateMessForm() {
 }
 
 function CreateMessContent() {
+  const t = useTranslations("pages.createMess");
   const { isAuthenticated } = useSessionStore();
   const messQuery = useGetMyMess(isAuthenticated);
   const { data: myMess } = messQuery;
@@ -165,14 +167,14 @@ function CreateMessContent() {
       <div className="mx-auto max-w-2xl">
         <div className="rounded-xl border border-border bg-surface p-4 md:p-6">
           <p className="text-sm text-foreground-muted md:text-base">
-            You already have an active mess:{" "}
+            {t("alreadyHaveActiveMess")}{" "}
             <span className="font-semibold text-foreground">{myMess.name}</span>
           </p>
           <button
             onClick={() => router.push("/dashboard")}
             className="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
           >
-            Back to Dashboard
+            {t("backDashboard")}
           </button>
         </div>
       </div>

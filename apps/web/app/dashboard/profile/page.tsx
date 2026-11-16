@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import {
   AlertCircle,
@@ -28,6 +29,7 @@ function CompactAvatarUpload({
   currentAvatarUrl: string | null | undefined;
   userName: string;
 }) {
+  const t = useTranslations("pages.profile");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -44,11 +46,11 @@ function CompactAvatarUpload({
 
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (!allowed.includes(file.type)) {
-      setFileError("Only JPEG, PNG, and WebP images are allowed.");
+      setFileError(t("onlyJpegPngWebp"));
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setFileError("File must be smaller than 5 MB.");
+      setFileError(t("fileMustSmallerThan"));
       return;
     }
 
@@ -104,7 +106,7 @@ function CompactAvatarUpload({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isBusy}
-          aria-label="Change avatar"
+          aria-label={t("changeAvatar")}
           className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Camera size={16} />
@@ -117,7 +119,7 @@ function CompactAvatarUpload({
         accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={handleFileChange}
-        aria-label="Upload avatar"
+        aria-label={t("uploadAvatar")}
       />
 
       <div className="flex-1 min-w-0">
@@ -142,7 +144,7 @@ function CompactAvatarUpload({
                 ) : (
                   <Upload size={13} />
                 )}
-                Save avatar
+                {t("saveAvatar")}
               </button>
               <button
                 type="button"
@@ -151,7 +153,7 @@ function CompactAvatarUpload({
                 className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-medium text-foreground-muted transition-colors hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <X size={13} />
-                Discard
+                {t("discard")}
               </button>
             </>
           ) : (
@@ -163,7 +165,7 @@ function CompactAvatarUpload({
                 className="flex items-center gap-1.5 rounded-lg border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Camera size={13} />
-                Change photo
+                {t("changePhoto")}
               </button>
               {currentAvatarUrl && !preview && (
                 <button
@@ -177,7 +179,7 @@ function CompactAvatarUpload({
                   ) : (
                     <Trash2 size={13} />
                   )}
-                  Remove
+                  {t("remove")}
                 </button>
               )}
             </>
@@ -185,7 +187,7 @@ function CompactAvatarUpload({
         </div>
 
         <p className="mt-1 text-xs text-foreground-muted">
-          JPEG, PNG or WebP · max 5 MB
+          {t("jpegPngOrWebp")}
         </p>
       </div>
     </div>
@@ -193,6 +195,7 @@ function CompactAvatarUpload({
 }
 
 function ProfileContent() {
+  const t = useTranslations("pages.profile");
   const { user, isAuthenticated } = useSessionStore();
   const profile = useGetProfile(isAuthenticated);
   const updateProfile = useUpdateProfile();
@@ -235,16 +238,16 @@ function ProfileContent() {
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-8">
-        <p className="label-mono text-primary">Profile</p>
+        <p className="label-mono text-primary">{t("profile")}</p>
         <h1 className="mt-2 heading-tight text-3xl text-foreground">
-          Account settings
+          {t("accountSettings")}
         </h1>
       </div>
 
       {profile.isLoading ? (
         <div className="flex h-40 items-center justify-center rounded-xl border border-border bg-surface text-foreground-muted">
           <Loader2 className="mr-2 animate-spin" size={18} />
-          Loading profile
+          {t("loadingProfile")}
         </div>
       ) : profile.isError && !profile.data ? (
         <QueryErrorState
@@ -260,12 +263,12 @@ function ProfileContent() {
             className="rounded-xl border border-border bg-surface p-6"
           >
             <h2 className="text-xl font-semibold text-foreground">
-              Personal details
+              {t("personalDetails")}
             </h2>
             <div className="mt-6 space-y-5">
               <label className="block">
                 <span className="text-sm font-medium text-foreground">
-                  Profile photo
+                  {t("profilePhoto")}
                 </span>
                 <CompactAvatarUpload
                   currentAvatarUrl={activeUser?.avatar}
@@ -275,7 +278,7 @@ function ProfileContent() {
 
               <label className="block">
                 <span className="text-sm font-medium text-foreground">
-                  Name
+                  {t("name")}
                 </span>
                 <input
                   value={name}
@@ -287,20 +290,20 @@ function ProfileContent() {
 
               <label className="block">
                 <span className="text-sm font-medium text-foreground">
-                  Phone
+                  {t("phone")}
                 </span>
                 <input
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
                   maxLength={20}
                   className="mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-foreground-muted/50 focus:border-primary focus:ring-2 focus:ring-primary/15"
-                  placeholder="Add a phone number"
+                  placeholder={t("addPhoneNumber")}
                 />
               </label>
 
               <label className="block">
                 <span className="text-sm font-medium text-foreground">
-                  Email
+                  {t("email")}
                 </span>
                 <input
                   value={activeUser?.email ?? ""}
@@ -320,7 +323,7 @@ function ProfileContent() {
               ) : (
                 <Save size={16} />
               )}
-              Save changes
+              {t("saveChanges")}
             </button>
           </form>
 
@@ -328,17 +331,17 @@ function ProfileContent() {
             <div className="rounded-xl border border-border bg-surface p-6">
               <h2 className="flex items-center gap-2 text-xl font-semibold text-foreground">
                 <Shield size={20} className="text-primary" />
-                Account status
+                {t("accountStatus")}
               </h2>
               <dl className="mt-5 space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="text-foreground-muted">Manager created</dt>
+                  <dt className="text-foreground-muted">{t("managerCreated")}</dt>
                   <dd className="font-semibold text-foreground">
                     {activeUser?.manager_created ? "Yes" : "No"}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="text-foreground-muted">Email verified</dt>
+                  <dt className="text-foreground-muted">{t("emailVerified")}</dt>
                   <dd className="font-semibold text-foreground">
                     {activeUser?.email_verified ? "Yes" : "No"}
                   </dd>
@@ -351,12 +354,12 @@ function ProfileContent() {
               className="rounded-xl border border-border bg-surface p-6"
             >
               <h2 className="text-xl font-semibold text-foreground">
-                Change password
+                {t("changePassword")}
               </h2>
               <div className="mt-6 space-y-5">
                 <label className="block">
                   <span className="text-sm font-medium text-foreground">
-                    Current password
+                    {t("currentPassword")}
                   </span>
                   <input
                     type="password"
@@ -368,7 +371,7 @@ function ProfileContent() {
                 </label>
                 <label className="block">
                   <span className="text-sm font-medium text-foreground">
-                    New password
+                    {t("newPassword")}
                   </span>
                   <input
                     type="password"
@@ -389,7 +392,7 @@ function ProfileContent() {
                 {changePassword.isPending && (
                   <Loader2 className="animate-spin" size={16} />
                 )}
-                Update password
+                {t("updatePassword")}
               </button>
             </form>
           </div>

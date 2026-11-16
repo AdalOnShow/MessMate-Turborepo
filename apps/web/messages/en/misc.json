@@ -1,0 +1,42 @@
+{
+  "userSessionDisplay": {
+    "zustandStoreDemo": "Zustand Store Demo",
+    "id": "ID:",
+    "email": "Email:",
+    "logout": "Logout",
+    "noUserSessionFound": "No user session found",
+    "loginDemoUser": "Login with demo user",
+    "currentZustandStoreDevtools": "Current Zustand store devtools are enabled. Check your browser DevTools, Extensions, Zustand",
+    "welcome": "Welcome,",
+    "state": "State:"
+  },
+  "themeToggle": {
+    "mode": "mode"
+  },
+  "datePicker": {
+    "pickDate": "Pick a date"
+  },
+  "select": {
+    "select": "Select..."
+  },
+  "error": {
+    "somethingWentWrong": "Something went wrong",
+    "unexpectedErrorOccurredWhile": "An unexpected error occurred while loading this page. Please try again. If it keeps happening, let us know with the reference below.",
+    "goHome": "Go home"
+  },
+  "globalError": {
+    "messmateCouldnTLoad": "MessMate couldn’t load",
+    "criticalErrorStoppedApp": "A critical error stopped the app from loading. Please try again in a moment.",
+    "reloadHome": "Reload home"
+  },
+  "notFound": {
+    "pageNotFound": "Page not found",
+    "pageReLookingDoesn": "The page you’re looking for doesn’t exist or has been moved. Check the address, or head back home.",
+    "pageNotFoundMessmate": "Page not found — MessMate",
+    "goHome": "Go home"
+  },
+  "dashboard": {
+    "pageRanIntoProblem": "This page ran into a problem",
+    "somethingUnexpectedHappenedWhile": "Something unexpected happened while showing this page. Your data is safe. Try again, or head back to the dashboard."
+  }
+}

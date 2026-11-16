@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetActiveMonth } from "../../hooks/use-months";
@@ -36,6 +37,7 @@ function computeSplit(amount: number, count: number): number[] {
 type ExpenseFormType = "SHARED" | "INDIVIDUAL";
 
 export default function AddExpensePage() {
+  const t = useTranslations("pages.expenses");
   const messQuery = useGetMyMess();
   const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
@@ -78,22 +80,22 @@ export default function AddExpensePage() {
     setError("");
 
     if (!title.trim()) {
-      setError("Title is required.");
+      setError(t("titleRequired"));
       return;
     }
 
     if (!parsedAmount || parsedAmount <= 0) {
-      setError("Amount must be greater than zero.");
+      setError(t("amountMustGreaterThan"));
       return;
     }
 
     if (selected.length === 0) {
-      setError("Select at least one member.");
+      setError(t("selectAtLeastOne"));
       return;
     }
 
     if (type === "INDIVIDUAL" && selected.length !== 1) {
-      setError("Select exactly one member for an individual expense.");
+      setError(t("selectExactlyOneMember"));
       return;
     }
 
@@ -181,7 +183,7 @@ export default function AddExpensePage() {
       <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
         <Receipt size={32} className="mb-3 text-foreground-muted" />
         <p className="text-sm text-foreground-muted">
-          You need to be part of a mess to add expenses.
+          {t("needPartMessAdd")}
         </p>
       </div>
     );
@@ -194,10 +196,10 @@ export default function AddExpensePage() {
           <Users size={26} className="text-foreground-muted" />
         </div>
         <p className="text-sm font-semibold text-foreground">
-          Only managers can add expenses
+          {t("onlyManagersCanAdd")}
         </p>
         <p className="mt-1 text-sm text-foreground-muted">
-          Ask a manager to record expenses for this month.
+          {t("askManagerRecordExpenses")}
         </p>
       </div>
     );
@@ -208,7 +210,7 @@ export default function AddExpensePage() {
       <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
         <Receipt size={32} className="mb-3 text-foreground-muted" />
         <p className="text-sm text-foreground-muted">
-          No active month. Start a month before adding expenses.
+          {t("noActiveMonthStart")}
         </p>
       </div>
     );
@@ -217,13 +219,12 @@ export default function AddExpensePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <p className="label-mono text-primary">Expenses</p>
+        <p className="label-mono text-primary">{t("expenses")}</p>
         <h1 className="mt-1 heading-tight text-3xl text-foreground">
-          Add Expense
+          {t("addExpense")}
         </h1>
         <p className="mt-1 text-sm text-foreground-muted">
-          Record a shared or individual expense. Shared amounts are split evenly
-          across the selected members.
+          {t("recordSharedOrIndividual")}
         </p>
       </div>
 
@@ -233,7 +234,7 @@ export default function AddExpensePage() {
             <Plus size={16} />
           </div>
           <h2 className="text-lg font-semibold text-foreground">
-            New expense for {activeMonth.title ?? "this month"}
+            {t("newExpense")}{" "}{activeMonth.title ?? "this month"}
           </h2>
         </div>
 
@@ -241,7 +242,7 @@ export default function AddExpensePage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-foreground">
-                Type
+                {t("type")}
               </label>
               <Select
                 value={type}
@@ -264,7 +265,7 @@ export default function AddExpensePage() {
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-foreground">
-                Amount
+                {t("amount")}
               </label>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-foreground-muted">
@@ -287,7 +288,7 @@ export default function AddExpensePage() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Title
+              {t("title")}
             </label>
             <input
               type="text"
@@ -301,7 +302,7 @@ export default function AddExpensePage() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Expense Date
+              {t("expenseDate")}
             </label>
             <DatePicker
               date={expenseDate}
@@ -329,13 +330,13 @@ export default function AddExpensePage() {
                   disabled={create.isPending}
                 >
                   {selected.length === activeMembers.length
-                    ? "Clear all"
-                    : "Select all"}
+                    ? t("clearAll")
+                    : t("selectAll")}
                 </button>
               ) : (
                 selected.length > 0 && (
                   <span className="text-xs font-medium text-foreground-muted">
-                    {selected.length} selected
+                    {selected.length}{" "}{t("selected")}
                   </span>
                 )
               )}
@@ -343,7 +344,7 @@ export default function AddExpensePage() {
             <div className="max-h-44 space-y-1.5 overflow-y-auto rounded-lg border border-border-strong bg-background p-2">
               {activeMembers.length === 0 ? (
                 <p className="px-2 py-3 text-center text-sm text-foreground-muted">
-                  No active members found.
+                  {t("noActiveMembersFound")}
                 </p>
               ) : (
                 activeMembers.map((member) => {
@@ -396,7 +397,7 @@ export default function AddExpensePage() {
                 <div className="mb-2 flex items-center gap-2 text-primary">
                   <Users size={14} />
                   <span className="text-xs font-mono font-medium uppercase tracking-[0.1em]">
-                    Auto-split · {formatMoney(parsedAmount)} ÷ {selected.length}
+                    {t("autoSplit")}{" "}{formatMoney(parsedAmount)} ÷ {selected.length}
                   </span>
                 </div>
                 <div className="space-y-1.5">
@@ -414,7 +415,7 @@ export default function AddExpensePage() {
                     </div>
                   ))}
                   <div className="mt-1 flex items-center justify-between border-t border-primary/15 pt-1.5 text-sm">
-                    <span className="text-foreground-muted">Total</span>
+                    <span className="text-foreground-muted">{t("total")}</span>
                     <span className="font-bold text-primary">
                       {formatMoney(parsedAmount)}
                     </span>
@@ -434,12 +435,12 @@ export default function AddExpensePage() {
             {create.isPending ? (
               <>
                 <Loader2 size={15} className="animate-spin" />
-                Adding...
+                {t("adding")}
               </>
             ) : (
               <>
                 <Plus size={15} />
-                Add Expense
+                {t("addExpense")}
               </>
             )}
           </Button>

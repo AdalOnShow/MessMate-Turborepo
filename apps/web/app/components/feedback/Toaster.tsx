@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { AlertCircle, CheckCircle2, Copy, Info, X } from "lucide-react";
 import { cn } from "@/app/lib/utils";
@@ -16,6 +17,7 @@ const VARIANT_STYLES = {
 } as const;
 
 function ToastItem({ toast }: { toast: Toast }) {
+  const t = useTranslations("feedback.toaster");
   const dismiss = useToastStore((s) => s.dismiss);
   const [paused, setPaused] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -61,7 +63,7 @@ function ToastItem({ toast }: { toast: Toast }) {
             type="button"
             onClick={copyReference}
             className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-surface px-2 py-1 font-mono text-[11px] text-foreground-muted transition-colors hover:text-foreground"
-            title="Copy reference code"
+            title={t("copyReferenceCode")}
           >
             <Copy size={12} aria-hidden />
             {copied ? "Copied" : `Ref: ${toast.reference.slice(0, 8)}`}
@@ -72,7 +74,7 @@ function ToastItem({ toast }: { toast: Toast }) {
         type="button"
         onClick={() => dismiss(toast.id)}
         className="-mr-1 -mt-1 h-7 w-7 shrink-0 rounded-md text-foreground-muted transition-colors hover:bg-surface hover:text-foreground"
-        aria-label="Dismiss notification"
+        aria-label={t("dismissNotification")}
       >
         <X size={16} className="mx-auto" />
       </button>

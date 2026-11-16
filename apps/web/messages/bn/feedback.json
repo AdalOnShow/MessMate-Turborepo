@@ -1,0 +1,23 @@
+{
+  "errorScreen": {
+    "tryAgain": "আবার চেষ্টা করুন",
+    "reference": "রেফারেন্স:",
+    "goDashboard": "ড্যাশবোর্ডে যান"
+  },
+  "offlineBanner": {
+    "backOnline": "আবার অনলাইনে"
+  },
+  "queryErrorState": {
+    "ref": "রেফ:",
+    "reOfflineOrServer": "আপনি অফলাইনে আছেন অথবা সার্ভারে পৌঁছানো যাচ্ছে না",
+    "donTHaveAccess": "এটি দেখার অনুমতি আপনার নেই",
+    "notFound": "পাওয়া যায়নি",
+    "couldnTLoad": "লোড করা যায়নি",
+    "retrying": "আবার চেষ্টা হচ্ছে...",
+    "tryAgain": "আবার চেষ্টা করুন"
+  },
+  "toaster": {
+    "copyReferenceCode": "রেফারেন্স কোড কপি করুন",
+    "dismissNotification": "নোটিফিকেশন বন্ধ করুন"
+  }
+}

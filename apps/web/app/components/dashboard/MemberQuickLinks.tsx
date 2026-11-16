@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   BarChart3,
@@ -14,33 +15,34 @@ const ACTIONS = [
   {
     href: "/dashboard/meals",
     icon: ChefHat,
-    label: "Add Meal",
-    hint: "Record today's meals",
+    label: "addMeal",
+    hint: "recordTodaySMeals",
   },
   {
     href: "/dashboard/bazaar",
     icon: ShoppingCart,
     label: "Bazaar",
-    hint: "Submit and track bazaar",
+    hint: "submitTrackBazaar",
   },
   {
     href: "/dashboard/meals/reports",
     icon: BarChart3,
-    label: "Meals Reports",
-    hint: "Daily, member, and monthly",
+    label: "mealsReports",
+    hint: "dailyMemberMonthly",
   },
   {
     href: "/dashboard/members",
     icon: Users,
     label: "Members",
-    hint: "View mess members",
+    hint: "viewMessMembers",
   },
 ] as const;
 
 export function MemberQuickLinks() {
+  const t = useTranslations("dashboard.memberQuickLinks");
   return (
     <BentoCard className="flex flex-col p-6 lg:col-span-1">
-      <CardHeading icon={<SquarePen size={15} />} title="Quick links" />
+      <CardHeading icon={<SquarePen size={15} />} title={t("quickLinks")} />
 
       <div className="flex-1 space-y-2">
         {ACTIONS.map((a) => (

@@ -1,5 +1,6 @@
 import { Calculator, Check, ArrowRight } from "lucide-react";
-import { SectionHeading } from "./ui";
+import { getTranslations } from "next-intl/server";
+import { SectionHeading, richAccent } from "./ui";
 import { Reveal } from "./Reveal";
 
 const SETTLEMENT = [
@@ -37,7 +38,8 @@ const SETTLEMENT = [
   },
 ];
 
-export function AccountingSection() {
+export async function AccountingSection() {
+  const t = await getTranslations("landing.accounting");
   return (
     <section
       id="accounting"
@@ -48,63 +50,53 @@ export function AccountingSection() {
           <div>
             <SectionHeading
               align="left"
-              eyebrow="The Accounting System"
-              title={
-                <>
-                  One Formula.{" "}
-                  <span className="text-primary">Every Member Sees It.</span>
-                </>
-              }
-              subtitle="MessMate does the month-end that used to take a calculator and a whiteboard — with the math fully visible to everyone in the mess."
+              eyebrow={t("eyebrow")}
+              title={t.rich("title", richAccent)}
+              subtitle={t("subtitle")}
             />
 
             <div className="mt-8 space-y-4">
-              {[
-                "Meal Rate is total spend divided by meals — computed instantly, updated live.",
-                "Each member's bill is just their meals multiplied by the rate.",
-                "Deposits are tracked per member, so paying up is explicit and checkable.",
-                "Final balance = deposits paid minus meal share; carried forward clearly month to month.",
-              ].map((point) => (
+              {(["p1", "p2", "p3", "p4"] as const).map((point) => (
                 <div key={point} className="flex items-start gap-3">
                   <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
                     <Check className="size-3.5" />
                   </span>
                   <p className="text-sm leading-relaxed text-foreground-muted">
-                    {point}
+                    {t(point)}
                   </p>
                 </div>
               ))}
             </div>
 
             <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5">
-              <p className="text-xs font-mono font-medium uppercase tracking-[0.12em]r text-primary">
-                Formula
-              </p>
+              <p className="text-xs font-mono font-medium uppercase tracking-[0.12em] text-primary">
+  {t("formula")}
+</p>
               <div className="mt-3 flex flex-wrap items-center gap-2 font-heading">
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  Meal Rate
-                </span>
+  {t("mealRate")}
+</span>
                 <span className="text-foreground-muted">=</span>
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  Total Meal Cost
-                </span>
+  {t("totalMealCost")}
+</span>
                 <span className="text-foreground-muted">÷</span>
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  Total Meals
-                </span>
+  {t("totalMeals")}
+</span>
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2 font-heading">
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  Final Balance
-                </span>
+  {t("finalBalance")}
+</span>
                 <span className="text-foreground-muted">=</span>
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  Deposits Paid
-                </span>
+  {t("depositsPaid")}
+</span>
                 <span className="text-foreground-muted">−</span>
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  Meal Share
-                </span>
+  {t("mealShare")}
+</span>
               </div>
             </div>
           </div>
@@ -116,36 +108,36 @@ export function AccountingSection() {
                   <div className="flex items-center gap-2">
                     <Calculator className="size-4 text-primary" />
                     <span className="text-sm font-bold text-foreground font-heading">
-                      Month-End Settlement
-                    </span>
+  {t("settlement")}
+</span>
                   </div>
                   <span className="rounded-lg bg-primary/10 px-2.5 py-1 text-[11px] font-bold text-primary">
-                    August 2026
-                  </span>
+  {t("month")}
+</span>
                 </div>
 
                 <div className="p-4">
                   <div className="grid grid-cols-3 gap-2.5">
                     <div className="rounded-xl bg-surface-raised/70 p-3 text-center">
                       <p className="text-[10px] uppercase tracking-wider text-foreground-muted">
-                        Expenses
-                      </p>
+  {t("expenses")}
+</p>
                       <p className="mt-0.5 text-sm font-bold text-foreground">
                         ৳22,180
                       </p>
                     </div>
                     <div className="rounded-xl bg-surface-raised/70 p-3 text-center">
                       <p className="text-[10px] uppercase tracking-wider text-foreground-muted">
-                        Meals
-                      </p>
+  {t("meals")}
+</p>
                       <p className="mt-0.5 text-sm font-bold text-foreground">
                         324
                       </p>
                     </div>
                     <div className="rounded-xl bg-primary/10 p-3 text-center ring-1 ring-primary/30">
                       <p className="text-[10px] uppercase tracking-wider text-primary">
-                        Meal Rate
-                      </p>
+  {t("mealRate")}
+</p>
                       <p className="mt-0.5 text-sm font-bold text-primary">
                         ৳68.50
                       </p>
@@ -153,11 +145,13 @@ export function AccountingSection() {
                   </div>
 
                   <div className="mt-4 overflow-hidden rounded-xl border border-border">
-                    <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-1 border-b border-border bg-surface-raised/70 px-3 py-2 text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
-                      <span>Member</span>
-                      <span className="text-right">Meals</span>
-                      <span className="text-right">Paid</span>
-                      <span className="text-right">Balance</span>
+                    <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-1 border-b border-border bg-surface-raised/70 px-3 py-2 text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+                      <span>{t("member")}</span>
+                      <span className="text-right">
+  {t("meals")}
+</span>
+                      <span className="text-right">{t("paid")}</span>
+                      <span className="text-right">{t("balance")}</span>
                     </div>
                     {SETTLEMENT.map((row) => (
                       <div
@@ -186,10 +180,10 @@ export function AccountingSection() {
 
                   <div className="mt-3 flex items-center justify-between rounded-xl border border-border bg-surface-raised/70 px-3.5 py-2.5">
                     <span className="text-[11px] text-foreground-muted">
-                      Closing the month rolls balances forward
-                    </span>
+  {t("rollNote")}
+</span>
                     <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
-                      Carry forward <ArrowRight className="size-3.5" />
+                      {t("carryForward")} <ArrowRight className="size-3.5" />
                     </span>
                   </div>
                 </div>

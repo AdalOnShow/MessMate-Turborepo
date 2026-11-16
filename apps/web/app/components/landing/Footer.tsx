@@ -1,24 +1,27 @@
+import { getTranslations } from "next-intl/server";
 import { Globe } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 const PRODUCT_LINKS = [
-  { label: "Features", href: "/#features" },
-  { label: "How It Works", href: "/#how-it-works" },
-  { label: "Product Preview", href: "/#preview" },
-];
+  { key: "nav.features", href: "/#features" },
+  { key: "nav.howItWorks", href: "/#how-it-works" },
+  { key: "footer.productPreview", href: "/#preview" },
+] as const;
 
 const RESOURCE_LINKS = [
-  { label: "Accounting System", href: "/#accounting" },
-  { label: "FAQ", href: "/#faq" },
-];
+  { key: "footer.accountingSystem", href: "/#accounting" },
+  { key: "nav.faq", href: "/#faq" },
+] as const;
 
 const ACCOUNT_LINKS = [
-  { label: "Sign In", href: "/signin" },
-  { label: "Get Started", href: "/signup" },
-];
+  { key: "signIn", href: "/signin" },
+  { key: "getStarted", href: "/signup" },
+] as const;
 
-export function Footer() {
+export async function Footer() {
+  const t = await getTranslations("landing");
+  const tc = await getTranslations("common");
   return (
     <footer className="border-t border-border bg-surface pt-16 pb-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -27,31 +30,29 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-2.5">
               <Image
                 src="/messmate-logo.png"
-                alt="MessMate logo"
+                alt={t("nav.logoAlt")}
                 width={860}
                 height={600}
                 className="h-10 w-auto"
               />
             </Link>
             <p className="max-w-sm text-sm leading-relaxed text-foreground-muted">
-              Simple mess management and transparent accounting. Meal tracking,
-              expenses, deposits, and month-end — all in one calm place for
-              shared living.
+              {t("footer.tagline")}
             </p>
           </div>
 
           <div className="lg:col-span-2">
-            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em]r text-foreground font-heading">
-              Product
+            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em] text-foreground font-heading">
+              {t("footer.product")}
             </h4>
             <ul className="mt-4 space-y-2.5">
               {PRODUCT_LINKS.map((link) => (
-                <li key={link.label}>
+                <li key={link.key}>
                   <a
                     href={link.href}
                     className="text-sm text-foreground-muted transition-colors hover:text-primary"
                   >
-                    {link.label}
+                    {t(link.key)}
                   </a>
                 </li>
               ))}
@@ -59,17 +60,17 @@ export function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em]r text-foreground font-heading">
-              Resources
+            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em] text-foreground font-heading">
+              {t("footer.resources")}
             </h4>
             <ul className="mt-4 space-y-2.5">
               {RESOURCE_LINKS.map((link) => (
-                <li key={link.label}>
+                <li key={link.key}>
                   <a
                     href={link.href}
                     className="text-sm text-foreground-muted transition-colors hover:text-primary"
                   >
-                    {link.label}
+                    {t(link.key)}
                   </a>
                 </li>
               ))}
@@ -77,17 +78,17 @@ export function Footer() {
           </div>
 
           <div className="lg:col-span-3">
-            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em]r text-foreground font-heading">
-              Account
+            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em] text-foreground font-heading">
+              {t("footer.account")}
             </h4>
             <ul className="mt-4 space-y-2.5">
               {ACCOUNT_LINKS.map((link) => (
-                <li key={link.label}>
+                <li key={link.key}>
                   <a
                     href={link.href}
                     className="text-sm text-foreground-muted transition-colors hover:text-primary"
                   >
-                    {link.label}
+                    {tc(link.key)}
                   </a>
                 </li>
               ))}
@@ -95,13 +96,14 @@ export function Footer() {
 
             <div className="mt-6 rounded-2xl border border-border bg-surface-raised/60 p-4">
               <p className="text-xs font-semibold text-foreground-muted">
-                Built by{" "}
-                <span className="font-bold text-foreground">
-                  Sharif H. Adal
-                </span>
+                {t.rich("footer.builtBy", {
+                  strong: (c) => (
+                    <span className="font-bold text-foreground">{c}</span>
+                  ),
+                })}
               </p>
               <p className="mt-1 text-xs text-foreground-muted">
-                Developer &amp; designer behind MessMate.
+                {t("footer.builtByRole")}
               </p>
               <div className="mt-3 flex items-center gap-2.5">
                 <a
@@ -148,10 +150,10 @@ export function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-3 pt-6 sm:flex-row">
           <p className="text-xs text-foreground-muted">
-            &copy; 2026 MessMate. All rights reserved.
+            {t("footer.rights")}
           </p>
           <p className="text-xs text-foreground-muted">
-            Made for messes in Bangladesh.
+            {t("footer.madeFor")}
           </p>
         </div>
       </div>
