@@ -562,29 +562,36 @@ export class MessesService {
       }
     }
 
-    const updated = await prisma.mess_members.update({
-      where: { id: member.id },
-      data: { mess_role: newRole },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
+    // Role change and its activity log succeed or fail together, so a
+    // logging failure can no longer report an error for a change that stuck.
+    const updated = await prisma.$transaction(async (tx) => {
+      const row = await tx.mess_members.update({
+        where: { id: member.id },
+        data: { mess_role: newRole },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatar: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    await prisma.activity_logs.create({
-      data: {
-        mess_id: messId,
-        actor_id: actorId,
-        action: newRole === 'MANAGER' ? 'MANAGER_ASSIGNED' : 'MANAGER_REMOVED',
-        entity_type: 'mess_members',
-        entity_id: updated.id,
-      },
+      await tx.activity_logs.create({
+        data: {
+          mess_id: messId,
+          actor_id: actorId,
+          action:
+            newRole === 'MANAGER' ? 'MANAGER_ASSIGNED' : 'MANAGER_REMOVED',
+          entity_type: 'mess_members',
+          entity_id: row.id,
+        },
+      });
+
+      return row;
     });
 
     this.logger.log(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSessionStore } from "../../../store";
 import { useGetMyMess } from "../../../hooks/use-messes";
@@ -43,6 +43,19 @@ export function MembersContent() {
 
   const { data: calculations, isLoading: calcLoading } =
     useMemberCalculations(messId);
+
+  // The cards are built from the calculations list, which the API returns
+  // unfiltered, so apply the search/role/status result to it here.
+  const visibleCalculations = useMemo(() => {
+    if (!calculations) return calculations;
+    const visibleUserIds = new Set(members.map((m) => m.user_id));
+    return {
+      ...calculations,
+      items: calculations.items.filter((item) =>
+        visibleUserIds.has(item.user_id),
+      ),
+    };
+  }, [calculations, members]);
 
   const inviteUser = useInviteUser();
   const removeMember = useRemoveMember(messId ?? "");
@@ -169,7 +182,7 @@ export function MembersContent() {
           />
 
           <MemberCards
-            data={calculations}
+            data={visibleCalculations}
             isManager={isManager}
             currentUserId={user?.id}
             onRoleClick={setRoleDialogMember}
@@ -186,8 +199,10 @@ export function MembersContent() {
               setAddDialogOpen(false);
               setSuccessMessage("Invite sent successfully");
             },
-            onError: () => {
-              setErrorMessage("Failed to send invite. Please try again.");
+            onError: (err) => {
+              setErrorMessage(
+                err.message || "Failed to send invite. Please try again.",
+              );
             },
           })
         }
@@ -206,8 +221,10 @@ export function MembersContent() {
                 setRoleDialogMember(null);
                 setSuccessMessage("Member role updated successfully");
               },
-              onError: () => {
-                setErrorMessage("Failed to update role. Please try again.");
+              onError: (err) => {
+                setErrorMessage(
+                  err.message || "Failed to update role. Please try again.",
+                );
               },
             },
           )
@@ -221,8 +238,10 @@ export function MembersContent() {
               setRemoveDialogMember(null);
               setSuccessMessage("Member removed successfully");
             },
-            onError: () => {
-              setErrorMessage("Failed to remove member. Please try again.");
+            onError: (err) => {
+              setErrorMessage(
+                err.message || "Failed to remove member. Please try again.",
+              );
             },
           })
         }

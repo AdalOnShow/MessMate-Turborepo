@@ -12,17 +12,23 @@ function MonthSummary({ month }: { month: MonthInfo }) {
   const { data: summary, isLoading } = useGetMonthSummary(messId, month.id);
   const [expanded, setExpanded] = useState(false);
 
-  const startDate = new Date(month.started_at).toLocaleDateString("en-US", {
+  // Time of day is included so months opened on the same date can be told
+  // apart.
+  const startDate = new Date(month.started_at).toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 
   const endDate = month.ended_at
-    ? new Date(month.ended_at).toLocaleDateString("en-US", {
+    ? new Date(month.ended_at).toLocaleString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
       })
     : null;
 

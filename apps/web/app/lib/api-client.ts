@@ -1,17 +1,8 @@
 import { cookies } from "next/headers";
 import { refreshAccessToken } from "../actions/auth";
+import type { ActionResult } from "./action-result";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
-export class ApiError extends Error {
-  constructor(
-    public status: number,
-    public body: { message?: string; details?: unknown },
-  ) {
-    super(body?.message || "API Error");
-    this.name = "ApiError";
-  }
-}
 
 interface ApiResponse<T> {
   success: boolean;
@@ -19,7 +10,20 @@ interface ApiResponse<T> {
   data?: T;
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+const UNREACHABLE: ActionResult<never> = {
+  ok: false,
+  status: 0,
+  message: "Could not reach the server. Please try again in a moment.",
+};
+
+/**
+ * Calls the API and reports failures as a value instead of throwing, so the
+ * real message survives the server-action boundary (see action-result.ts).
+ */
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<ActionResult<T>> {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value;
 
@@ -33,10 +37,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers["Content-Type"] = "application/json";
   }
 
-  let res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (err) {
+    console.error(`API request failed: ${path}`, err);
+    return UNREACHABLE;
+  }
 
   // Auto-refresh token on 401 if it's not a login/signup/refresh endpoint
   if (
@@ -63,20 +73,33 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     }
   }
 
-  let json: ApiResponse<T>;
+  let json: (ApiResponse<T> & { details?: unknown }) | null = null;
   try {
     json = await res.json();
   } catch {
-    throw new ApiError(res.status, {
-      message: `HTTP Error: ${res.status} ${res.statusText}`,
-    });
+    // Non-JSON body (gateway error page, empty response, ...)
   }
 
   if (!res.ok) {
-    throw new ApiError(res.status, json);
+    return {
+      ok: false,
+      status: res.status,
+      message:
+        (typeof json?.message === "string" && json.message) ||
+        `Request failed (${res.status})`,
+      details: json?.details,
+    };
   }
 
-  return json.data as T;
+  if (!json) {
+    return {
+      ok: false,
+      status: res.status,
+      message: "The server returned an unreadable response.",
+    };
+  }
+
+  return { ok: true, data: json.data as T };
 }
 
 export const api = {

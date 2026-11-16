@@ -1,12 +1,11 @@
 import {
-  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, prisma } from '@repo/database';
+import { type Prisma, prisma } from '@repo/database';
 import type { MonthResponse, MonthSummaryResponse } from '@repo/shared';
 
 @Injectable()
@@ -54,14 +53,29 @@ export class MonthsService {
       },
     });
 
+    const now = new Date();
+
+    // Starting a month closes the current one, which cannot be undone. A
+    // repeated request right after a month was opened is almost certainly a
+    // double submit (slow response, second click), so refuse it.
+    if (
+      activeMonth &&
+      now.getTime() - activeMonth.started_at.getTime() < 60_000
+    ) {
+      throw new ConflictException(
+        `"${activeMonth.title}" was started less than a minute ago. Refresh the page to see it.`,
+      );
+    }
+
     if (activeMonth) {
       await this.closeMonth(messId, activeMonth.id, actorId);
     }
 
-    const now = new Date();
-    const monthTitle =
+    const monthTitle = await this.uniqueMonthTitle(
+      messId,
       title?.trim() ||
-      now.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        now.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+    );
 
     const month = await prisma.months.create({
       data: {
@@ -111,52 +125,42 @@ export class MonthsService {
       throw new NotFoundException('Active month not found');
     }
 
-    const activeMembers = await prisma.mess_members.findMany({
-      where: {
-        mess_id: messId,
-        removed_at: null,
-        deleted_at: null,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-          },
+    const [activeMembers, mealEntries, expenses, deposits] = await Promise.all([
+      prisma.mess_members.findMany({
+        where: {
+          mess_id: messId,
+          removed_at: null,
+          deleted_at: null,
         },
-      },
-    });
+        select: { id: true },
+      }),
+      prisma.meal_entries.findMany({
+        where: {
+          month_id: monthId,
+          deleted_at: null,
+        },
+      }),
+      prisma.expenses.findMany({
+        where: {
+          month_id: monthId,
+        },
+        include: {
+          members: true,
+        },
+      }),
+      prisma.deposits.findMany({
+        where: {
+          month_id: monthId,
+        },
+      }),
+    ]);
 
     const memberIds = activeMembers.map((m) => m.id);
-
-    const mealEntries = await prisma.meal_entries.findMany({
-      where: {
-        month_id: monthId,
-        deleted_at: null,
-      },
-    });
 
     const totalMealsAll = mealEntries.reduce(
       (sum, e) => sum + Number(e.total_meal),
       0,
     );
-
-    const expenses = await prisma.expenses.findMany({
-      where: {
-        month_id: monthId,
-      },
-      include: {
-        members: true,
-      },
-    });
-
-    const deposits = await prisma.deposits.findMany({
-      where: {
-        month_id: monthId,
-      },
-    });
 
     const totalMealCost = expenses
       .filter((e) => e.type === 'BAZAAR')
@@ -164,7 +168,7 @@ export class MonthsService {
 
     const mealRate = totalMealsAll > 0 ? totalMealCost / totalMealsAll : 0;
 
-    for (const memberId of memberIds) {
+    const summaries = memberIds.map((memberId) => {
       const memberMeals = mealEntries
         .filter((e) => e.member_id === memberId)
         .reduce((sum, e) => sum + Number(e.total_meal), 0);
@@ -193,39 +197,51 @@ export class MonthsService {
         memberMealCost + memberSharedCost + memberIndividualCost;
       const finalBalance = memberDeposits - finalBill;
 
-      const summary = await prisma.member_month_summaries.create({
-        data: {
-          month_id: monthId,
-          member_id: memberId,
-          total_meals: memberMeals,
-          meal_cost: memberMealCost,
-          shared_cost: memberSharedCost,
-          individual_cost: memberIndividualCost,
-          deposit_amount: memberDeposits,
-          final_bill: finalBill,
-          final_balance: finalBalance,
-        },
-      });
-    }
-
-    await prisma.months.update({
-      where: { id: monthId },
-      data: {
-        month_status: 'ARCHIVED',
-        ended_at: new Date(),
-        updated_at: new Date(),
-      },
+      return {
+        month_id: monthId,
+        member_id: memberId,
+        total_meals: memberMeals,
+        meal_cost: memberMealCost,
+        shared_cost: memberSharedCost,
+        individual_cost: memberIndividualCost,
+        deposit_amount: memberDeposits,
+        final_bill: finalBill,
+        final_balance: finalBalance,
+      };
     });
 
-    await prisma.activity_logs.create({
-      data: {
-        mess_id: messId,
-        month_id: monthId,
-        actor_id: actorId,
-        action: 'MONTH_CLOSED',
-        entity_type: 'months',
-        entity_id: monthId,
-      },
+    // Archive, summaries and log are written together. The status-guarded
+    // update is the claim: if another request already closed this month,
+    // nothing is written twice.
+    await prisma.$transaction(async (tx) => {
+      const closedAt = new Date();
+      const claimed = await tx.months.updateMany({
+        where: { id: monthId, month_status: 'ACTIVE' },
+        data: {
+          month_status: 'ARCHIVED',
+          ended_at: closedAt,
+          updated_at: closedAt,
+        },
+      });
+
+      if (claimed.count === 0) {
+        throw new ConflictException('This month has already been closed');
+      }
+
+      if (summaries.length > 0) {
+        await tx.member_month_summaries.createMany({ data: summaries });
+      }
+
+      await tx.activity_logs.create({
+        data: {
+          mess_id: messId,
+          month_id: monthId,
+          actor_id: actorId,
+          action: 'MONTH_CLOSED',
+          entity_type: 'months',
+          entity_id: monthId,
+        },
+      });
     });
 
     this.logger.log(`✅ Month closed: ${monthId}`);
@@ -240,21 +256,52 @@ export class MonthsService {
       where: { month_id: sourceMonthId },
     });
 
-    for (const summary of summaries) {
-      const finalBalance = Number(summary.final_balance);
-      if (finalBalance === 0) continue;
+    const rows = summaries
+      .map((summary) => ({
+        summary,
+        finalBalance: Number(summary.final_balance),
+      }))
+      .filter(({ finalBalance }) => finalBalance !== 0)
+      .map(({ summary, finalBalance }) => ({
+        source_month_id: sourceMonthId,
+        target_month_id: targetMonthId,
+        member_id: summary.member_id,
+        amount: Math.abs(finalBalance),
+        carry_forward_type:
+          finalBalance > 0
+            ? ('PREVIOUS_BALANCE' as const)
+            : ('PREVIOUS_DUE' as const),
+      }));
 
-      await prisma.carry_forward_balances.create({
-        data: {
-          source_month_id: sourceMonthId,
-          target_month_id: targetMonthId,
-          member_id: summary.member_id,
-          amount: Math.abs(finalBalance),
-          carry_forward_type:
-            finalBalance > 0 ? 'PREVIOUS_BALANCE' : 'PREVIOUS_DUE',
-        },
-      });
+    if (rows.length > 0) {
+      await prisma.carry_forward_balances.createMany({ data: rows });
     }
+  }
+
+  /**
+   * Month titles are how people pick a month in lists and report selectors,
+   * so two months in one mess must never share a title. A clash gets a
+   * numeric suffix: "November 2026", "November 2026 (2)", ...
+   */
+  private async uniqueMonthTitle(
+    messId: string,
+    baseTitle: string,
+  ): Promise<string> {
+    const existing = await prisma.months.findMany({
+      where: {
+        mess_id: messId,
+        deleted_at: null,
+        title: { startsWith: baseTitle },
+      },
+      select: { title: true },
+    });
+    const taken = new Set(existing.map((m) => m.title));
+
+    if (!taken.has(baseTitle)) return baseTitle;
+
+    let n = 2;
+    while (taken.has(`${baseTitle} (${n})`)) n += 1;
+    return `${baseTitle} (${n})`;
   }
 
   async getMonthHistory(messId: string): Promise<MonthResponse[]> {
@@ -320,7 +367,9 @@ export class MonthsService {
     };
   }
 
-  private mapMonthResponse(month: any): MonthResponse {
+  private mapMonthResponse(
+    month: Prisma.monthsGetPayload<object>,
+  ): MonthResponse {
     return {
       id: month.id,
       mess_id: month.mess_id,

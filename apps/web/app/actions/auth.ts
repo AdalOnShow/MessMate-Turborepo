@@ -350,7 +350,12 @@ export async function refreshAccessToken(): Promise<string | null> {
     });
 
     if (!response.ok) {
-      // Clear both tokens on failed refresh (expired token, etc.)
+      // Only a rejected token ends the session. A rate limit (429) or a
+      // server hiccup (5xx) must not sign the user out.
+      if (response.status !== 401 && response.status !== 403) {
+        return null;
+      }
+
       cookieStore.set("access_token", "", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",

@@ -93,6 +93,25 @@ function BalanceBadge({ value }: { value: number }) {
   );
 }
 
+// Older data can contain several months with the same title; add the date
+// range to those so each option is distinguishable.
+function monthOptionLabel(month: MonthInfo, all: MonthInfo[]): string {
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  const duplicated = all.some(
+    (other) => other.id !== month.id && other.title === month.title,
+  );
+  const range = duplicated
+    ? ` · ${fmt(month.started_at)} – ${month.ended_at ? fmt(month.ended_at) : "now"}`
+    : "";
+  return `${month.title}${range}${month.month_status === "ACTIVE" ? " (Active)" : ""}`;
+}
+
 function UserCell({ name, email }: { name: string; email: string }) {
   return (
     <div>
@@ -104,7 +123,7 @@ function UserCell({ name, email }: { name: string; email: string }) {
 
 function Th({ label }: { label: string }) {
   return (
-    <th className="pb-2 text-right text-xs font-semibold text-foreground-muted">
+    <th className="whitespace-nowrap px-4 pb-2 pt-3 text-right text-xs font-semibold text-foreground-muted">
       {label}
     </th>
   );
@@ -112,7 +131,7 @@ function Th({ label }: { label: string }) {
 
 function ThLeft({ label }: { label: string }) {
   return (
-    <th className="pb-2 text-left text-xs font-semibold text-foreground-muted">
+    <th className="whitespace-nowrap px-4 pb-2 pt-3 text-left text-xs font-semibold text-foreground-muted">
       {label}
     </th>
   );
@@ -158,28 +177,28 @@ function MonthSummaryView({
                 key={s.id}
                 className="border-b border-foreground-muted/5 last:border-0"
               >
-                <td className="py-3">
+                <td className="px-4 py-3">
                   <UserCell name={s.user.name} email={s.user.email} />
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {s.total_meals}
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {formatMoney(s.meal_cost)}
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {formatMoney(s.shared_cost)}
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {formatMoney(s.individual_cost)}
                 </td>
-                <td className="py-3 text-right font-semibold text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-foreground">
                   {formatMoney(s.final_bill)}
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {formatMoney(s.deposit_amount)}
                 </td>
-                <td className="py-3 text-right">
+                <td className="whitespace-nowrap px-4 py-3 text-right">
                   <BalanceBadge value={s.final_balance} />
                 </td>
               </tr>
@@ -230,13 +249,13 @@ function MealsSummaryView({
                 key={s.member_id}
                 className="border-b border-foreground-muted/5 last:border-0"
               >
-                <td className="py-3">
+                <td className="px-4 py-3">
                   <UserCell name={s.user.name} email={s.user.email} />
                 </td>
-                <td className="py-3 text-right font-semibold text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-foreground">
                   {s.total_meals}
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {s.entry_count}
                 </td>
               </tr>
@@ -291,16 +310,16 @@ function ExpensesSummaryView({
                 key={m.member_id}
                 className="border-b border-foreground-muted/5 last:border-0"
               >
-                <td className="py-3">
+                <td className="px-4 py-3">
                   <UserCell name={m.user.name} email={m.user.email} />
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {formatMoney(m.shared_cost)}
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {formatMoney(m.individual_cost)}
                 </td>
-                <td className="py-3 text-right font-semibold text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-foreground">
                   {formatMoney(m.total_cost)}
                 </td>
               </tr>
@@ -353,11 +372,13 @@ function DepositsSummaryView({
                 key={m.member_id}
                 className="border-b border-foreground-muted/5 last:border-0"
               >
-                <td className="py-3">
+                <td className="px-4 py-3">
                   <UserCell name={m.user.name} email={m.user.email} />
                 </td>
-                <td className="py-3 text-right text-foreground">{m.count}</td>
-                <td className="py-3 text-right font-semibold text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
+                  {m.count}
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-foreground">
                   {formatMoney(m.amount)}
                 </td>
               </tr>
@@ -430,37 +451,37 @@ function MembersSummaryView({
                 key={row.member_id}
                 className="border-b border-foreground-muted/5 last:border-0"
               >
-                <td className="py-3">
+                <td className="px-4 py-3">
                   <UserCell name={row.user.name} email={row.user.email} />
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {row.total_meals}
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {formatMoney(row.meal_cost)}
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {formatMoney(row.shared_cost)}
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {formatMoney(row.individual_cost)}
                 </td>
-                <td className="py-3 text-right text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
                   {formatMoney(row.deposit_amount)}
                 </td>
-                <td className="py-3 text-right font-semibold text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-foreground">
                   {formatMoney(row.final_bill)}
                 </td>
-                <td className="py-3 text-right">
+                <td className="whitespace-nowrap px-4 py-3 text-right">
                   <BalanceBadge value={row.final_balance} />
                 </td>
                 {isActive && (
-                  <td className="py-3 text-right">
+                  <td className="whitespace-nowrap px-4 py-3 text-right">
                     <BalanceBadge value={row.previous_balance ?? 0} />
                   </td>
                 )}
                 {isActive && (
-                  <td className="py-3 text-right">
+                  <td className="whitespace-nowrap px-4 py-3 text-right">
                     <BalanceBadge value={row.current_balance ?? 0} />
                   </td>
                 )}
@@ -547,8 +568,7 @@ export default function ReportsPage() {
         >
           {months.map((m) => (
             <option key={m.id} value={m.id}>
-              {m.title}
-              {m.month_status === "ACTIVE" ? " (Active)" : ""}
+              {monthOptionLabel(m, months)}
             </option>
           ))}
         </select>

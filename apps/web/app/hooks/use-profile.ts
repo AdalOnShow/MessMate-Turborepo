@@ -10,6 +10,7 @@ import {
   deleteAvatar,
   type UpdateProfilePayload,
 } from "../actions/profile";
+import { unwrap } from "../lib/action-result";
 
 export function useGetProfile(enabled = true) {
   const setSession = useSessionStore((state) => state.setSession);
@@ -17,7 +18,7 @@ export function useGetProfile(enabled = true) {
   return useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
-      const profile = await getProfile();
+      const profile = await unwrap(getProfile());
       setSession(profile);
       return profile;
     },
@@ -30,7 +31,7 @@ export function useUpdateProfile() {
   const setSession = useSessionStore((state) => state.setSession);
 
   return useMutation({
-    mutationFn: (data: UpdateProfilePayload) => updateProfile(data),
+    mutationFn: (data: UpdateProfilePayload) => unwrap(updateProfile(data)),
     onSuccess: (profile) => {
       setSession(profile);
       queryClient.setQueryData(["profile"], profile);
@@ -46,7 +47,7 @@ export function useChangePassword() {
     }: {
       currentPassword: string;
       newPassword: string;
-    }) => changePassword(currentPassword, newPassword),
+    }) => unwrap(changePassword(currentPassword, newPassword)),
   });
 }
 
@@ -58,7 +59,7 @@ export function useUploadAvatar() {
     mutationFn: (file: File) => {
       const formData = new FormData();
       formData.append("avatar", file);
-      return uploadAvatar(formData);
+      return unwrap(uploadAvatar(formData));
     },
     onSuccess: (profile) => {
       setSession(profile);
@@ -72,7 +73,7 @@ export function useDeleteAvatar() {
   const setSession = useSessionStore((state) => state.setSession);
 
   return useMutation({
-    mutationFn: () => deleteAvatar(),
+    mutationFn: () => unwrap(deleteAvatar()),
     onSuccess: (profile) => {
       setSession(profile);
       queryClient.setQueryData(["profile"], profile);

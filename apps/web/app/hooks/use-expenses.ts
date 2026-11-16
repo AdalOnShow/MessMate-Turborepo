@@ -13,6 +13,7 @@ import {
   type CreateExpensePayload,
   type UpdateExpensePayload,
 } from "../actions/expenses";
+import { unwrap } from "../lib/action-result";
 
 export function useGetExpenses(
   messId: string | undefined,
@@ -33,7 +34,7 @@ export function useGetExpenses(
           },
         };
       }
-      return getExpenses(messId, monthId);
+      return unwrap(getExpenses(messId, monthId));
     },
     enabled: !!messId && !!monthId,
   });
@@ -56,7 +57,7 @@ export function useExpenseSummary(
           per_member: [],
         };
       }
-      return getExpenseSummary(messId, monthId);
+      return unwrap(getExpenseSummary(messId, monthId));
     },
     enabled: !!messId && !!monthId,
   });
@@ -71,7 +72,7 @@ export function useCreateExpense(
   return useMutation({
     mutationFn: async (payload: CreateExpensePayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
-      return createExpense(messId, monthId, payload);
+      return unwrap(createExpense(messId, monthId, payload));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -96,7 +97,7 @@ export function useUpdateExpense(
       data: UpdateExpensePayload;
     }) => {
       if (!messId) throw new Error("No mess ID");
-      return updateExpense(messId, expenseId, data);
+      return unwrap(updateExpense(messId, expenseId, data));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -115,7 +116,7 @@ export function useDeleteExpense(
   return useMutation({
     mutationFn: async (expenseId: string) => {
       if (!messId) throw new Error("No mess ID");
-      return deleteExpense(messId, expenseId);
+      return unwrap(deleteExpense(messId, expenseId));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

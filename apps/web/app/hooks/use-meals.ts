@@ -14,6 +14,7 @@ import {
   type MemberMealReport,
   type MonthMealSummary,
 } from "../actions/meals";
+import { unwrap } from "../lib/action-result";
 
 export function useGetMealEntries(
   messId: string | undefined,
@@ -25,7 +26,9 @@ export function useGetMealEntries(
     queryKey: ["meal-entries", messId, monthId, startDate, endDate],
     queryFn: async () => {
       if (!messId || !monthId) return [];
-      const result = await getMealEntries(messId, monthId, startDate, endDate);
+      const result = await unwrap(
+        getMealEntries(messId, monthId, startDate, endDate),
+      );
       return result;
     },
     enabled: !!messId && !!monthId,
@@ -41,7 +44,9 @@ export function useBulkSaveMealEntries(
   return useMutation({
     mutationFn: async (payload: BulkMealEntriesPayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
-      const result = await bulkSaveMealEntries(messId, monthId, payload);
+      const result = await unwrap(
+        bulkSaveMealEntries(messId, monthId, payload),
+      );
       return result;
     },
     onSuccess: () => {
@@ -56,7 +61,7 @@ export function useDeleteMealEntry(messId: string | undefined) {
   return useMutation({
     mutationFn: async (entryId: string) => {
       if (!messId) throw new Error("No mess ID");
-      const result = await deleteMealEntry(messId, entryId);
+      const result = await unwrap(deleteMealEntry(messId, entryId));
       return result;
     },
     onSuccess: () => {
@@ -76,7 +81,7 @@ export function useGetDailyMealReport(
     queryKey: ["meal-daily-report", messId, monthId, date],
     queryFn: async () => {
       if (!messId || !monthId || !date) return null;
-      return getDailyMealReport(messId, monthId, date);
+      return unwrap(getDailyMealReport(messId, monthId, date));
     },
     enabled: !!messId && !!monthId && !!date,
   });
@@ -91,7 +96,7 @@ export function useGetMemberMealReport(
     queryKey: ["meal-member-report", messId, monthId, memberId],
     queryFn: async () => {
       if (!messId || !monthId || !memberId) return null;
-      return getMemberMealReport(messId, monthId, memberId);
+      return unwrap(getMemberMealReport(messId, monthId, memberId));
     },
     enabled: !!messId && !!monthId && !!memberId,
   });
@@ -105,7 +110,7 @@ export function useGetMonthMealSummary(
     queryKey: ["meal-month-summary", messId, monthId],
     queryFn: async () => {
       if (!messId || !monthId) return null;
-      return getMonthMealSummary(messId, monthId);
+      return unwrap(getMonthMealSummary(messId, monthId));
     },
     enabled: !!messId && !!monthId,
   });

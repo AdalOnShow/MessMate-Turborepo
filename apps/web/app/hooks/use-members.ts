@@ -18,6 +18,7 @@ import {
   type MemberDashboardInfo,
   type UserSearchResult,
 } from "../actions/members";
+import { unwrap } from "../lib/action-result";
 import { useDebounce } from "./use-debounce";
 
 export interface MemberFilters {
@@ -34,7 +35,7 @@ export function useMembers(
     queryKey: ["members", messId, filters],
     queryFn: async () => {
       if (!messId) return [];
-      const result = await getMembers(messId, filters);
+      const result = await unwrap(getMembers(messId, filters));
       return result;
     },
     enabled: !!messId,
@@ -46,7 +47,7 @@ export function useMemberCalculations(messId: string | undefined) {
     queryKey: ["member-calculations", messId],
     queryFn: async () => {
       if (!messId) return null;
-      const result = await getMemberCalculations(messId);
+      const result = await unwrap(getMemberCalculations(messId));
       return result;
     },
     enabled: !!messId,
@@ -58,7 +59,7 @@ export function useMessDashboard(messId: string | undefined) {
     queryKey: ["mess-dashboard", messId],
     queryFn: async () => {
       if (!messId) return null;
-      const result = await getMessDashboard(messId);
+      const result = await unwrap(getMessDashboard(messId));
       return result;
     },
     enabled: !!messId,
@@ -70,7 +71,7 @@ export function useRecentActivities(messId: string | undefined) {
     queryKey: ["mess-activities", messId],
     queryFn: async () => {
       if (!messId) return [];
-      const result = await getRecentActivities(messId);
+      const result = await unwrap(getRecentActivities(messId));
       return result;
     },
     enabled: !!messId,
@@ -82,7 +83,7 @@ export function useMemberDashboard(messId: string | undefined) {
     queryKey: ["member-dashboard", messId],
     queryFn: async () => {
       if (!messId) return null;
-      const result = await getMemberDashboard(messId);
+      const result = await unwrap(getMemberDashboard(messId));
       return result;
     },
     enabled: !!messId,
@@ -94,7 +95,7 @@ export function useAddMember(messId: string) {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const result = await addMember(messId, userId);
+      const result = await unwrap(addMember(messId, userId));
       return result;
     },
     onSuccess: () => {
@@ -111,7 +112,7 @@ export function useRemoveMember(messId: string) {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      await removeMember(messId, userId);
+      await unwrap(removeMember(messId, userId));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members", messId] });
@@ -133,7 +134,7 @@ export function useUpdateMemberRole(messId: string) {
       userId: string;
       role: "MANAGER" | "MEMBER";
     }) => {
-      const result = await updateMemberRole(messId, userId, role);
+      const result = await unwrap(updateMemberRole(messId, userId, role));
       return result;
     },
     onSuccess: () => {
@@ -152,7 +153,7 @@ export function useSearchUsers(query: string) {
     queryKey: ["users", "search", debouncedQuery],
     queryFn: async () => {
       if (!debouncedQuery || debouncedQuery.length < 2) return [];
-      const result = await searchUsers(debouncedQuery);
+      const result = await unwrap(searchUsers(debouncedQuery));
       return result;
     },
     enabled: debouncedQuery.length >= 2,

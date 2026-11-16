@@ -14,6 +14,7 @@ import {
   type CreateBazaarPayload,
   type UpdateBazaarPayload,
 } from "../actions/bazaar";
+import { unwrap } from "../lib/action-result";
 
 export function useGetBazaarHistory(
   messId: string | undefined,
@@ -24,7 +25,7 @@ export function useGetBazaarHistory(
     queryFn: async () => {
       if (!messId || !monthId)
         return { pending: [], approved: [], rejected: [] };
-      return getBazaarHistory(messId, monthId);
+      return unwrap(getBazaarHistory(messId, monthId));
     },
     enabled: !!messId && !!monthId,
   });
@@ -39,7 +40,7 @@ export function useSubmitBazaar(
   return useMutation({
     mutationFn: async (payload: CreateBazaarPayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
-      return submitBazaar(messId, monthId, payload);
+      return unwrap(submitBazaar(messId, monthId, payload));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -64,7 +65,7 @@ export function useUpdateBazaar(
       data: UpdateBazaarPayload;
     }) => {
       if (!messId) throw new Error("No mess ID");
-      return updateBazaar(messId, submissionId, data);
+      return unwrap(updateBazaar(messId, submissionId, data));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -83,7 +84,7 @@ export function useDeleteBazaar(
   return useMutation({
     mutationFn: async (submissionId: string) => {
       if (!messId) throw new Error("No mess ID");
-      return deleteBazaar(messId, submissionId);
+      return unwrap(deleteBazaar(messId, submissionId));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -102,7 +103,7 @@ export function useApproveBazaar(
   return useMutation({
     mutationFn: async (submissionId: string) => {
       if (!messId) throw new Error("No mess ID");
-      return approveBazaar(messId, submissionId);
+      return unwrap(approveBazaar(messId, submissionId));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -122,7 +123,7 @@ export function useRejectBazaar(
   return useMutation({
     mutationFn: async (submissionId: string) => {
       if (!messId) throw new Error("No mess ID");
-      return rejectBazaar(messId, submissionId);
+      return unwrap(rejectBazaar(messId, submissionId));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

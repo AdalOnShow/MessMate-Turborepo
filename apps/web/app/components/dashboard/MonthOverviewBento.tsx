@@ -82,19 +82,33 @@ export function MonthOverviewBento() {
   const { data: dashboard } = useMessDashboard(messId);
   const createMonth = useCreateMonth(messId);
 
-  const [creating, setCreating] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
+  const creating = createMonth.isPending;
 
   const generateTitle = () =>
     new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
 
-  const handleCreateMonth = () => {
-    setCreating(true);
+  const startMonth = (title: string) => {
+    setNotice(null);
     createMonth.mutate(
-      { title: generateTitle() },
+      { title: title.trim() || generateTitle() },
       {
-        onSettled: () => setCreating(false),
+        onSuccess: (month) => {
+          setConfirmOpen(false);
+          setNotice(`"${month.title}" is now the active month.`);
+        },
       },
     );
+  };
+
+  // Starting a month while one is active closes it for good, so ask first.
+  const openConfirm = () => {
+    createMonth.reset();
+    setNotice(null);
+    setNewTitle(generateTitle());
+    setConfirmOpen(true);
   };
 
   const startedDate = activeMonth?.started_at
@@ -234,15 +248,11 @@ export function MonthOverviewBento() {
               <>
                 <button
                   type="button"
-                  onClick={handleCreateMonth}
-                  disabled={createMonth.isPending}
+                  onClick={openConfirm}
+                  disabled={creating}
                   className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
                 >
-                  {creating ? (
-                    <Loader2 size={15} className="animate-spin" />
-                  ) : (
-                    <Plus size={15} />
-                  )}
+                  <Plus size={15} />
                   Start New Month
                 </button>
                 <Link
@@ -256,8 +266,8 @@ export function MonthOverviewBento() {
             ) : (
               <button
                 type="button"
-                onClick={handleCreateMonth}
-                disabled={createMonth.isPending}
+                onClick={() => startMonth(generateTitle())}
+                disabled={creating}
                 className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
               >
                 {creating ? (
@@ -265,12 +275,80 @@ export function MonthOverviewBento() {
                 ) : (
                   <CalendarDays size={15} />
                 )}
-                Start Month
+                {creating ? "Starting..." : "Start Month"}
               </button>
             )
           ) : null}
         </div>
+
+        {notice && <p className="mt-3 text-sm text-success">{notice}</p>}
+        {createMonth.isError && !confirmOpen && (
+          <p className="mt-3 text-sm text-destructive">
+            {createMonth.error?.message || "Failed to start the month."}
+          </p>
+        )}
       </div>
+
+      {confirmOpen && activeMonth && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-xl border border-foreground-muted/15 bg-background p-6">
+            <h2 className="mb-2 text-lg font-bold text-foreground">
+              Start a new month?
+            </h2>
+            <p className="mb-4 text-sm text-foreground-muted">
+              This closes{" "}
+              <span className="font-semibold text-foreground">
+                {activeMonth.title}
+              </span>
+              : its bills are finalized, balances carry forward, and no more
+              meals, expenses or deposits can be added to it. This cannot be
+              undone.
+            </p>
+
+            <label
+              htmlFor="new-month-title"
+              className="mb-1.5 block text-xs font-semibold text-foreground-muted"
+            >
+              New month name
+            </label>
+            <input
+              id="new-month-title"
+              type="text"
+              value={newTitle}
+              maxLength={100}
+              onChange={(e) => setNewTitle(e.target.value)}
+              disabled={creating}
+              className="w-full rounded-lg border border-foreground-muted/20 bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+            />
+
+            {createMonth.isError && (
+              <p className="mt-3 text-sm text-destructive">
+                {createMonth.error?.message || "Failed to start the month."}
+              </p>
+            )}
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                disabled={creating}
+                className="rounded-lg border border-foreground-muted/20 px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => startMonth(newTitle)}
+                disabled={creating}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {creating && <Loader2 size={14} className="animate-spin" />}
+                {creating ? "Closing month..." : "Close & Start New"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </BentoCard>
   );
 }

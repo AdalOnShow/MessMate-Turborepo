@@ -13,6 +13,7 @@ import {
   type CreateDepositPayload,
   type UpdateDepositPayload,
 } from "../actions/deposits";
+import { unwrap } from "../lib/action-result";
 
 export function useGetDeposits(
   messId: string | undefined,
@@ -24,7 +25,7 @@ export function useGetDeposits(
       if (!messId || !monthId) {
         return { items: [], total: 0, count: 0 };
       }
-      return getDeposits(messId, monthId);
+      return unwrap(getDeposits(messId, monthId));
     },
     enabled: !!messId && !!monthId,
   });
@@ -40,7 +41,7 @@ export function useDepositSummary(
       if (!messId || !monthId) {
         return { total: 0, count: 0, per_member: [] };
       }
-      return getDepositSummary(messId, monthId);
+      return unwrap(getDepositSummary(messId, monthId));
     },
     enabled: !!messId && !!monthId,
   });
@@ -55,7 +56,7 @@ export function useCreateDeposit(
   return useMutation({
     mutationFn: async (payload: CreateDepositPayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
-      return createDeposit(messId, monthId, payload);
+      return unwrap(createDeposit(messId, monthId, payload));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -80,7 +81,7 @@ export function useUpdateDeposit(
       data: UpdateDepositPayload;
     }) => {
       if (!messId) throw new Error("No mess ID");
-      return updateDeposit(messId, depositId, data);
+      return unwrap(updateDeposit(messId, depositId, data));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -99,7 +100,7 @@ export function useDeleteDeposit(
   return useMutation({
     mutationFn: async (depositId: string) => {
       if (!messId) throw new Error("No mess ID");
-      return deleteDeposit(messId, depositId);
+      return unwrap(deleteDeposit(messId, depositId));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

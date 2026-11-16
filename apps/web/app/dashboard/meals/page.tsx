@@ -30,8 +30,13 @@ import {
   X,
 } from "lucide-react";
 
+// Local calendar date (YYYY-MM-DD). toISOString() would give the UTC date,
+// which is still "yesterday" until 06:00 in Asia/Dhaka.
 function formatDate(d: Date): string {
-  return d.toISOString().split("T")[0] ?? "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function MealCell({
@@ -127,18 +132,22 @@ export default function MealsPage() {
   const updateValue = useCallback(
     (memberId: string, mealTypeId: string, delta: number) => {
       setLocalGrid((prev) => {
-        const current = prev[memberId]?.[mealTypeId] ?? 0;
+        // Start from the member's saved row the first time it is touched.
+        // The API replaces the whole `meals` object on save, so the edited
+        // row must carry every meal type, not only the one that changed.
+        const row = prev[memberId] ?? { ...(entryMap[memberId] ?? {}) };
+        const current = row[mealTypeId] ?? 0;
         const newVal = Math.max(0, Math.min(10, current + delta));
         return {
           ...prev,
           [memberId]: {
-            ...prev[memberId],
+            ...row,
             [mealTypeId]: newVal,
           },
         };
       });
     },
-    [],
+    [entryMap],
   );
 
   const hasChanges = useMemo(() => {
@@ -151,7 +160,8 @@ export default function MealsPage() {
     const entries = Object.entries(localGrid).map(([memberId, meals]) => ({
       memberId,
       date: new Date(selectedDate).toISOString(),
-      meals,
+      // Saved values first, then the edits on top, so nothing is dropped.
+      meals: { ...(entryMap[memberId] ?? {}), ...meals },
     }));
 
     if (entries.length === 0) return;
@@ -257,8 +267,13 @@ export default function MealsPage() {
               Unsaved changes
             </span>
           )}
-          {saveMutation.isSuccess && (
+          {saveMutation.isSuccess && !hasChanges && (
             <span className="text-xs text-green-500">Saved!</span>
+          )}
+          {saveMutation.isError && (
+            <span className="text-xs text-destructive">
+              {saveMutation.error?.message || "Failed to save meals."}
+            </span>
           )}
         </div>
       )}

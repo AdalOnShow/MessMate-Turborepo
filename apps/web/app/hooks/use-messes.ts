@@ -15,12 +15,13 @@ import {
   type CreateMealTypePayload,
   type UpdateMealTypePayload,
 } from "../actions/messes";
+import { unwrap } from "../lib/action-result";
 
 export function useGetMyMess(enabled = true) {
   return useQuery({
     queryKey: ["my-mess"],
     queryFn: async () => {
-      const result = await getMyMess();
+      const result = await unwrap(getMyMess());
       return result;
     },
     enabled,
@@ -32,7 +33,7 @@ export function useCreateMess() {
 
   return useMutation({
     mutationFn: async (payload: { name: string; description?: string }) => {
-      const result = await createMess(payload);
+      const result = await unwrap(createMess(payload));
       return result;
     },
     onSuccess: () => {
@@ -47,7 +48,7 @@ export function useUpdateMess(messId: string | undefined) {
   return useMutation({
     mutationFn: async (payload: UpdateMessPayload) => {
       if (!messId) throw new Error("No mess ID");
-      const result = await updateMess(messId, payload);
+      const result = await unwrap(updateMess(messId, payload));
       return result;
     },
     onSuccess: () => {
@@ -61,7 +62,7 @@ export function useGetMealTypes(messId: string | undefined) {
     queryKey: ["meal-types", messId],
     queryFn: async () => {
       if (!messId) return [];
-      const result = await getMealTypes(messId);
+      const result = await unwrap(getMealTypes(messId));
       return result;
     },
     enabled: !!messId,
@@ -80,7 +81,7 @@ export function useUpdateMealType(messId: string | undefined) {
       data: UpdateMealTypePayload;
     }) => {
       if (!messId) throw new Error("No mess ID");
-      const result = await updateMealType(messId, mealTypeId, data);
+      const result = await unwrap(updateMealType(messId, mealTypeId, data));
       return result;
     },
     onSuccess: () => {
@@ -95,7 +96,7 @@ export function useCreateMealType(messId: string | undefined) {
   return useMutation({
     mutationFn: async (payload: CreateMealTypePayload) => {
       if (!messId) throw new Error("No mess ID");
-      const result = await createMealType(messId, payload);
+      const result = await unwrap(createMealType(messId, payload));
       return result;
     },
     onSuccess: () => {
@@ -110,7 +111,7 @@ export function useDeleteMealType(messId: string | undefined) {
   return useMutation({
     mutationFn: async (mealTypeId: string) => {
       if (!messId) throw new Error("No mess ID");
-      const result = await deleteMealType(messId, mealTypeId);
+      const result = await unwrap(deleteMealType(messId, mealTypeId));
       return result;
     },
     onSuccess: () => {

@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSessionStore } from "../../../store";
 import { useGetMyMess } from "../../../hooks/use-messes";
 import { createMemberAccount } from "../../../actions/members";
+import { unwrap } from "../../../lib/action-result";
 
 export default function CreateAccountForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const prefilledEmail = searchParams.get("email") || "";
 
@@ -30,13 +33,16 @@ export default function CreateAccountForm() {
     setError(null);
 
     try {
-      await createMemberAccount({
-        name,
-        email,
-        password,
-        phone: phone || undefined,
-        messId: myMess.id,
-      });
+      await unwrap(
+        createMemberAccount({
+          name,
+          email,
+          password,
+          phone: phone || undefined,
+          messId: myMess.id,
+        }),
+      );
+      await queryClient.invalidateQueries();
       router.push("/dashboard/members");
     } catch (err: unknown) {
       const message =
