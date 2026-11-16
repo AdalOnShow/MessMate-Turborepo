@@ -72,7 +72,7 @@ MessMate replaces that. **All 8 members of my mess used it to run October 2026**
 | Backend  | NestJS 11, Passport (JWT + Google OAuth 2.0), Zod validation, @nestjs/throttler                                          |
 | Data     | PostgreSQL on Neon (serverless), Prisma 7 with the Neon driver adapter                                                   |
 | Shared   | `@repo/shared`: Zod schemas, DTOs and response types used by **both** apps                                               |
-| Infra    | Turborepo + pnpm workspaces, Vercel (web + serverless API), Cloudinary, GitHub Actions CI with remote caching            |
+| Infra    | Turborepo + pnpm workspaces, Vercel (web), Render (API), Cloudinary, GitHub Actions CI with remote caching               |
 
 ## Architecture
 
@@ -128,7 +128,7 @@ The browser never talks to the API directly. Server Actions call it with the acc
 
 **Role-based access at the edge of every route.** NestJS guards check JWT → mess membership → manager role against the `:messId` in the URL, so one mess can never read or write another's data.
 
-**Serverless-ready.** The same NestJS app runs as a long-lived server locally and as a lazily bootstrapped Vercel function in production.
+**Serverless-ready.** The same NestJS app runs as a long-lived server (local dev, Render in production) or as a lazily bootstrapped Vercel serverless function, from one entry point.
 
 ## Getting started
 

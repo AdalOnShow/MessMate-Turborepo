@@ -527,74 +527,6 @@
   animation-delay: 240ms;
 }
 
-/* Cursor ring + dot (see CursorFollower). Hidden until the mouse moves. */
-.cursor-ring,
-.cursor-dot,
-.cursor-ripple {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 9999;
-  pointer-events: none;
-  border-radius: 9999px;
-}
-.cursor-ring {
-  width: 34px;
-  height: 34px;
-  margin: -17px 0 0 -17px;
-  border: 1.5px solid color-mix(in srgb, var(--color-primary) 55%, transparent);
-  opacity: 0;
-  transition:
-    width 0.3s var(--ease-out-expo),
-    height 0.3s var(--ease-out-expo),
-    margin 0.3s var(--ease-out-expo),
-    background-color 0.3s var(--ease-out-expo),
-    border-color 0.3s var(--ease-out-expo),
-    scale 0.15s var(--ease-soft),
-    opacity 0.3s ease;
-}
-.cursor-dot {
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  background-color: var(--color-primary);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-html[data-cursor="on"] .cursor-ring {
-  opacity: 1;
-}
-html[data-cursor="on"] .cursor-dot {
-  opacity: 0.9;
-}
-.cursor-ring[data-hover="true"] {
-  width: 52px;
-  height: 52px;
-  margin: -26px 0 0 -26px;
-  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
-}
-.cursor-ring[data-down="true"] {
-  scale: 0.8;
-}
-@keyframes cursor-ripple {
-  from {
-    opacity: 0.45;
-    transform: scale(0.2);
-  }
-  to {
-    opacity: 0;
-    transform: scale(1);
-  }
-}
-.cursor-ripple {
-  width: 64px;
-  height: 64px;
-  margin: -32px 0 0 -32px;
-  border: 2px solid var(--color-primary);
-  animation: cursor-ripple 0.5s var(--ease-out-expo) forwards;
-}
-
 @media (prefers-reduced-motion: reduce) {
   :where(button, a, [role="button"]):active {
     transform: none;
@@ -605,10 +537,5 @@ html[data-cursor="on"] .cursor-dot {
   .page-enter > *,
   .page-enter > :only-child > * {
     animation: none;
-  }
-  .cursor-ring,
-  .cursor-dot,
-  .cursor-ripple {
-    display: none;
   }
 }
