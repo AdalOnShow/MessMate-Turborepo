@@ -1,18 +1,23 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers as requestHeaders } from "next/headers";
 import { jwtDecode } from "jwt-decode";
 import type { ActionResult } from "../lib/action-result";
 import { apiFetch, readFailure } from "../lib/api-client";
+import {
+  clearAuthCookies,
+  extractRefreshCookie,
+  setAuthCookies,
+} from "../lib/auth-cookies";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 // Server-side API call to NestJS
 async function callNestJSAPI<T>(
   endpoint: string,
   options?: RequestInit,
 ): Promise<T> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
-  const response = await fetch(`${baseUrl}${endpoint}`, {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -25,15 +30,6 @@ async function callNestJSAPI<T>(
   }
 
   return response.json();
-}
-
-function extractRefreshCookie(headers: Headers): string | null {
-  const setCookie = headers.get("set-cookie");
-  if (!setCookie) return null;
-
-  // Parse: refresh_token=value; Path=/auth/refresh; HttpOnly; Secure; SameSite=Strict
-  const match = setCookie.match(/refresh_token=([^;]+)/);
-  return match && match[1] ? match[1] : null;
 }
 
 interface SigninPayload {
@@ -98,9 +94,15 @@ async function postAuth(
   endpoint: string,
   payload: unknown,
 ): Promise<ActionResult<{ accessToken: string; headers: Headers }>> {
+  // The API sees our server, not the browser; pass the browser's user agent
+  // along so each signed-in device can be told apart.
+  const userAgent = (await requestHeaders()).get("user-agent") ?? "";
   const res = await apiFetch(endpoint, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Client-User-Agent": userAgent,
+    },
     body: JSON.stringify(payload),
   });
   if (!(res instanceof Response)) return res;
@@ -136,25 +138,7 @@ export async function signup(
   const decoded = decodeJwt(accessToken);
   if (!decoded) return BAD_TOKEN;
 
-  // Set cookies
-  const cookieStore = await cookies();
-  cookieStore.set("access_token", accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 604800, // 7 days
-    path: "/",
-  });
-
-  const refreshToken = extractRefreshCookie(headers);
-  if (refreshToken) {
-    cookieStore.set("refresh_token", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-    });
-  }
+  await setAuthCookies(accessToken, extractRefreshCookie(headers));
 
   return {
     ok: true,
@@ -184,25 +168,7 @@ export async function signin(
   const decoded = decodeJwt(accessToken);
   if (!decoded) return BAD_TOKEN;
 
-  // Set cookies
-  const cookieStore = await cookies();
-  cookieStore.set("access_token", accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 604800, // 7 days
-    path: "/",
-  });
-
-  const refreshToken = extractRefreshCookie(headers);
-  if (refreshToken) {
-    cookieStore.set("refresh_token", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-    });
-  }
+  await setAuthCookies(accessToken, extractRefreshCookie(headers));
 
   const user = await getProfileWithToken(accessToken, {
     id: decoded.sub,
@@ -218,54 +184,26 @@ export async function signin(
 }
 
 export async function logout(): Promise<{ success: true }> {
-  try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get?.("access_token")?.value;
+  const refreshToken = (await cookies()).get("refresh_token")?.value;
 
-    if (accessToken) {
-      // Call NestJS logout API
-      await callAuthenticatedNestJSAPI("/auth/logout", accessToken, {
+  // Ends this device's session on the server. Uses the refresh token, so it
+  // works even when the access token has already expired.
+  if (refreshToken) {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
         method: "POST",
+        headers: {
+          Cookie: `refresh_token=${encodeURIComponent(refreshToken)}`,
+        },
+        signal: AbortSignal.timeout(5000),
       });
+    } catch (error) {
+      console.error("Logout error:", error);
     }
-
-    // Clear cookies
-    cookieStore.set("access_token", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 0,
-      path: "/",
-    });
-    cookieStore.set("refresh_token", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 0,
-      path: "/",
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error("Logout error:", error);
-    // Still clear cookies even if API call fails
-    const cookieStore = await cookies();
-    cookieStore.set("access_token", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 0,
-      path: "/",
-    });
-    cookieStore.set("refresh_token", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 0,
-      path: "/",
-    });
-    return { success: true };
   }
+
+  await clearAuthCookies();
+  return { success: true };
 }
 
 export async function getCurrentUser() {
@@ -328,36 +266,21 @@ export async function refreshAccessToken(): Promise<string | null> {
       return null;
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    const response = await fetch(`${baseUrl}/auth/refresh`, {
+    const response = await fetch(`${API_BASE}/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `refresh_token=${refreshToken}`,
+        Cookie: `refresh_token=${encodeURIComponent(refreshToken)}`,
       },
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (!response.ok) {
       // Only a rejected token ends the session. A rate limit (429) or a
       // server hiccup (5xx) must not sign the user out.
-      if (response.status !== 401 && response.status !== 403) {
-        return null;
+      if (response.status === 401 || response.status === 403) {
+        await clearAuthCookies();
       }
-
-      cookieStore.set("access_token", "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 0,
-        path: "/",
-      });
-      cookieStore.set("refresh_token", "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 0,
-        path: "/",
-      });
       return null;
     }
 
@@ -365,28 +288,13 @@ export async function refreshAccessToken(): Promise<string | null> {
       success: boolean;
       data: { accessToken: string };
     };
-
     const newAccessToken = json.data.accessToken;
 
-    // Set new access token cookie
-    cookieStore.set("access_token", newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 604800, // 7 days
-      path: "/",
-    });
-
-    // Also forward any new refresh token returned in headers
-    const newRefreshToken = extractRefreshCookie(response.headers);
-    if (newRefreshToken) {
-      cookieStore.set("refresh_token", newRefreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/",
-      });
-    }
+    // The API re-sends the refresh cookie so its 30-day lifetime slides.
+    await setAuthCookies(
+      newAccessToken,
+      extractRefreshCookie(response.headers) ?? refreshToken,
+    );
 
     return newAccessToken;
   } catch (error) {

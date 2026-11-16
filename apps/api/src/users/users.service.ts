@@ -111,6 +111,7 @@ export class UsersService {
     userId: string,
     currentPassword: string,
     newPassword: string,
+    currentSessionId?: string,
   ): Promise<{ success: true }> {
     const parsed = changePasswordSchema.safeParse({
       currentPassword,
@@ -150,10 +151,22 @@ export class UsersService {
     );
     const password = await bcrypt.hash(parsed.data.newPassword, saltRounds);
 
-    await prisma.users.update({
-      where: { id: user.id },
-      data: { password, updated_at: new Date() },
-    });
+    // A changed password signs out every other device, so whoever knew the
+    // old one loses access. The device making the change stays signed in.
+    await prisma.$transaction([
+      prisma.users.update({
+        where: { id: user.id },
+        data: { password, updated_at: new Date() },
+      }),
+      prisma.user_sessions.updateMany({
+        where: {
+          user_id: user.id,
+          revoked_at: null,
+          ...(currentSessionId ? { id: { not: currentSessionId } } : {}),
+        },
+        data: { revoked_at: new Date() },
+      }),
+    ]);
 
     return { success: true };
   }

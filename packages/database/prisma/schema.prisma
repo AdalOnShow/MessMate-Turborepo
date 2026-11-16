@@ -92,6 +92,7 @@ model users {
   deleted_at      DateTime?
 
   oauth_accounts          oauth_accounts[]
+  sessions                user_sessions[]
   created_messes          messes[]             @relation("MessCreator")
   mess_members            mess_members[]
   created_meals           meal_entries[]
@@ -118,6 +119,24 @@ model oauth_accounts {
 
   @@unique([user_id, provider], map: "idx_oauth_accounts_user_provider")
   @@index([provider, provider_user_id], map: "idx_oauth_accounts_provider")
+}
+
+/// One row per signed-in device. The refresh token carries the session id;
+/// only its SHA-256 hash is stored.
+model user_sessions {
+  id           String    @id @default(uuid())
+  user_id      String
+  token_hash   String
+  user_agent   String?
+  created_at   DateTime  @default(now())
+  last_used_at DateTime  @default(now())
+  expires_at   DateTime
+  revoked_at   DateTime?
+
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id], map: "idx_user_sessions_user")
+  @@index([expires_at], map: "idx_user_sessions_expires")
 }
 
 model messes {

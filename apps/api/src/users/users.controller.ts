@@ -27,7 +27,7 @@ import { avatarUploadOptions } from '../common/upload/avatar-upload.options';
 import type { MulterFile } from '../common/upload/multer.types';
 
 type AuthenticatedRequest = Request & {
-  user?: AuthUser;
+  user?: AuthUser & { sessionId?: string };
 };
 
 @Controller('users')
@@ -62,6 +62,7 @@ export class UsersController {
       req.user!.id,
       body.currentPassword,
       body.newPassword,
+      req.user!.sessionId,
     );
   }
 

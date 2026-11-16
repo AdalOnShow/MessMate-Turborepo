@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
 import { prisma } from '@repo/database';
 
@@ -21,6 +22,21 @@ export type AuthTokens = {
   accessToken: string;
   refreshToken: string;
 };
+
+/** Short-lived: a revoked session stops working within this window. */
+export const ACCESS_TOKEN_TTL_SECONDS = 60 * 60;
+/** Sliding: every refresh pushes a session's expiry this far out. */
+export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+function sameHash(a: string, b: string): boolean {
+  const x = Buffer.from(a, 'hex');
+  const y = Buffer.from(b, 'hex');
+  return x.length === y.length && timingSafeEqual(x, y);
+}
 
 @Injectable()
 export class AuthService {
@@ -160,20 +176,15 @@ export class AuthService {
     };
   }
 
-  private async hashRefreshToken(refreshToken: string): Promise<string> {
-    const saltRounds = Number(
-      this.configService.get('BCRYPT_SALT_ROUNDS') ?? 10,
-    );
-
-    return bcrypt.hash(refreshToken, saltRounds);
-  }
-
-  async register(signupDto: {
-    name: string;
-    email: string;
-    password: string;
-    phone?: string;
-  }): Promise<AuthTokens> {
+  async register(
+    signupDto: {
+      name: string;
+      email: string;
+      password: string;
+      phone?: string;
+    },
+    userAgent?: string,
+  ): Promise<AuthTokens> {
     this.logger.log(`📝 Registration attempt for email: ${signupDto.email}`);
 
     const existing = await prisma.users.findUnique({
@@ -202,20 +213,12 @@ export class AuthService {
       `✅ User registered: id=${user.id}, email=${user.email}, name=${user.name}`,
     );
 
-    const accessToken = await this.createAccessToken(user);
-    const refreshToken = await this.createRefreshToken(user);
-
-    const hashedRefreshToken = await this.hashRefreshToken(refreshToken);
-    await prisma.users.update({
-      where: { id: user.id },
-      data: { refresh_token: hashedRefreshToken },
-    });
-
+    const tokens = await this.createSession(user, userAgent);
     this.logger.log(`🔑 Tokens issued for new user: ${user.id}`);
-    return { accessToken, refreshToken };
+    return tokens;
   }
 
-  async login(user: AuthUser): Promise<AuthTokens> {
+  async login(user: AuthUser, userAgent?: string): Promise<AuthTokens> {
     this.logger.log(`🔐 Login for user: ${user.id} (${user.email})`);
 
     const dbUser = await prisma.users.findUnique({ where: { id: user.id } });
@@ -227,87 +230,135 @@ export class AuthService {
       });
     }
 
-    const accessToken = await this.createAccessToken(dbUser);
-    const refreshToken = await this.createRefreshToken(dbUser);
+    const tokens = await this.createSession(dbUser, userAgent);
+    this.logger.log(`✅ Login successful for user: ${dbUser.id}`);
+    return tokens;
+  }
 
-    const hashedRefreshToken = await this.hashRefreshToken(refreshToken);
-    await prisma.users.update({
-      where: { id: dbUser.id },
-      data: { refresh_token: hashedRefreshToken },
+  /**
+   * One session per signed-in device, so signing in on a phone no longer
+   * signs the laptop out. The refresh token carries the session id and only
+   * its hash is stored.
+   */
+  private async createSession(
+    user: { id: string; email: string },
+    userAgent?: string,
+  ): Promise<AuthTokens> {
+    const sessionId = randomUUID();
+    const refreshToken = await this.jwtService.signAsync(
+      { sid: sessionId },
+      // No `exp` in the token: expiry lives on the session row so it can
+      // slide forward on use and be revoked.
+      { secret: this.refreshSecret, subject: user.id },
+    );
+
+    await prisma.user_sessions.create({
+      data: {
+        id: sessionId,
+        user_id: user.id,
+        token_hash: hashToken(refreshToken),
+        user_agent: userAgent?.slice(0, 255) || null,
+        expires_at: new Date(Date.now() + SESSION_TTL_SECONDS * 1000),
+      },
     });
 
-    this.logger.log(`✅ Login successful for user: ${dbUser.id}`);
+    const accessToken = await this.createAccessToken(user, sessionId);
     return { accessToken, refreshToken };
   }
 
-  async refreshTokens(
-    userId: string,
+  /** Reads `{ sub, sid }` from a refresh token, or throws 401. */
+  private async verifyRefreshToken(
     refreshToken: string,
-  ): Promise<AuthTokens> {
-    this.logger.log(`🔄 Token refresh for user: ${userId}`);
-
-    const user = await prisma.users.findUnique({ where: { id: userId } });
-    if (!user?.refresh_token) {
-      this.logger.warn(`⚠️ Refresh failed - no stored token: ${userId}`);
-      throw new UnauthorizedException('Invalid refresh token');
+  ): Promise<{ userId: string; sessionId: string }> {
+    try {
+      const payload = await this.jwtService.verifyAsync<{
+        sub?: string;
+        sid?: string;
+      }>(refreshToken, { secret: this.refreshSecret });
+      if (payload.sub && payload.sid) {
+        return { userId: payload.sub, sessionId: payload.sid };
+      }
+    } catch {
+      // fall through
     }
-
-    if (user.deleted_at) {
-      this.logger.warn(`⚠️ Refresh attempt by deleted user: ${userId}`);
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    const matches = await bcrypt.compare(refreshToken, user.refresh_token);
-    if (!matches) {
-      this.logger.warn(`⚠️ Refresh failed - token mismatch: ${userId}`);
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    const accessToken = await this.createAccessToken(user);
-    const newRefreshToken = await this.createRefreshToken(user);
-
-    const hashedNewRefreshToken = await this.hashRefreshToken(newRefreshToken);
-    await prisma.users.update({
-      where: { id: user.id },
-      data: { refresh_token: hashedNewRefreshToken },
+    throw new UnauthorizedException({
+      message: 'Invalid refresh token',
+      code: ErrorCode.SESSION_EXPIRED,
     });
-
-    this.logger.log(`✅ Token refresh successful for user: ${userId}`);
-    return { accessToken, refreshToken: newRefreshToken };
   }
 
-  async logout(userId: string): Promise<void> {
-    this.logger.log(`🚪 Logout for user: ${userId}`);
+  /**
+   * Issues a new access token for a live session and extends the session.
+   *
+   * The refresh token itself is not rotated: several requests can hit a 401
+   * at the same moment and refresh in parallel, and with rotation all but
+   * the first would fail and sign the user out.
+   */
+  async refreshTokens(refreshToken: string): Promise<AuthTokens> {
+    const { userId, sessionId } = await this.verifyRefreshToken(refreshToken);
+    const now = new Date();
 
-    await prisma.users.update({
-      where: { id: userId },
-      data: { refresh_token: null },
+    const session = await prisma.user_sessions.findFirst({
+      where: {
+        id: sessionId,
+        user_id: userId,
+        revoked_at: null,
+        expires_at: { gt: now },
+      },
+      include: {
+        user: { select: { id: true, email: true, deleted_at: true } },
+      },
     });
 
-    this.logger.log(`✅ Refresh token cleared for user: ${userId}`);
+    if (
+      !session ||
+      session.user.deleted_at ||
+      !sameHash(hashToken(refreshToken), session.token_hash)
+    ) {
+      this.logger.warn(`⚠️ Refresh rejected for user: ${userId}`);
+      throw new UnauthorizedException({
+        message: 'Invalid refresh token',
+        code: ErrorCode.SESSION_EXPIRED,
+      });
+    }
+
+    await prisma.user_sessions.update({
+      where: { id: session.id },
+      data: {
+        last_used_at: now,
+        expires_at: new Date(now.getTime() + SESSION_TTL_SECONDS * 1000),
+      },
+    });
+
+    const accessToken = await this.createAccessToken(session.user, session.id);
+    return { accessToken, refreshToken };
   }
 
-  private async createAccessToken(user: {
-    id: string;
-    email: string;
-  }): Promise<string> {
+  /** Ends the session the refresh token belongs to. Never throws. */
+  async logout(refreshToken: string | undefined): Promise<void> {
+    if (!refreshToken) return;
+    try {
+      const { userId, sessionId } = await this.verifyRefreshToken(refreshToken);
+      await prisma.user_sessions.updateMany({
+        where: { id: sessionId, user_id: userId, revoked_at: null },
+        data: { revoked_at: new Date() },
+      });
+      this.logger.log(`🚪 Session ended: ${sessionId}`);
+    } catch {
+      // An invalid or expired token has nothing to revoke.
+    }
+  }
+
+  private async createAccessToken(
+    user: { id: string; email: string },
+    sessionId: string,
+  ): Promise<string> {
     return this.jwtService.signAsync(
-      { email: user.email },
+      { email: user.email, sid: sessionId },
       {
         secret: this.accessSecret,
         subject: user.id,
-        expiresIn: '7d',
-      },
-    );
-  }
-
-  private async createRefreshToken(user: { id: string }): Promise<string> {
-    return this.jwtService.signAsync(
-      {},
-      {
-        secret: this.refreshSecret,
-        subject: user.id,
-        expiresIn: '30d',
+        expiresIn: ACCESS_TOKEN_TTL_SECONDS,
       },
     );
   }

@@ -17,11 +17,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { sub?: string; email?: string }) {
+  async validate(payload: { sub?: string; email?: string; sid?: string }) {
     if (!payload.sub) {
       return null;
     }
     const user = await this.authService.findUserById(payload.sub);
-    return user;
+    if (!user) return null;
+    // The session id lets a request act on "this device" (e.g. keep it
+    // signed in when the password changes).
+    return { ...user, sessionId: payload.sid };
   }
 }

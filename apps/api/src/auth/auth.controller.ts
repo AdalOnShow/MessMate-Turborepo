@@ -13,36 +13,60 @@ import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 import type { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { signUpSchema, type SignupDto } from '@repo/shared';
-import { AuthService, AuthTokens, AuthUser } from './auth.service';
+import {
+  ACCESS_TOKEN_TTL_SECONDS,
+  AuthService,
+  AuthTokens,
+  AuthUser,
+  SESSION_TTL_SECONDS,
+} from './auth.service';
 import { Public } from './guards/public.decorator';
 
 type SigninRequest = Request & {
   user?: AuthUser;
 };
 
-type RefreshRequest = Request & {
-  cookies?: {
-    refresh_token?: string;
-  };
-};
+/**
+ * Reads one cookie from the raw header. The API has no cookie-parser, so
+ * `req.cookies` is always undefined; reading it made every refresh fail.
+ */
+function readCookie(req: Request, name: string): string | undefined {
+  const header = req.headers.cookie;
+  if (!header) return undefined;
+  for (const part of header.split(';')) {
+    const eq = part.indexOf('=');
+    if (eq === -1) continue;
+    if (part.slice(0, eq).trim() === name) {
+      const value = part.slice(eq + 1).trim();
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return value;
+      }
+    }
+  }
+  return undefined;
+}
+
+/** The web app calls us from its server, so it forwards the browser's UA. */
+function clientUserAgent(req: Request): string | undefined {
+  const forwarded = req.headers['x-client-user-agent'];
+  if (typeof forwarded === 'string' && forwarded) return forwarded;
+  return req.headers['user-agent'];
+}
 
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
   private readonly webAppUrl: string;
-  private readonly refreshSecret: string;
   private readonly cookieDomain?: string;
 
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
-    private readonly jwtService: JwtService,
   ) {
     this.webAppUrl = this.configService.getOrThrow<string>('CORS_ORIGIN');
-    this.refreshSecret =
-      this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
     this.cookieDomain =
       this.configService.get<string>('COOKIE_DOMAIN') || undefined;
   }
@@ -52,12 +76,16 @@ export class AuthController {
   @Post('signup')
   async signup(
     @Body() signupDto: SignupDto,
+    @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
     const parsedSignup = signUpSchema.parse(signupDto);
     this.logger.log(`📝 POST /auth/signup - email: ${parsedSignup.email}`);
 
-    const tokens: AuthTokens = await this.authService.register(parsedSignup);
+    const tokens: AuthTokens = await this.authService.register(
+      parsedSignup,
+      clientUserAgent(req),
+    );
 
     this.setRefreshCookie(res, tokens.refreshToken);
     this.logger.log(`✅ Signup completed for: ${parsedSignup.email}`);
@@ -80,7 +108,10 @@ export class AuthController {
 
     this.logger.log(`🔐 POST /auth/signin - user: ${user.email}`);
 
-    const tokens: AuthTokens = await this.authService.login(user);
+    const tokens: AuthTokens = await this.authService.login(
+      user,
+      clientUserAgent(req),
+    );
 
     this.setRefreshCookie(res, tokens.refreshToken);
     this.logger.log(`✅ Signin completed for: ${user.email}`);
@@ -96,46 +127,23 @@ export class AuthController {
   @Public()
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('refresh')
-  async refresh(
-    @Req() req: RefreshRequest,
-    @Res() res: Response,
-  ): Promise<void> {
-    this.logger.log('🔄 POST /auth/refresh');
-
-    const refreshToken = (req.cookies as Record<string, string> | undefined)
-      ?.refresh_token;
-    if (!refreshToken) throw new UnauthorizedException('Missing refresh token');
-
-    let userId: string;
-    try {
-      const payload = await this.jwtService.verifyAsync<{ sub: string }>(
-        refreshToken,
-        { secret: this.refreshSecret },
-      );
-      userId = payload.sub;
-      if (!userId) throw new UnauthorizedException('Invalid refresh token');
-    } catch {
-      throw new UnauthorizedException('Invalid refresh token');
+  async refresh(@Req() req: Request, @Res() res: Response): Promise<void> {
+    const refreshToken = readCookie(req, 'refresh_token');
+    if (!refreshToken) {
+      throw new UnauthorizedException('Missing refresh token');
     }
 
-    try {
-      const tokens: AuthTokens = await this.authService.refreshTokens(
-        userId,
-        refreshToken,
-      );
+    const tokens = await this.authService.refreshTokens(refreshToken);
 
-      this.setRefreshCookie(res, tokens.refreshToken);
-      this.logger.log(`✅ Token refreshed for user: ${userId}`);
-      res.status(200).json({
-        success: true,
-        message: 'Token refreshed successfully',
-        data: {
-          accessToken: tokens.accessToken,
-        },
-      });
-    } catch {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
+    // Re-sent so the cookie's lifetime slides with the session.
+    this.setRefreshCookie(res, tokens.refreshToken);
+    res.status(200).json({
+      success: true,
+      message: 'Token refreshed successfully',
+      data: {
+        accessToken: tokens.accessToken,
+      },
+    });
   }
 
   @Public()
@@ -145,24 +153,17 @@ export class AuthController {
     this.logger.log('🔐 GET /auth/google - initiating Google OAuth');
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  /**
+   * Public on purpose: it identifies the session by the refresh cookie, so
+   * signing out still works after the access token has expired.
+   */
+  @Public()
   @Post('logout')
-  async logout(
-    @Req() req: Request & { user?: { id?: string } },
-    @Res() res: Response,
-  ): Promise<void> {
-    const userId = req.user?.id;
-    if (!userId) throw new UnauthorizedException('Unauthorized');
+  async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
+    await this.authService.logout(readCookie(req, 'refresh_token'));
 
-    this.logger.log(`🚪 POST /auth/logout - user: ${userId}`);
-
-    await this.authService.logout(userId);
-
-    res.clearCookie('refresh_token', {
-      ...this.cookieOptions(),
-    });
-
-    this.logger.log(`✅ Logout completed for user: ${userId}`);
+    res.clearCookie('refresh_token', this.cookieOptions());
+    res.clearCookie('access_token', this.cookieOptions());
     res.status(200).json({ success: true, message: 'Logged out' });
   }
 
@@ -194,7 +195,10 @@ export class AuthController {
     this.logger.log(`🔐 Google OAuth callback for user: ${authUser.email}`);
 
     try {
-      const tokens: AuthTokens = await this.authService.login(authUser);
+      const tokens: AuthTokens = await this.authService.login(
+        authUser,
+        clientUserAgent(req),
+      );
 
       this.setRefreshCookie(res, tokens.refreshToken);
       this.setAccessCookie(res, tokens.accessToken);
@@ -212,20 +216,26 @@ export class AuthController {
     return {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      // Lax, not strict: strict cookies are not sent when the user arrives
+      // from another site (end of the Google redirect, a shared link), so
+      // those visits looked signed out.
+      sameSite: 'lax',
       path: '/',
       ...(this.cookieDomain ? { domain: this.cookieDomain } : {}),
     };
   }
 
   private setRefreshCookie(res: Response, refreshToken: string) {
-    res.cookie('refresh_token', refreshToken, this.cookieOptions());
+    res.cookie('refresh_token', refreshToken, {
+      ...this.cookieOptions(),
+      maxAge: SESSION_TTL_SECONDS * 1000,
+    });
   }
 
   private setAccessCookie(res: Response, accessToken: string) {
     res.cookie('access_token', accessToken, {
       ...this.cookieOptions(),
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: ACCESS_TOKEN_TTL_SECONDS * 1000,
     });
   }
 }
