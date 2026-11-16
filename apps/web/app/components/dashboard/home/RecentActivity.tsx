@@ -13,14 +13,39 @@ import {
   UserMinus,
   Users,
 } from "lucide-react";
-import type { ActivityLogInfo } from "../../hooks/use-members";
-import { useRecentActivities } from "../../hooks/use-members";
-import { BentoCard, CardHeading } from "./bento";
-import { QueryErrorState } from "../feedback/QueryErrorState";
+import type { ActivityLogInfo } from "@/app/hooks/use-members";
+import { useRecentActivities } from "@/app/hooks/use-members";
+import { QueryErrorState } from "../../feedback/QueryErrorState";
+import { Skeleton } from "../../ui/skeleton";
+import { UserAvatar } from "../UserAvatar";
+import { Card, CardTitle } from "./shared";
+
+type ActivityLabel =
+  | "memberAdded"
+  | "memberRemoved"
+  | "managerAssigned"
+  | "managerRemoved"
+  | "mealsAdded"
+  | "mealsUpdated"
+  | "mealsDeleted"
+  | "expenseAdded"
+  | "expenseUpdated"
+  | "expenseDeleted"
+  | "depositAdded"
+  | "depositUpdated"
+  | "depositDeleted"
+  | "monthOpened"
+  | "monthClosed"
+  | "balanceCreated"
+  | "defaultMealsUpdated"
+  | "bazaarSubmitted"
+  | "bazaarUpdated"
+  | "bazaarApproved"
+  | "bazaarRejected";
 
 const ACTION_META: Record<
   ActivityLogInfo["action"],
-  { label: string; icon: ReactNode }
+  { label: ActivityLabel; icon: ReactNode }
 > = {
   MEMBER_ADDED: { label: "memberAdded", icon: <UserPlus size={14} /> },
   MEMBER_REMOVED: { label: "memberRemoved", icon: <UserMinus size={14} /> },
@@ -78,19 +103,22 @@ function timeAgo(iso: string) {
 export function RecentActivity({ messId }: { messId: string | undefined }) {
   const t = useTranslations("dashboard.recentActivity");
   const activitiesQuery = useRecentActivities(messId);
-  const { data: activities, isLoading } = activitiesQuery;
+  const { data: activities, isPending } = activitiesQuery;
 
   return (
-    <BentoCard className="flex flex-col p-6 lg:col-span-3">
-      <CardHeading icon={<Activity size={15} />} title={t("recentActivity")} />
+    <Card>
+      <CardTitle title={t("recentActivity")} />
 
-      {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-12 animate-pulse rounded-xl bg-surface-raised"
-            />
+      {isPending ? (
+        <div className="space-y-4 py-1">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="size-9 rounded-full" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3.5 w-1/3 rounded" />
+                <Skeleton className="h-3 w-1/5 rounded" />
+              </div>
+            </div>
           ))}
         </div>
       ) : activitiesQuery.isError && !activities ? (
@@ -102,41 +130,51 @@ export function RecentActivity({ messId }: { messId: string | undefined }) {
           resource="recent activity"
         />
       ) : activities && activities.length > 0 ? (
-        <div className="flex-1 space-y-1.5">
+        <ul className="-mx-1">
           {activities.slice(0, 6).map((a) => {
             const meta = ACTION_META[a.action];
             return (
-              <div
+              <li
                 key={a.id}
-                className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-surface-raised"
+                className="flex items-center gap-3 rounded-xl px-1 py-2"
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  {meta.icon}
+                <span className="relative shrink-0">
+                  <UserAvatar
+                    name={a.actor.name}
+                    email={a.actor.email}
+                    avatar={a.actor.avatar}
+                    className="size-9 text-xs"
+                  />
+                  <span className="absolute -right-1 -bottom-1 flex size-5 items-center justify-center rounded-full border-2 border-surface bg-surface-raised text-primary [&_svg]:size-2.5">
+                    {meta?.icon ?? <Activity />}
+                  </span>
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-foreground">
-                    {meta.label}
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {meta ? t(meta.label) : a.action}
                   </p>
                   <p className="truncate text-xs text-foreground-muted">
                     {a.actor.name}
                   </p>
                 </div>
-                <span className="shrink-0 text-xs text-foreground-muted/70">
+                <span className="shrink-0 text-[11px] text-foreground-muted tabular-nums">
                   {timeAgo(a.created_at)}
                 </span>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
-          <Activity size={28} className="mb-3 text-foreground-muted/40" />
-          <p className="text-sm font-medium text-foreground">{t("noActivityYet")}</p>
+        <div className="flex flex-col items-center py-8 text-center">
+          <Activity size={24} className="mb-2 text-foreground-muted/40" />
+          <p className="text-sm font-medium text-foreground">
+            {t("noActivityYet")}
+          </p>
           <p className="mt-1 max-w-[220px] text-xs text-foreground-muted">
             {t("actionsMessAppearHere")}
           </p>
         </div>
       )}
-    </BentoCard>
+    </Card>
   );
 }

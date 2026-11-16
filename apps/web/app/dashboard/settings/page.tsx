@@ -13,6 +13,7 @@ import {
 } from "../../hooks/use-messes";
 import type { MealTypeInfo } from "../../hooks/use-messes";
 import { Check, Loader2, Pencil, Settings, X } from "lucide-react";
+import { MonthSettings } from "../../components/dashboard/MonthSettings";
 import { QueryErrorState } from "../../components/feedback/QueryErrorState";
 
 function EditableMessInfo() {
@@ -409,6 +410,8 @@ function SettingsContent() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <MonthSettings messId={myMess.id} />
+
         <div className="rounded-xl border border-border bg-surface p-6">
           <EditableMessInfo />
         </div>

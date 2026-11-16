@@ -300,6 +300,23 @@
     "slugMustAtMost": "Slug must be at most 80 characters",
     "slugMustContainOnly": "Slug must contain only lowercase letters, numbers, and hyphens",
     "descriptionMustAtMost": "Description must be at most 300 characters",
-    "noDescription": "No description"
+    "noDescription": "No description",
+    "month": "Month",
+    "monthDesc": "Open and close accounting months.",
+    "startedOn": "Started {date}",
+    "noActiveMonth": "No active month",
+    "noActiveMonthDesc": "Start a month to begin tracking meals, deposits and expenses.",
+    "startMonth": "Start month",
+    "startNewMonth": "Close & start new",
+    "viewHistory": "History",
+    "startNewMonthTitle": "Start a new month?",
+    "startMonthTitle": "Start a month",
+    "closes": "This closes",
+    "closesRest": ": its bills are finalized, balances carry forward, and no more meals, expenses or deposits can be added to it. This cannot be undone.",
+    "newMonthName": "New month name",
+    "monthName": "Month name",
+    "starting": "Starting...",
+    "closingMonth": "Closing month...",
+    "closeStartNew": "Close & Start New"
   }
 }

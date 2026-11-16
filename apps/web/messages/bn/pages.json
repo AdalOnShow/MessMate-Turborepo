@@ -1,1 +1,21 @@
-{}
+{
+  "settings": {
+    "month": "মাস",
+    "monthDesc": "হিসাবের মাস শুরু ও ক্লোজ করুন।",
+    "startedOn": "{date} শুরু",
+    "noActiveMonth": "চলমান কোনো মাস নেই",
+    "noActiveMonthDesc": "মিল, জমা আর খরচের হিসাব রাখতে মাস শুরু করুন।",
+    "startMonth": "মাস শুরু করুন",
+    "startNewMonth": "ক্লোজ করে নতুন শুরু",
+    "viewHistory": "ইতিহাস",
+    "startNewMonthTitle": "নতুন মাস শুরু করবেন?",
+    "startMonthTitle": "মাস শুরু করুন",
+    "closes": "এটি ক্লোজ করবে",
+    "closesRest": ": এর বিল চূড়ান্ত হবে, ব্যালেন্স পরের মাসে যাবে, আর এতে কোনো মিল, খরচ বা জমা যোগ করা যাবে না। এটি আর ফেরানো যাবে না।",
+    "newMonthName": "নতুন মাসের নাম",
+    "monthName": "মাসের নাম",
+    "starting": "শুরু হচ্ছে...",
+    "closingMonth": "মাস ক্লোজ হচ্ছে...",
+    "closeStartNew": "ক্লোজ করে নতুন শুরু"
+  }
+}
