@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSessionStore } from "../store";
 import { getCurrentUser } from "../actions/auth";
+import { AppSplash } from "./feedback/AppSplash";
 import {
   clearOfflineData,
   loadCachedUser,
@@ -70,7 +71,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
   }, [queryClient, userId]);
 
   if (!initialized) {
-    return null;
+    return <AppSplash />;
   }
 
   return <>{children}</>;

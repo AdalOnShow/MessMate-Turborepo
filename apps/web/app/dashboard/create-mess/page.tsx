@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { startNavigationProgress } from "../../lib/navigation-progress";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../store";
 import { useGetMyMess, useCreateMess } from "../../hooks/use-messes";
@@ -37,6 +38,7 @@ function CreateMessForm() {
       },
       {
         onSuccess: () => {
+          startNavigationProgress();
           router.push("/dashboard");
         },
       },
@@ -63,7 +65,8 @@ function CreateMessForm() {
                 htmlFor="mess-name"
                 className="mb-1.5 block text-sm font-medium text-foreground"
               >
-                {t("messName")}<span className="text-destructive">*</span>
+                {t("messName")}
+                <span className="text-destructive">*</span>
               </label>
               <input
                 id="mess-name"
@@ -171,7 +174,10 @@ function CreateMessContent() {
             <span className="font-semibold text-foreground">{myMess.name}</span>
           </p>
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => {
+              startNavigationProgress();
+              router.push("/dashboard");
+            }}
             className="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
           >
             {t("backDashboard")}

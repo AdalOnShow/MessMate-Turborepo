@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "../../lib/utils";
 import { MORE_ITEMS, PRIMARY_TABS, isActivePath } from "./nav-items";
 import { MoreSheet } from "./MoreSheet";
+import { LinkPendingDot } from "../ui/link-pending";
 
 const tabClass =
   "group flex min-w-0 flex-1 flex-col items-center justify-center gap-1 pb-1 pt-2 text-[11px] font-medium leading-none transition-colors";
@@ -57,9 +58,11 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   tabClass,
+                  "relative",
                   active ? "text-primary" : "text-foreground-muted",
                 )}
               >
+                <LinkPendingDot className="absolute top-1.5 left-1/2 ml-5" />
                 <TabIcon active={active}>
                   <Icon
                     size={22}

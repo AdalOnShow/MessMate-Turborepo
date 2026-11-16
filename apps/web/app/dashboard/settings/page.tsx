@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { startNavigationProgress } from "../../lib/navigation-progress";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../store";
 import {
@@ -368,6 +369,7 @@ function SettingsContent() {
 
   useEffect(() => {
     if (!messLoading && myMess && myMess.current_user_role !== "MANAGER") {
+      startNavigationProgress();
       router.push("/dashboard");
     }
   }, [messLoading, myMess, router]);

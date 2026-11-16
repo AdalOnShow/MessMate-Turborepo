@@ -2,6 +2,7 @@
 
 import { clearOfflineData } from "../lib/offline-cache";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { startNavigationProgress } from "../lib/navigation-progress";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../store";
 import { unwrap } from "../lib/action-result";
@@ -37,6 +38,7 @@ export function useSignin() {
       // Start clean: never show data saved for a previous account.
       clearOfflineData();
       setSession(data.user);
+      startNavigationProgress();
       router.push("/dashboard");
     },
   });
@@ -54,6 +56,7 @@ export function useSignup() {
       // Start clean: never show data saved for a previous account.
       clearOfflineData();
       setSession(data.user);
+      startNavigationProgress();
       router.push("/dashboard");
     },
   });
@@ -74,12 +77,14 @@ export function useLogout() {
       clearOfflineData();
       queryClient.clear();
       clearSession();
+      startNavigationProgress();
       router.push("/");
     },
     onError: () => {
       clearOfflineData();
       queryClient.clear();
       clearSession();
+      startNavigationProgress();
       router.push("/");
     },
   });

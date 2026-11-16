@@ -10,6 +10,7 @@ import { useGetMyMess } from "../../hooks/use-messes";
 import { useTranslations } from "next-intl";
 import { LanguageToggle } from "../LanguageToggle";
 import { UserAvatar } from "./UserAvatar";
+import { LinkPendingDot } from "../ui/link-pending";
 import { MANAGER_NAV_ITEMS, NAV_ITEMS, isActivePath } from "./nav-items";
 
 export function Sidebar() {
@@ -62,6 +63,7 @@ export function Sidebar() {
             >
               <Icon size={18} aria-hidden="true" />
               {t(item.label)}
+              <LinkPendingDot className="ml-auto" />
             </Link>
           );
         })}
@@ -87,6 +89,7 @@ export function Sidebar() {
                 >
                   <Icon size={18} aria-hidden="true" />
                   {t(item.label)}
+                  <LinkPendingDot className="ml-auto" />
                 </Link>
               );
             })}

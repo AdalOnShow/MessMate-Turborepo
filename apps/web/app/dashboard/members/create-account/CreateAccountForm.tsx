@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { startNavigationProgress } from "../../../lib/navigation-progress";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
@@ -53,6 +54,7 @@ export default function CreateAccountForm() {
       );
       await queryClient.invalidateQueries();
       toast.success(t("memberAccountCreated"));
+      startNavigationProgress();
       router.push("/dashboard/members");
     } catch (err: unknown) {
       const error = toActionError(err);

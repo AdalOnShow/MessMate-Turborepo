@@ -3,6 +3,8 @@
 import { useSessionStore } from "./store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { AppSplash } from "./components/feedback/AppSplash";
+import { startNavigationProgress } from "./lib/navigation-progress";
 
 export function ProtectedPage({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useSessionStore();
@@ -10,12 +12,13 @@ export function ProtectedPage({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isAuthenticated) {
+      startNavigationProgress();
       router.push("/signin");
     }
   }, [isAuthenticated, router]);
 
   if (!isAuthenticated) {
-    return null; // Will redirect via useEffect
+    return <AppSplash />; // Redirecting via useEffect
   }
 
   return <>{children}</>;

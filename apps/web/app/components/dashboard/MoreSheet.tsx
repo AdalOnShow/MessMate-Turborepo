@@ -21,6 +21,7 @@ import { useLogout } from "../../hooks/use-auth";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { promptInstall, useInstallState } from "../../lib/pwa";
 import { cn } from "../../lib/utils";
+import { LinkPendingDot } from "../ui/link-pending";
 
 /** "More" tab content: secondary pages, preferences, install and logout. */
 export function MoreSheet({ onClose }: { onClose: () => void }) {
@@ -79,12 +80,13 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
               onClick={onClose}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex min-h-[84px] flex-col items-center justify-center gap-2 rounded-2xl border p-2 text-center text-xs font-medium transition-transform active:scale-95",
+                "relative flex min-h-[84px] flex-col items-center justify-center gap-2 rounded-2xl border p-2 text-center text-xs font-medium transition-transform active:scale-95",
                 active
                   ? "border-primary/30 bg-primary/10 text-primary"
                   : "border-border bg-surface text-foreground",
               )}
             >
+              <LinkPendingDot className="absolute top-2 right-2" />
               <Icon size={22} aria-hidden="true" />
               <span className="line-clamp-2 leading-tight">
                 {t(item.label)}
