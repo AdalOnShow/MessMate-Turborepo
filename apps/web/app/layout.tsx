@@ -1,20 +1,26 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Alkatra } from "next/font/google";
+import { Inter, JetBrains_Mono, Alkatra } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Analytics } from "@vercel/analytics/next";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-heading",
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-jetbrains",
   display: "swap",
 });
 
 const alkatra = Alkatra({
   subsets: ["bengali"],
   weight: ["400", "500", "600"],
-  variable: "--font-bengali",
+  variable: "--font-alkatra",
   display: "swap",
 });
 
@@ -52,7 +58,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${plusJakartaSans.variable} ${alkatra.variable}`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${alkatra.variable}`}
     >
       <body className="font-body antialiased">
         <Providers>{children}</Providers>

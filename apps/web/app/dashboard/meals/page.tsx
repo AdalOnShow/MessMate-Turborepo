@@ -61,7 +61,7 @@ function MealCell({
         type="button"
         onClick={onDecrement}
         disabled={disabled || value <= 0}
-        className="flex h-7 w-7 items-center justify-center rounded border border-foreground-muted/20 text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-30"
+        className="flex h-7 w-7 items-center justify-center rounded border border-border-strong text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-30"
       >
         <Minus size={14} />
       </button>
@@ -72,7 +72,7 @@ function MealCell({
         type="button"
         onClick={onIncrement}
         disabled={disabled || value >= 10}
-        className="flex h-7 w-7 items-center justify-center rounded border border-foreground-muted/20 text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-30"
+        className="flex h-7 w-7 items-center justify-center rounded border border-border-strong text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-30"
       >
         <Plus size={14} />
       </button>
@@ -202,14 +202,12 @@ export default function MealsPage() {
     return (
       <>
         <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-            Meals
-          </p>
-          <h1 className="mt-2 text-3xl font-bold text-foreground">
+          <p className="label-mono text-primary">Meals</p>
+          <h1 className="mt-2 heading-tight text-3xl text-foreground">
             Meal Management
           </h1>
         </div>
-        <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center">
+        <div className="rounded-xl border border-border bg-surface p-8 text-center">
           <p className="text-sm text-foreground-muted">
             No active month. Start a month from the dashboard to record meals.
           </p>
@@ -222,10 +220,8 @@ export default function MealsPage() {
     <>
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-            Meals
-          </p>
-          <h1 className="mt-2 text-3xl font-bold text-foreground">
+          <p className="label-mono text-primary">Meals</p>
+          <h1 className="mt-2 heading-tight text-3xl text-foreground">
             {activeMonth.title}
           </h1>
         </div>
@@ -240,12 +236,12 @@ export default function MealsPage() {
                 setSelectedDate(e.target.value);
                 setLocalGrid({});
               }}
-              className="rounded-lg border border-foreground-muted/20 bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+              className="rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             />
           </div>
           <Link
             href="/dashboard/meals/reports"
-            className="flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-3 py-2 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+            className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
           >
             <BarChart3 size={14} />
             Reports
@@ -292,10 +288,10 @@ export default function MealsPage() {
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-xl border border-foreground-muted/15 bg-surface">
+          <div className="overflow-x-auto rounded-xl border border-border bg-surface">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-foreground-muted/10">
+                <tr className="border-b border-border">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-foreground-muted">
                     Member
                   </th>
@@ -350,10 +346,7 @@ export default function MealsPage() {
                   (activeMembers ?? []).map((member: MemberData) => {
                     let rowTotal = 0;
                     return (
-                      <tr
-                        key={member.id}
-                        className="border-b border-foreground-muted/5"
-                      >
+                      <tr key={member.id} className="border-b border-border">
                         <td className="px-4 py-3">
                           <p className="font-medium text-foreground">
                             {member.user.name}
@@ -455,7 +448,7 @@ function CreateMealTypeForm({
   };
 
   return (
-    <div className="rounded-lg border border-foreground-muted/15 bg-background p-4">
+    <div className="rounded-lg border border-border bg-background p-4">
       <div className="mb-3 flex items-center gap-2">
         <Plus size={16} className="text-primary" />
         <p className="text-sm font-semibold text-foreground">New Meal Type</p>
@@ -474,7 +467,7 @@ function CreateMealTypeForm({
             className={`w-full rounded-lg border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 ${
               error
                 ? "border-destructive focus:ring-destructive/40"
-                : "border-foreground-muted/20 focus:ring-primary/40"
+                : "border-border-strong focus:ring-primary/40"
             }`}
             disabled={createMealType.isPending}
           />
@@ -488,7 +481,7 @@ function CreateMealTypeForm({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="Value"
-            className="w-full rounded-lg border border-foreground-muted/20 bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             disabled={createMealType.isPending}
           />
         </div>
@@ -497,7 +490,7 @@ function CreateMealTypeForm({
             type="button"
             onClick={onCancel}
             disabled={createMealType.isPending}
-            className="flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-3 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
           >
             <X size={14} />
             Cancel
@@ -561,7 +554,7 @@ function MealTypeRow({
       className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
         mealType.is_active
           ? "border-primary/30 bg-primary/5"
-          : "border-foreground-muted/15 bg-surface"
+          : "border-border bg-surface"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -572,7 +565,7 @@ function MealTypeRow({
           className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
             mealType.is_active
               ? "border-primary bg-primary text-white"
-              : "border-foreground-muted/30 bg-transparent"
+              : "border-border-strong bg-transparent"
           }`}
         >
           {mealType.is_active && <Check size={12} />}
@@ -603,7 +596,7 @@ function MealTypeRow({
                   handleValueChange(e.currentTarget.value);
                 }
               }}
-              className="w-20 rounded-md border border-foreground-muted/20 bg-background px-2 py-1 text-sm text-foreground focus:border-primary focus:outline-none"
+              className="w-20 rounded-md border border-border-strong bg-surface-sunken px-2 py-1 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             />
           </div>
         )}
@@ -626,7 +619,7 @@ function MealTypeRow({
             <button
               type="button"
               onClick={() => setConfirmDelete(false)}
-              className="rounded bg-foreground-muted/10 px-2 py-1 text-xs font-semibold text-foreground-muted transition-colors hover:bg-foreground-muted/20"
+              className="rounded bg-surface-raised px-2 py-1 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-overlay"
             >
               No
             </button>
@@ -659,7 +652,7 @@ function MealTypeManager({
   const inactiveTypes = mealTypes.filter((mt) => !mt.is_active);
 
   return (
-    <div className="mt-8 rounded-xl border border-foreground-muted/15 bg-surface">
+    <div className="mt-8 rounded-xl border border-border bg-surface">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
@@ -683,7 +676,7 @@ function MealTypeManager({
       </button>
 
       {expanded && (
-        <div className="border-t border-foreground-muted/10 px-5 py-4">
+        <div className="border-t border-border px-5 py-4">
           <div className="mb-4 flex items-center justify-between">
             <p className="text-xs text-foreground-muted">
               Configure meal types for your mess.
@@ -692,7 +685,7 @@ function MealTypeManager({
               <button
                 type="button"
                 onClick={() => setShowCreate(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+                className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
               >
                 <Plus size={12} />
                 Add Type
@@ -710,7 +703,7 @@ function MealTypeManager({
           )}
 
           {mealTypes.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-foreground-muted/20 p-6 text-center">
+            <div className="rounded-lg border border-dashed border-border-strong p-6 text-center">
               <p className="text-sm text-foreground-muted">
                 No meal types configured. Add your first meal type to start
                 recording meals.

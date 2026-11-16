@@ -35,7 +35,7 @@ export function ErrorScreen({
       }
     >
       <div className="animate-fade-in w-full max-w-md text-center">
-        <span className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-foreground-muted/15 bg-surface-raised text-primary">
+        <span className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-surface-raised text-primary">
           <Icon size={28} aria-hidden />
         </span>
         {code && (
@@ -43,7 +43,7 @@ export function ErrorScreen({
             {code}
           </p>
         )}
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+        <h1 className="heading-tight text-2xl text-foreground">{title}</h1>
         <p className="mt-2 text-sm leading-relaxed text-foreground-muted">
           {description}
         </p>
@@ -53,14 +53,14 @@ export function ErrorScreen({
             <button
               type="button"
               onClick={onRetry}
-              className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-background transition-colors hover:bg-primary-hover sm:w-auto"
+              className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover sm:w-auto"
             >
               Try again
             </button>
           )}
           <Link
             href={homeHref}
-            className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-foreground-muted/20 px-5 text-sm font-semibold text-foreground transition-colors hover:bg-surface-raised sm:w-auto"
+            className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-border-strong px-5 text-sm font-semibold text-foreground transition-colors hover:bg-surface-raised sm:w-auto"
           >
             {homeLabel}
           </Link>

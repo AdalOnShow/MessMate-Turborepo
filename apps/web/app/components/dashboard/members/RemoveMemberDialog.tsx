@@ -15,7 +15,7 @@ export function RemoveMemberDialog({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-sm rounded-xl border border-foreground-muted/15 bg-background p-6">
+      <div className="w-full max-w-sm rounded-xl border border-border bg-background p-6">
         <h2 className="mb-2 text-lg font-bold text-foreground">
           Remove Member
         </h2>
@@ -31,7 +31,7 @@ export function RemoveMemberDialog({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-foreground-muted/20 px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+            className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
           >
             Cancel
           </button>

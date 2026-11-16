@@ -87,7 +87,7 @@ export function RecentActivity({ messId }: { messId: string | undefined }) {
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="h-12 animate-pulse rounded-xl bg-foreground-muted/5"
+              className="h-12 animate-pulse rounded-xl bg-surface-raised"
             />
           ))}
         </div>

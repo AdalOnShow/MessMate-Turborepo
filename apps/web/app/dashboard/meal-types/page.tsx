@@ -60,7 +60,7 @@ function CreateMealTypeForm({
   };
 
   return (
-    <div className="rounded-lg border border-foreground-muted/15 bg-background p-4">
+    <div className="rounded-lg border border-border bg-background p-4">
       <div className="mb-3 flex items-center gap-2">
         <Plus size={16} className="text-primary" />
         <p className="text-sm font-semibold text-foreground">New Meal Type</p>
@@ -79,7 +79,7 @@ function CreateMealTypeForm({
             className={`w-full rounded-lg border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 ${
               error
                 ? "border-destructive focus:ring-destructive/40"
-                : "border-foreground-muted/20 focus:ring-primary/40"
+                : "border-border-strong focus:ring-primary/40"
             }`}
             disabled={createMealType.isPending}
           />
@@ -93,7 +93,7 @@ function CreateMealTypeForm({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="Value"
-            className="w-full rounded-lg border border-foreground-muted/20 bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             disabled={createMealType.isPending}
           />
         </div>
@@ -102,7 +102,7 @@ function CreateMealTypeForm({
             type="button"
             onClick={onCancel}
             disabled={createMealType.isPending}
-            className="flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-3 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
           >
             <X size={14} />
             Cancel
@@ -166,7 +166,7 @@ function MealTypeRow({
       className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
         mealType.is_active
           ? "border-primary/30 bg-primary/5"
-          : "border-foreground-muted/15 bg-surface"
+          : "border-border bg-surface"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -177,7 +177,7 @@ function MealTypeRow({
           className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
             mealType.is_active
               ? "border-primary bg-primary text-white"
-              : "border-foreground-muted/30 bg-transparent"
+              : "border-border-strong bg-transparent"
           }`}
         >
           {mealType.is_active && <Check size={12} />}
@@ -208,7 +208,7 @@ function MealTypeRow({
                   handleValueChange(e.currentTarget.value);
                 }
               }}
-              className="w-20 rounded-md border border-foreground-muted/20 bg-background px-2 py-1 text-sm text-foreground focus:border-primary focus:outline-none"
+              className="w-20 rounded-md border border-border-strong bg-surface-sunken px-2 py-1 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             />
           </div>
         )}
@@ -231,7 +231,7 @@ function MealTypeRow({
             <button
               type="button"
               onClick={() => setConfirmDelete(false)}
-              className="rounded bg-foreground-muted/10 px-2 py-1 text-xs font-semibold text-foreground-muted transition-colors hover:bg-foreground-muted/20"
+              className="rounded bg-surface-raised px-2 py-1 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-overlay"
             >
               No
             </button>
@@ -282,7 +282,7 @@ export default function MealTypesPage() {
 
   if (!myMess) {
     return (
-      <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center">
+      <div className="rounded-xl border border-border bg-surface p-8 text-center">
         <p className="text-sm text-foreground-muted">
           You need to be part of a mess to manage meal types.
         </p>
@@ -297,10 +297,8 @@ export default function MealTypesPage() {
     <>
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-            Meal Types
-          </p>
-          <h1 className="mt-2 text-3xl font-bold text-foreground">
+          <p className="label-mono text-primary">Meal Types</p>
+          <h1 className="mt-2 heading-tight text-3xl text-foreground">
             Configure Meal Types
           </h1>
           <p className="mt-1 text-sm text-foreground-muted">
@@ -331,7 +329,7 @@ export default function MealTypesPage() {
       )}
 
       {(mealTypes ?? []).length === 0 ? (
-        <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center">
+        <div className="rounded-xl border border-border bg-surface p-8 text-center">
           <UtensilsCrossed
             size={32}
             className="mx-auto mb-3 text-foreground-muted"
@@ -345,7 +343,7 @@ export default function MealTypesPage() {
         <div className="space-y-6">
           {activeTypes.length > 0 && (
             <div>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-foreground-muted">
+              <h2 className="mb-3 text-sm font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 Active ({activeTypes.length})
               </h2>
               <div className="space-y-2">
@@ -358,7 +356,7 @@ export default function MealTypesPage() {
 
           {inactiveTypes.length > 0 && (
             <div>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-foreground-muted">
+              <h2 className="mb-3 text-sm font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 Inactive ({inactiveTypes.length})
               </h2>
               <div className="space-y-2">

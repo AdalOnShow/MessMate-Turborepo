@@ -54,7 +54,7 @@ function LoadingBlock() {
 
 function EmptyBlock({ message }: { message: string }) {
   return (
-    <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center">
+    <div className="rounded-xl border border-border bg-surface p-8 text-center">
       <p className="text-sm text-foreground-muted">{message}</p>
     </div>
   );
@@ -70,7 +70,7 @@ function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-foreground-muted/15 bg-surface p-3">
+    <div className="rounded-lg border border-border bg-surface p-3">
       <p className="text-xs font-medium text-foreground-muted">{label}</p>
       <p
         className={`mt-1 text-xl font-bold ${
@@ -86,7 +86,7 @@ function StatCard({
 function BalanceBadge({ value }: { value: number }) {
   const color =
     value > 0
-      ? "text-green-500"
+      ? "text-success"
       : value < 0
         ? "text-destructive"
         : "text-foreground";
@@ -173,10 +173,10 @@ function MonthSummaryView({
   return (
     <div className="space-y-4">
       <StatCard label="Members" value={String(data.member_summaries.length)} />
-      <div className="overflow-x-auto rounded-xl border border-foreground-muted/15 bg-surface">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-foreground-muted/10">
+            <tr className="border-b border-border">
               <ThLeft label="Member" />
               <Th label="Meals" />
               <Th label="Meal Cost" />
@@ -189,10 +189,7 @@ function MonthSummaryView({
           </thead>
           <tbody>
             {data.member_summaries.map((s) => (
-              <tr
-                key={s.id}
-                className="border-b border-foreground-muted/5 last:border-0"
-              >
+              <tr key={s.id} className="border-b border-border last:border-0">
                 <td className="px-4 py-3">
                   <UserCell name={s.user.name} email={s.user.email} />
                 </td>
@@ -261,10 +258,10 @@ function MealsSummaryView({
         <StatCard label="Active Days" value={String(data.active_days)} />
         <StatCard label="Entries" value={String(data.total_entries)} />
       </div>
-      <div className="overflow-x-auto rounded-xl border border-foreground-muted/15 bg-surface">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-foreground-muted/10">
+            <tr className="border-b border-border">
               <ThLeft label="Member" />
               <Th label="Meals" />
               <Th label="Entries" />
@@ -274,7 +271,7 @@ function MealsSummaryView({
             {data.member_summaries.map((s) => (
               <tr
                 key={s.member_id}
-                className="border-b border-foreground-muted/5 last:border-0"
+                className="border-b border-border last:border-0"
               >
                 <td className="px-4 py-3">
                   <UserCell name={s.user.name} email={s.user.email} />
@@ -332,10 +329,10 @@ function ExpensesSummaryView({
         <StatCard label="Bazaar" value={formatMoney(data.bazaar_total)} />
         <StatCard label="Count" value={String(data.count)} />
       </div>
-      <div className="overflow-x-auto rounded-xl border border-foreground-muted/15 bg-surface">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-foreground-muted/10">
+            <tr className="border-b border-border">
               <ThLeft label="Member" />
               <Th label="Shared Cost" />
               <Th label="Individual" />
@@ -346,7 +343,7 @@ function ExpensesSummaryView({
             {data.per_member.map((m) => (
               <tr
                 key={m.member_id}
-                className="border-b border-foreground-muted/5 last:border-0"
+                className="border-b border-border last:border-0"
               >
                 <td className="px-4 py-3">
                   <UserCell name={m.user.name} email={m.user.email} />
@@ -406,10 +403,10 @@ function DepositsSummaryView({
         <StatCard label="Transactions" value={String(data.count)} />
         <StatCard label="Depositors" value={String(data.per_member.length)} />
       </div>
-      <div className="overflow-x-auto rounded-xl border border-foreground-muted/15 bg-surface">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-foreground-muted/10">
+            <tr className="border-b border-border">
               <ThLeft label="Member" />
               <Th label="Count" />
               <Th label="Amount" />
@@ -419,7 +416,7 @@ function DepositsSummaryView({
             {data.per_member.map((m) => (
               <tr
                 key={m.member_id}
-                className="border-b border-foreground-muted/5 last:border-0"
+                className="border-b border-border last:border-0"
               >
                 <td className="px-4 py-3">
                   <UserCell name={m.user.name} email={m.user.email} />
@@ -491,10 +488,10 @@ function MembersSummaryView({
           ? "Live calculations for the current active month."
           : "Calculations from the archived month summary."}
       </p>
-      <div className="overflow-x-auto rounded-xl border border-foreground-muted/15 bg-surface">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-foreground-muted/10">
+            <tr className="border-b border-border">
               <ThLeft label="Member" />
               <Th label="Meals" />
               <Th label="Meal Cost" />
@@ -511,7 +508,7 @@ function MembersSummaryView({
             {rows.map((row) => (
               <tr
                 key={row.member_id}
-                className="border-b border-foreground-muted/5 last:border-0"
+                className="border-b border-border last:border-0"
               >
                 <td className="px-4 py-3">
                   <UserCell name={row.user.name} email={row.user.email} />
@@ -616,7 +613,7 @@ export default function ReportsPage() {
       <PageHeader />
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="flex flex-1 gap-1 overflow-x-auto rounded-lg border border-foreground-muted/15 bg-surface p-1">
+        <div className="flex flex-1 gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -640,7 +637,7 @@ export default function ReportsPage() {
         <select
           value={selectedMonthId ?? ""}
           onChange={(e) => setSelectedMonthId(e.target.value)}
-          className="rounded-lg border border-foreground-muted/20 bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+          className="rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
         >
           {months.map((m) => (
             <option key={m.id} value={m.id}>
@@ -676,10 +673,8 @@ export default function ReportsPage() {
 function PageHeader() {
   return (
     <div className="mb-8">
-      <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-        Reports
-      </p>
-      <h1 className="mt-2 text-3xl font-bold text-foreground">Reports</h1>
+      <p className="label-mono text-primary">Reports</p>
+      <h1 className="mt-2 heading-tight text-3xl text-foreground">Reports</h1>
     </div>
   );
 }

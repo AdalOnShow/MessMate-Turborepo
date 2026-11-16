@@ -43,7 +43,7 @@ export function OfflineBanner() {
   return (
     <div
       role="status"
-      className="fixed inset-x-0 top-0 z-100 flex items-center justify-center gap-2 bg-accent-warm px-4 py-2 text-center text-sm font-semibold text-background"
+      className="fixed inset-x-0 top-0 z-100 flex items-center justify-center gap-2 bg-accent-warm px-4 py-2 text-center text-sm font-semibold text-cta-foreground"
     >
       <WifiOff size={16} aria-hidden />
       You&apos;re offline. Changes can&apos;t be saved until your connection is

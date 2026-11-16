@@ -58,7 +58,7 @@ function Stat({
       className={`group/stat flex items-center gap-2.5 rounded-xl border px-3 py-2 transition-colors duration-200 ${
         highlight
           ? "border-primary/25 bg-primary/5"
-          : "border-foreground-muted/10 bg-surface-raised/60 hover:border-foreground-muted/20"
+          : "border-border bg-surface-raised/60 hover:border-border-strong"
       }`}
     >
       <span
@@ -69,7 +69,7 @@ function Stat({
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-foreground-muted">
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
           {label}
         </p>
         <p
@@ -95,7 +95,7 @@ function BalanceChip({
 }) {
   return (
     <div className="flex items-baseline gap-1.5">
-      <span className="text-[10px] font-medium uppercase tracking-wider text-foreground-muted">
+      <span className="text-[10px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
         {label}
       </span>
       <span
@@ -143,7 +143,7 @@ export function MemberCards({
 
   if (!items.length) {
     return (
-      <div className="rounded-2xl border border-foreground-muted/15 bg-surface p-12 text-center">
+      <div className="rounded-2xl border border-border bg-surface p-12 text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
           <Users size={22} className="text-primary" />
         </div>
@@ -160,13 +160,13 @@ export function MemberCards({
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {data?.month_id && (
-        <div className="rounded-2xl border border-foreground-muted/10 bg-surface px-4 py-3 sm:col-span-2">
+        <div className="rounded-2xl border border-border bg-surface px-4 py-3 sm:col-span-2">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <CalendarIcon size={16} />
             </div>
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-wider text-foreground-muted">
+              <p className="text-[10px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 Active month
               </p>
               <p className="text-sm font-semibold text-foreground">
@@ -184,7 +184,7 @@ export function MemberCards({
         return (
           <div
             key={m.member_id}
-            className="group rounded-2xl border border-foreground-muted/15 bg-surface shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground-muted/25 hover:shadow-lg"
+            className="group rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-lg"
             style={{
               animation: `fade-in-up 400ms var(--ease-spring) ${idx * 40}ms both`,
             }}
@@ -219,7 +219,7 @@ export function MemberCards({
                         {m.user.name}
                       </p>
                       {m.mess_role === "MANAGER" && (
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-warm/15 px-2 py-0.5 text-[10px] font-semibold text-accent-warm">
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-[5px] border border-accent-warm/25 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] bg-accent-warm/10 text-accent-warm">
                           <Crown size={9} strokeWidth={2.5} />
                           Manager
                         </span>
@@ -236,7 +236,7 @@ export function MemberCards({
                     <button
                       type="button"
                       onClick={() => onRoleClick(toMemberData(m))}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-3 py-1.5 text-xs font-semibold text-foreground-muted opacity-0 transition-all duration-200 hover:border-foreground-muted/40 hover:bg-surface-raised hover:text-foreground group-hover:opacity-100"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted opacity-0 transition-all duration-200 hover:border-border-strong hover:bg-surface-raised hover:text-foreground group-hover:opacity-100"
                     >
                       <UserCog size={14} />
                       Role
@@ -264,7 +264,7 @@ export function MemberCards({
                 }`}
               >
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-foreground-muted">
+                  <span className="text-[10px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                     Current balance
                   </span>
                   <span
@@ -281,7 +281,7 @@ export function MemberCards({
                   </span>
                 </div>
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-mono font-medium uppercase tracking-[0.1em] ${
                     tone === "surplus"
                       ? "bg-success/15 text-success"
                       : tone === "due"

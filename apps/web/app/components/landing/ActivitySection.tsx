@@ -53,8 +53,8 @@ export function ActivitySection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-20">
           <Reveal>
-            <div className="relative rounded-2xl border border-foreground-muted/15 bg-surface p-6 shadow-2xl shadow-black/30 lg:p-8">
-              <div className="absolute inset-y-8 left-9 w-px bg-foreground-muted/15" />
+            <div className="relative rounded-2xl border border-border bg-surface p-6 shadow-panel lg:p-8">
+              <div className="absolute inset-y-8 left-9 w-px bg-surface-overlay" />
               <div className="space-y-6">
                 {EVENTS.map((ev, i) => (
                   <div
@@ -68,7 +68,7 @@ export function ActivitySection() {
                         <ev.icon className="size-4" />
                       </span>
                       {i < EVENTS.length - 1 && (
-                        <span className="mt-1 w-px flex-1 bg-foreground-muted/15" />
+                        <span className="mt-1 w-px flex-1 bg-surface-overlay" />
                       )}
                     </div>
                     <div className="flex-1 pb-1">
@@ -88,7 +88,7 @@ export function ActivitySection() {
                         <span className="text-[11px] text-foreground-muted/70">
                           {ev.when}
                         </span>
-                        <span className="rounded bg-foreground-muted/10 px-1.5 py-0.5 text-[9px] font-bold text-foreground-muted">
+                        <span className="rounded bg-surface-raised px-1.5 py-0.5 text-[9px] font-bold text-foreground-muted">
                           {ev.tag}
                         </span>
                       </div>
@@ -111,7 +111,7 @@ export function ActivitySection() {
               }
               subtitle="Activity history is built into the heart of MessMate, not bolted on. Every meal edit, expense, deposit, and month transition is logged and visible to the whole mess."
             />
-            <div className="mt-8 space-y-4 text-sm font-light leading-relaxed text-foreground-muted">
+            <div className="mt-8 space-y-4 text-sm leading-relaxed text-foreground-muted">
               <p>
                 That means no more &ldquo;I never saw that entry&rdquo; —
                 because the record is public to your mess and stamped with who

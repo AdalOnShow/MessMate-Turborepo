@@ -61,17 +61,15 @@ export default function CreateAccountForm() {
   return (
     <div className="mx-auto max-w-lg">
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Members
-        </p>
-        <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">
+        <p className="label-mono text-primary">Members</p>
+        <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
           Create Member Account
         </h1>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 rounded-xl border border-foreground-muted/15 bg-surface p-6"
+        className="space-y-4 rounded-xl border border-border bg-surface p-6"
       >
         <div>
           <label
@@ -86,7 +84,7 @@ export default function CreateAccountForm() {
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-foreground-muted/20 bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-border-strong bg-surface-sunken px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             placeholder="Enter full name"
           />
         </div>
@@ -105,7 +103,7 @@ export default function CreateAccountForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             readOnly={false}
-            className="w-full rounded-lg border border-foreground-muted/20 bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-border-strong bg-surface-sunken px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             placeholder="Enter email address"
           />
         </div>
@@ -124,7 +122,7 @@ export default function CreateAccountForm() {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-foreground-muted/20 bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-border-strong bg-surface-sunken px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             placeholder="Minimum 8 characters"
           />
         </div>
@@ -141,7 +139,7 @@ export default function CreateAccountForm() {
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full rounded-lg border border-foreground-muted/20 bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-border-strong bg-surface-sunken px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             placeholder="Enter phone number"
           />
         </div>
@@ -149,7 +147,7 @@ export default function CreateAccountForm() {
         <div className="flex justify-end gap-3 pt-2">
           <Link
             href="/dashboard/members"
-            className="rounded-lg border border-foreground-muted/20 px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+            className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
           >
             Cancel
           </Link>

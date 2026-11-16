@@ -20,9 +20,9 @@ function BrowserFrame({
 }) {
   return (
     <div
-      className={`overflow-hidden rounded-2xl border border-foreground-muted/15 bg-surface shadow-xl shadow-black/30 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 ${className}`}
+      className={`overflow-hidden rounded-2xl border border-border bg-surface shadow-panel transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 ${className}`}
     >
-      <div className="flex items-center justify-between border-b border-foreground-muted/10 bg-surface-raised px-4 py-2.5">
+      <div className="flex items-center justify-between border-b border-border bg-surface-raised px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="size-2.5 rounded-full bg-destructive" />
           <span className="size-2.5 rounded-full bg-accent-warm" />
@@ -92,7 +92,7 @@ function MealsMock() {
   return (
     <BrowserFrame title="Meal Tracking" icon={UtensilsCrossed}>
       <div className="mb-2.5 flex items-center justify-between">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
           Wednesday · Lunch
         </p>
         <span className="rounded bg-success/10 px-1.5 py-0.5 text-[9px] font-bold text-success">
@@ -120,7 +120,7 @@ function MealsMock() {
               className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                 m.yes
                   ? "bg-success/15 text-success"
-                  : "bg-foreground-muted/10 text-foreground-muted"
+                  : "bg-surface-raised text-foreground-muted"
               }`}
             >
               {m.yes ? "Ate" : "Skip"}
@@ -136,7 +136,7 @@ function ExpensesMock() {
   return (
     <BrowserFrame title="Expense Management" icon={ReceiptText}>
       <div className="mb-2.5 flex items-center justify-between">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
           August 2026
         </p>
         <span className="text-[11px] font-bold text-foreground">
@@ -180,7 +180,7 @@ function ReportMock() {
   return (
     <BrowserFrame title="Monthly Report" icon={FileBarChart}>
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
           August 2026 · Summary
         </p>
         <span className="rounded bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary">
@@ -233,7 +233,7 @@ export function ProductPreviewSection() {
   return (
     <section
       id="preview"
-      className="scroll-mt-20 border-y border-foreground-muted/10 bg-surface py-20 lg:py-28"
+      className="scroll-mt-20 border-y border-border bg-surface-sunken py-20 lg:py-28"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading

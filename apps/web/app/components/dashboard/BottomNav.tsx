@@ -34,7 +34,7 @@ export function BottomNav() {
   const isManager = myMess?.current_user_role === "MANAGER";
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-foreground-muted/15 bg-background/95 pb-safe pt-1 backdrop-blur lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface-sunken/95 pb-safe pt-1 backdrop-blur lg:hidden">
       <div className="flex items-stretch justify-around gap-1">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -56,7 +56,7 @@ export function BottomNav() {
                 strokeWidth={active ? 2.5 : 2}
                 aria-hidden="true"
               />
-              <span className="text-[10px] font-semibold leading-none">
+              <span className="font-mono text-[9px] font-medium uppercase leading-none tracking-wider">
                 {item.label}
               </span>
             </Link>
@@ -77,7 +77,7 @@ export function BottomNav() {
               strokeWidth={pathname === "/dashboard/settings" ? 2.5 : 2}
               aria-hidden="true"
             />
-            <span className="text-[10px] font-semibold leading-none">
+            <span className="font-mono text-[9px] font-medium uppercase leading-none tracking-wider">
               Settings
             </span>
           </Link>

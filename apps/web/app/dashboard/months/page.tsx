@@ -39,7 +39,7 @@ function MonthSummary({ month }: { month: MonthInfo }) {
     : null;
 
   return (
-    <div className="rounded-xl border border-foreground-muted/15 bg-surface">
+    <div className="rounded-xl border border-border bg-surface">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
@@ -59,10 +59,10 @@ function MonthSummary({ month }: { month: MonthInfo }) {
         </div>
         <div className="flex items-center gap-3">
           <span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+            className={`rounded-[5px] border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] ${
               month.month_status === "ACTIVE"
-                ? "bg-green-500/15 text-green-500"
-                : "bg-foreground-muted/15 text-foreground-muted"
+                ? "border-success/25 bg-success/10 text-success"
+                : "border-border bg-surface-raised text-foreground-muted"
             }`}
           >
             {month.month_status === "ACTIVE" ? "Active" : "Archived"}
@@ -76,7 +76,7 @@ function MonthSummary({ month }: { month: MonthInfo }) {
       </button>
 
       {expanded && (
-        <div className="border-t border-foreground-muted/10 p-4">
+        <div className="border-t border-border p-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-4">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -95,13 +95,13 @@ function MonthSummary({ month }: { month: MonthInfo }) {
             </p>
           ) : (
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-foreground-muted">
+              <p className="text-xs font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 Member Summaries
               </p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-foreground-muted/10">
+                    <tr className="border-b border-border">
                       <th className="pb-2 text-left text-xs font-semibold text-foreground-muted">
                         Member
                       </th>
@@ -121,10 +121,7 @@ function MonthSummary({ month }: { month: MonthInfo }) {
                   </thead>
                   <tbody>
                     {summary.member_summaries.map((s) => (
-                      <tr
-                        key={s.id}
-                        className="border-b border-foreground-muted/5"
-                      >
+                      <tr key={s.id} className="border-b border-border">
                         <td className="py-2">
                           <p className="font-medium text-foreground">
                             {s.user.name}
@@ -145,7 +142,7 @@ function MonthSummary({ month }: { month: MonthInfo }) {
                         <td
                           className={`py-2 text-right font-semibold ${
                             s.final_balance > 0
-                              ? "text-green-500"
+                              ? "text-success"
                               : s.final_balance < 0
                                 ? "text-destructive"
                                 : "text-foreground"
@@ -185,10 +182,8 @@ export default function MonthsPage() {
   return (
     <>
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Months
-        </p>
-        <h1 className="mt-2 text-3xl font-bold text-foreground">
+        <p className="label-mono text-primary">Months</p>
+        <h1 className="mt-2 heading-tight text-3xl text-foreground">
           Month History
         </h1>
       </div>
@@ -199,7 +194,7 @@ export default function MonthsPage() {
           resource="month history"
         />
       ) : !months || months.length === 0 ? (
-        <div className="rounded-xl border border-foreground-muted/15 bg-surface p-8 text-center">
+        <div className="rounded-xl border border-border bg-surface p-8 text-center">
           <Calendar size={32} className="mx-auto mb-3 text-foreground-muted" />
           <p className="text-sm text-foreground-muted">
             No months found. Start a new month from the dashboard.

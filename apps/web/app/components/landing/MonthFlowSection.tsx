@@ -60,7 +60,7 @@ export function MonthFlowSection() {
         <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5 lg:gap-3">
           {FLOW.map((step, idx) => (
             <Reveal key={step.title} delay={idx * 100}>
-              <div className="relative flex h-full flex-col rounded-2xl border border-foreground-muted/10 bg-surface-raised/50 p-6 transition-all duration-300 hover:border-primary/30 hover:bg-surface-raised">
+              <div className="relative flex h-full flex-col rounded-2xl border border-border bg-surface-raised/50 p-6 transition-all duration-300 hover:border-primary/30 hover:bg-surface-raised">
                 <div className="flex items-center justify-between">
                   <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/25">
                     <step.icon className="size-5" />
@@ -72,7 +72,7 @@ export function MonthFlowSection() {
                 <h3 className="mt-5 text-base font-bold text-foreground font-heading">
                   {step.title}
                 </h3>
-                <p className="mt-2 flex-1 text-sm font-light leading-relaxed text-foreground-muted">
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-foreground-muted">
                   {step.description}
                 </p>
               </div>
@@ -85,7 +85,7 @@ export function MonthFlowSection() {
             <span className="hidden sm:inline-flex">
               <ChevronRight className="size-5 text-primary" />
             </span>
-            <p className="text-sm font-light leading-relaxed text-foreground-muted">
+            <p className="text-sm leading-relaxed text-foreground-muted">
               <span className="font-semibold text-foreground">
                 Balance carried forward:
               </span>{" "}

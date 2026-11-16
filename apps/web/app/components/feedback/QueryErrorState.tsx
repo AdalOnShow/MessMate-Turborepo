@@ -92,7 +92,7 @@ export function QueryErrorState({
           type="button"
           onClick={() => void onRetry()}
           disabled={isRetrying}
-          className="mt-1 inline-flex h-9 items-center gap-2 rounded-lg border border-foreground-muted/20 px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-raised disabled:opacity-60"
+          className="mt-1 inline-flex h-9 items-center gap-2 rounded-lg border border-border-strong px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-raised disabled:opacity-60"
         >
           <RefreshCw
             size={14}

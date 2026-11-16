@@ -5,33 +5,46 @@
     ============================================ */
 
 @theme {
-  /* Color System — Dark Theme */
-  --color-background: #0b1120;
-  --color-surface: #111827;
-  --color-surface-raised: #1e293b;
+  /* Color System — Dark Theme (layered navy, flat surfaces) */
+  --color-background: #020013;
+  --color-surface-sunken: #090b1d;
+  --color-surface: #11142b;
+  --color-surface-raised: #171a34;
+  --color-surface-overlay: #22274a;
 
-  --color-primary: #06b6d4;
-  --color-primary-hover: #22d3ee;
-  --color-accent-warm: #f59e0b;
-  --color-accent-warm-hover: #fbbf24;
+  --color-border: #22274a;
+  --color-border-strong: #2c3157;
 
-  --color-foreground: #f1f5f9;
-  --color-foreground-muted: #94a3b8;
+  --color-primary: #3291ff;
+  --color-primary-hover: #51baff;
+  --color-accent-warm: #ffa929;
+  --color-accent-warm-hover: #ffc04d;
+  --color-gold: #d4af37;
+
+  --color-cta-from: #ffe61c;
+  --color-cta-to: #ffa929;
+  --color-cta-foreground: #1a0f00;
+
+  --color-foreground: #ffffff;
+  --color-foreground-body: #d9dff2;
+  --color-foreground-muted: #858fad;
 
   --color-destructive: #ef4444;
-  --color-success: #10b981;
+  --color-success: #22c55e;
 
   /* Typography */
-  --font-heading: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-bengali: "Alkatra", sans-serif;
+  --font-heading:
+    var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+  --font-bengali: var(--font-alkatra), "Alkatra", sans-serif;
 
   /* Border Radius */
-  --radius-sm: 6px;
+  --radius-sm: 5px;
   --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
 
   /* Animation */
   --duration-fast: 150ms;
@@ -47,21 +60,35 @@
 
 @layer base {
   [data-theme="light"] {
-    --color-background: #f8fafc;
-    --color-surface: #e2e8f0;
-    --color-surface-raised: #ffffff;
-    --color-foreground: #0f172a;
-    --color-foreground-muted: #475569;
+    --color-background: #fcfcfd;
+    --color-surface-sunken: #f3f4f7;
+    --color-surface: #ffffff;
+    --color-surface-raised: #f9f9fb;
+    --color-surface-overlay: #e8e8ec;
+    --color-border: #e0e1e6;
+    --color-border-strong: #cdced6;
+    --color-primary: #0070f3;
+    --color-primary-hover: #3291ff;
+    --color-foreground: #11142b;
+    --color-foreground-body: #2e3135;
+    --color-foreground-muted: #5a6169;
   }
 
   /* Landing page always renders in the dark brand theme,
      regardless of the user's stored app theme. */
   .landing-dark {
-    --color-background: #0b1120;
-    --color-surface: #111827;
-    --color-surface-raised: #1e293b;
-    --color-foreground: #f1f5f9;
-    --color-foreground-muted: #94a3b8;
+    --color-background: #020013;
+    --color-surface-sunken: #090b1d;
+    --color-surface: #11142b;
+    --color-surface-raised: #171a34;
+    --color-surface-overlay: #22274a;
+    --color-border: #22274a;
+    --color-border-strong: #2c3157;
+    --color-primary: #3291ff;
+    --color-primary-hover: #51baff;
+    --color-foreground: #ffffff;
+    --color-foreground-body: #d9dff2;
+    --color-foreground-muted: #858fad;
   }
 }
 
@@ -77,6 +104,7 @@
 
   body {
     font-family: var(--font-body);
+    font-feature-settings: "cv11", "ss01";
     background-color: var(--color-background);
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
@@ -95,30 +123,29 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: rgba(148, 163, 184, 0.28);
+    background-color: rgba(133, 143, 173, 0.28);
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: content-box;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(148, 163, 184, 0.45);
+    background-color: rgba(133, 143, 173, 0.45);
   }
 
   /* Custom scrollbar (firefox) */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(148, 163, 184, 0.28) transparent;
+    scrollbar-color: rgba(133, 143, 173, 0.28) transparent;
   }
 
   ::selection {
-    background-color: rgba(6, 182, 212, 0.3);
-    color: #f1f5f9;
+    background-color: rgba(50, 145, 255, 0.3);
   }
 
   /* Focus ring for keyboard navigation */
   :focus-visible {
-    outline: 2px solid rgba(6, 182, 212, 0.6);
+    outline: 2px solid rgba(50, 145, 255, 0.6);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -197,4 +224,86 @@
       scroll-behavior: auto !important;
     }
   }
+}
+
+/* ============================================
+   Design-language utilities
+   ============================================ */
+
+/* The single gradient in the system: the primary call-to-action. */
+@utility bg-cta {
+  background-image: linear-gradient(
+    180deg,
+    var(--color-cta-from),
+    var(--color-cta-to)
+  );
+  color: var(--color-cta-foreground);
+  transition:
+    box-shadow 0.2s,
+    transform 0.12s;
+  &:hover:not(:disabled) {
+    box-shadow:
+      0 0 24px rgba(255, 169, 41, 0.45),
+      0 8px 24px rgba(255, 169, 41, 0.2);
+    transform: translateY(-1px);
+  }
+}
+
+/* Small uppercase monospace label, e.g. "STAGE 01 · /SCOPE". */
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* Heavy, tightly tracked display heading. */
+@utility heading-tight {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+/* Faint 1px grid backdrop for hero areas. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(
+    ellipse 70% 60% at 50% 0%,
+    #000 40%,
+    transparent 100%
+  );
+}
+
+/* Elevated panel shadow (big, soft, black). */
+@utility shadow-panel {
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes pulse-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+@utility pulse-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--color-success);
+  animation: pulse-ring 2s infinite;
+}
+
+[data-theme="light"] .shadow-panel {
+  box-shadow: 0 24px 60px rgba(17, 20, 43, 0.08);
 }

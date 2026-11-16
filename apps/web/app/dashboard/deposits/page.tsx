@@ -84,23 +84,23 @@ export default function AddDepositPage() {
     return (
       <div className="animate-pulse">
         <div className="mx-auto mb-6 max-w-2xl space-y-2">
-          <div className="h-3 w-20 rounded bg-foreground-muted/20" />
-          <div className="h-7 w-56 rounded bg-foreground-muted/20" />
-          <div className="h-4 w-72 max-w-full rounded bg-foreground-muted/20" />
+          <div className="h-3 w-20 rounded bg-surface-overlay" />
+          <div className="h-7 w-56 rounded bg-surface-overlay" />
+          <div className="h-4 w-72 max-w-full rounded bg-surface-overlay" />
         </div>
-        <div className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-foreground-muted/15 bg-surface">
+        <div className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border bg-surface">
           <div className="space-y-5 p-6">
             <div className="space-y-2">
-              <div className="h-3 w-16 rounded bg-foreground-muted/20" />
-              <div className="h-10 w-full rounded-lg bg-foreground-muted/20" />
+              <div className="h-3 w-16 rounded bg-surface-overlay" />
+              <div className="h-10 w-full rounded-lg bg-surface-overlay" />
             </div>
             <div className="space-y-2">
-              <div className="h-3 w-12 rounded bg-foreground-muted/20" />
-              <div className="h-10 w-full rounded-lg bg-foreground-muted/20" />
+              <div className="h-3 w-12 rounded bg-surface-overlay" />
+              <div className="h-10 w-full rounded-lg bg-surface-overlay" />
             </div>
             <div className="space-y-2">
-              <div className="h-3 w-16 rounded bg-foreground-muted/20" />
-              <div className="h-10 w-full rounded-lg bg-foreground-muted/20" />
+              <div className="h-3 w-16 rounded bg-surface-overlay" />
+              <div className="h-10 w-full rounded-lg bg-surface-overlay" />
             </div>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function AddDepositPage() {
 
   if (!myMess) {
     return (
-      <div className="flex flex-col items-center rounded-2xl border border-foreground-muted/15 bg-surface p-12 text-center">
+      <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
         <WalletCards size={32} className="mb-3 text-foreground-muted" />
         <p className="text-sm text-foreground-muted">
           You need to be part of a mess to add deposits.
@@ -130,8 +130,8 @@ export default function AddDepositPage() {
 
   if (!isManager) {
     return (
-      <div className="flex flex-col items-center rounded-2xl border border-foreground-muted/15 bg-surface p-12 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-foreground-muted/5">
+      <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-raised">
           <WalletCards size={26} className="text-foreground-muted" />
         </div>
         <p className="text-sm font-semibold text-foreground">
@@ -146,7 +146,7 @@ export default function AddDepositPage() {
 
   if (!activeMonth) {
     return (
-      <div className="flex flex-col items-center rounded-2xl border border-foreground-muted/15 bg-surface p-12 text-center">
+      <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
         <WalletCards size={32} className="mb-3 text-foreground-muted" />
         <p className="text-sm text-foreground-muted">
           No active month. Start a month before adding deposits.
@@ -158,17 +158,17 @@ export default function AddDepositPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Deposits
-        </p>
-        <h1 className="mt-1 text-3xl font-bold text-foreground">Add Deposit</h1>
+        <p className="label-mono text-primary">Deposits</p>
+        <h1 className="mt-1 heading-tight text-3xl text-foreground">
+          Add Deposit
+        </h1>
         <p className="mt-1 text-sm text-foreground-muted">
           Record the money a member deposits toward their mess bill.
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-foreground-muted/15 bg-surface shadow-sm">
-        <div className="flex items-center gap-2 border-b border-foreground-muted/10 bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+        <div className="flex items-center gap-2 border-b border-border bg-surface-raised px-6 py-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white">
             <Plus size={16} />
           </div>
@@ -210,7 +210,7 @@ export default function AddDepositPage() {
                 onChange={(e) => setAmount(e.target.value)}
                 onWheel={(e) => e.currentTarget.blur()}
                 placeholder="0.00"
-                className="w-full appearance-none rounded-lg border border-foreground-muted/20 bg-background py-2.5 pl-8 pr-3 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0"
+                className="w-full appearance-none rounded-lg border border-border-strong bg-surface-sunken py-2.5 pl-8 pr-3 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0"
                 disabled={create.isPending}
               />
             </div>
@@ -231,7 +231,7 @@ export default function AddDepositPage() {
             <div className="rounded-xl border border-primary/25 bg-primary/5 p-4">
               <div className="mb-2 flex items-center gap-2 text-primary">
                 <WalletCards size={14} />
-                <span className="text-xs font-semibold uppercase tracking-wide">
+                <span className="text-xs font-mono font-medium uppercase tracking-[0.1em]">
                   Deposit preview
                 </span>
               </div>

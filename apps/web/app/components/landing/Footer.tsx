@@ -20,7 +20,7 @@ const ACCOUNT_LINKS = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-foreground-muted/10 bg-surface pt-16 pb-8">
+    <footer className="border-t border-border bg-surface pt-16 pb-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 pb-12 md:grid-cols-2 lg:grid-cols-12">
           <div className="space-y-4 lg:col-span-5">
@@ -33,7 +33,7 @@ export function Footer() {
                 className="h-10 w-auto"
               />
             </Link>
-            <p className="max-w-sm text-sm font-light leading-relaxed text-foreground-muted">
+            <p className="max-w-sm text-sm leading-relaxed text-foreground-muted">
               Simple mess management and transparent accounting. Meal tracking,
               expenses, deposits, and month-end — all in one calm place for
               shared living.
@@ -41,7 +41,7 @@ export function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-foreground font-heading">
+            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em]r text-foreground font-heading">
               Product
             </h4>
             <ul className="mt-4 space-y-2.5">
@@ -59,7 +59,7 @@ export function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-foreground font-heading">
+            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em]r text-foreground font-heading">
               Resources
             </h4>
             <ul className="mt-4 space-y-2.5">
@@ -77,7 +77,7 @@ export function Footer() {
           </div>
 
           <div className="lg:col-span-3">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-foreground font-heading">
+            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em]r text-foreground font-heading">
               Account
             </h4>
             <ul className="mt-4 space-y-2.5">
@@ -93,21 +93,21 @@ export function Footer() {
               ))}
             </ul>
 
-            <div className="mt-6 rounded-2xl border border-foreground-muted/10 bg-surface-raised/60 p-4">
+            <div className="mt-6 rounded-2xl border border-border bg-surface-raised/60 p-4">
               <p className="text-xs font-semibold text-foreground-muted">
                 Built by{" "}
                 <span className="font-bold text-foreground">
                   Sharif H. Adal
                 </span>
               </p>
-              <p className="mt-1 text-xs font-light text-foreground-muted">
+              <p className="mt-1 text-xs text-foreground-muted">
                 Developer &amp; designer behind MessMate.
               </p>
               <div className="mt-3 flex items-center gap-2.5">
                 <a
                   href="#"
                   aria-label="GitHub"
-                  className="flex size-8 items-center justify-center rounded-lg border border-foreground-muted/15 text-foreground-muted transition-colors hover:border-primary/40 hover:text-primary"
+                  className="flex size-8 items-center justify-center rounded-lg border border-border text-foreground-muted transition-colors hover:border-primary/40 hover:text-primary"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -121,14 +121,14 @@ export function Footer() {
                 <a
                   href="#"
                   aria-label="Portfolio"
-                  className="flex size-8 items-center justify-center rounded-lg border border-foreground-muted/15 text-foreground-muted transition-colors hover:border-primary/40 hover:text-primary"
+                  className="flex size-8 items-center justify-center rounded-lg border border-border text-foreground-muted transition-colors hover:border-primary/40 hover:text-primary"
                 >
                   <Globe className="size-4" />
                 </a>
                 <a
                   href="#"
                   aria-label="LinkedIn"
-                  className="flex size-8 items-center justify-center rounded-lg border border-foreground-muted/15 text-foreground-muted transition-colors hover:border-primary/40 hover:text-primary"
+                  className="flex size-8 items-center justify-center rounded-lg border border-border text-foreground-muted transition-colors hover:border-primary/40 hover:text-primary"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -144,13 +144,13 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="h-px w-full bg-foreground-muted/10" />
+        <div className="h-px w-full bg-surface-raised" />
 
         <div className="flex flex-col items-center justify-between gap-3 pt-6 sm:flex-row">
-          <p className="text-xs font-light text-foreground-muted">
+          <p className="text-xs text-foreground-muted">
             &copy; 2026 MessMate. All rights reserved.
           </p>
-          <p className="text-xs font-light text-foreground-muted">
+          <p className="text-xs text-foreground-muted">
             Made for messes in Bangladesh.
           </p>
         </div>

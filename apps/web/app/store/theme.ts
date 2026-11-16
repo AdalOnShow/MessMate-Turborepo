@@ -17,21 +17,15 @@ import { devtools } from "zustand/middleware";
 
 const STORAGE_KEY = "messmate-theme";
 
-const LIGHT_VARS = {
-  "--color-background": "#F8FAFC",
-  "--color-surface": "#E2E8F0",
-  "--color-surface-raised": "#FFFFFF",
-  "--color-foreground": "#0F172A",
-  "--color-foreground-muted": "#475569",
-} as const;
-
-const DARK_VARS = {
-  "--color-background": "#0B1120",
-  "--color-surface": "#111827",
-  "--color-surface-raised": "#1E293B",
-  "--color-foreground": "#F1F5F9",
-  "--color-foreground-muted": "#94A3B8",
-} as const;
+// Palette values live in globals.css (`@theme` + `[data-theme="light"]`).
+// Clear any inline overrides left by older versions so the stylesheet wins.
+const THEME_VARS = [
+  "--color-background",
+  "--color-surface",
+  "--color-surface-raised",
+  "--color-foreground",
+  "--color-foreground-muted",
+] as const;
 
 function getSystemTheme(): "light" | "dark" {
   if (typeof window === "undefined") return "dark";
@@ -42,12 +36,8 @@ function getSystemTheme(): "light" | "dark" {
 
 function applyTheme(mode: ThemeMode) {
   const resolved = mode === "system" ? getSystemTheme() : mode;
-  const vars = resolved === "light" ? LIGHT_VARS : DARK_VARS;
-
   const root = document.documentElement;
-  Object.entries(vars).forEach(([key, val]) => {
-    root.style.setProperty(key, val);
-  });
+  THEME_VARS.forEach((key) => root.style.removeProperty(key));
 
   root.setAttribute("data-theme", resolved);
   root.style.colorScheme = resolved;

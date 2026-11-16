@@ -57,14 +57,18 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-sm">
+    <div className="relative min-h-dvh flex items-center justify-center bg-background px-4 py-12">
+      <div
+        className="bg-grid pointer-events-none absolute inset-0 opacity-50"
+        aria-hidden
+      />
+      <div className="relative w-full max-w-sm">
         {/* Logo */}
         <Link
           href="/"
           className="flex items-center justify-center gap-2.5 mb-10 focus:outline-none"
         >
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 overflow-hidden">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-surface-raised border border-border overflow-hidden">
             <Image
               src="/messmate-icon.png"
               alt="MessMate"
@@ -73,13 +77,26 @@ export default function SignInForm() {
               className="w-6 h-6 object-contain"
             />
           </div>
-          <span className="text-xl font-bold tracking-tight text-foreground font-heading">
+          <span className="text-xl font-extrabold tracking-[-0.03em] text-foreground">
             Mess<span className="text-primary">Mate</span>
           </span>
         </Link>
 
-        <div className="bg-surface border border-foreground-muted/10 rounded-2xl p-8">
-          <h1 className="text-2xl font-bold text-foreground font-heading text-center mb-1">
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden p-8 shadow-panel">
+          <div
+            className="-mx-8 -mt-8 mb-8 flex items-center gap-3 border-b border-border bg-surface-raised px-4 py-2.5"
+            aria-hidden
+          >
+            <div className="flex gap-1.5">
+              <span className="size-2.5 rounded-full bg-destructive" />
+              <span className="size-2.5 rounded-full bg-accent-warm" />
+              <span className="size-2.5 rounded-full bg-success" />
+            </div>
+            <span className="font-mono text-[11px] text-foreground-muted">
+              messmate — auth/sign-in
+            </span>
+          </div>
+          <h1 className="heading-tight text-2xl text-foreground font-heading text-center mb-1">
             Welcome back
           </h1>
           <p className="text-sm text-foreground-muted text-center mb-8">
@@ -91,9 +108,9 @@ export default function SignInForm() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-foreground-muted/15" />
+                <div className="w-full border-t border-border" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
+              <div className="relative flex justify-center font-mono text-[10px] uppercase tracking-[0.12em]">
                 <span className="bg-surface px-2 text-foreground-muted">
                   or
                 </span>
@@ -104,7 +121,7 @@ export default function SignInForm() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="email"
-                  className="text-sm font-medium text-foreground"
+                  className="label-mono text-[10px] text-foreground-muted"
                 >
                   Email
                 </label>
@@ -116,7 +133,7 @@ export default function SignInForm() {
                   placeholder="you@example.com"
                   required
                   autoComplete="email"
-                  className="w-full h-11 px-3.5 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
+                  className="w-full h-11 px-3.5 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
                 />
                 {fieldErrors.email && (
                   <p className="text-xs text-destructive">
@@ -128,7 +145,7 @@ export default function SignInForm() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="password"
-                  className="text-sm font-medium text-foreground"
+                  className="label-mono text-[10px] text-foreground-muted"
                 >
                   Password
                 </label>
@@ -141,7 +158,7 @@ export default function SignInForm() {
                     placeholder="Enter your password"
                     required
                     autoComplete="current-password"
-                    className="w-full h-11 px-3.5 pr-11 rounded-xl bg-background border border-foreground-muted/15 text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary/50 transition-colors"
+                    className="w-full h-11 px-3.5 pr-11 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
                   />
                   <button
                     type="button"
@@ -162,7 +179,7 @@ export default function SignInForm() {
               </div>
 
               {(signin.error || oauthError) && (
-                <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg flex items-center gap-2">
+                <p className="text-sm text-destructive bg-destructive/10 border border-destructive/25 px-3 py-2 rounded-lg flex items-center gap-2">
                   <AlertCircle size={16} />
                   {oauthError ||
                     signin.error?.message ||
@@ -173,7 +190,7 @@ export default function SignInForm() {
               <button
                 type="submit"
                 disabled={signin.isPending}
-                className="w-full h-11 rounded-xl bg-primary text-background font-bold text-sm hover:bg-primary-hover active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full h-11 bg-cta rounded-[9px] font-bold text-sm duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {signin.isPending ? (
                   <>

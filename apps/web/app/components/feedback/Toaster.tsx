@@ -45,7 +45,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="animate-scale-in pointer-events-auto relative flex w-full gap-3 overflow-hidden rounded-xl border border-foreground-muted/15 bg-surface-raised p-4 pl-5 shadow-xl shadow-black/20"
+      className="animate-scale-in pointer-events-auto relative flex w-full gap-3 overflow-hidden rounded-xl border border-border bg-surface-raised p-4 pl-5 shadow-panel"
     >
       <span className={cn("absolute inset-y-0 left-0 w-1", bar)} aria-hidden />
       <Icon size={18} className={cn("mt-0.5 shrink-0", accent)} aria-hidden />

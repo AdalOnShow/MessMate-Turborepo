@@ -42,7 +42,7 @@ export function Select({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between rounded-lg border border-foreground-muted/20 bg-surface px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none"
+        className="flex w-full items-center justify-between rounded-lg border border-border-strong bg-surface px-4 py-2.5 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
       >
         <span className={selectedLabel ? "" : "text-foreground-muted"}>
           {selectedLabel || placeholder}
@@ -63,7 +63,7 @@ export function Select({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-foreground-muted/15 bg-surface shadow-lg">
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
           {options.map((option) => (
             <button
               key={option.value}

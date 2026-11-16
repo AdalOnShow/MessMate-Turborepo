@@ -48,7 +48,7 @@ export const MemberFiltersBar = React.memo(function MemberFiltersBar({
         placeholder="Search by name or email..."
         value={localSearch}
         onChange={(e) => setLocalSearch(e.target.value)}
-        className="flex-1 rounded-lg border border-foreground-muted/20 bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none"
+        className="flex-1 rounded-lg border border-border-strong bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
       />
       <div className="flex gap-3">
         <Select

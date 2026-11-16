@@ -46,7 +46,7 @@ export function FAQSection() {
   return (
     <section
       id="faq"
-      className="scroll-mt-20 border-y border-foreground-muted/10 bg-surface py-20 lg:py-28"
+      className="scroll-mt-20 border-y border-border bg-surface-sunken py-20 lg:py-28"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
@@ -68,7 +68,7 @@ export function FAQSection() {
                   className={`overflow-hidden rounded-2xl border transition-colors duration-300 ${
                     isOpen
                       ? "border-primary/30 bg-surface-raised"
-                      : "border-foreground-muted/10 bg-surface-raised/50 hover:border-foreground-muted/20"
+                      : "border-border bg-surface-raised/50 hover:border-border-strong"
                   }`}
                 >
                   <button
@@ -94,7 +94,7 @@ export function FAQSection() {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <p className="px-6 pb-5 text-sm font-light leading-relaxed text-foreground-muted">
+                      <p className="px-6 pb-5 text-sm leading-relaxed text-foreground-muted">
                         {faq.a}
                       </p>
                     </div>

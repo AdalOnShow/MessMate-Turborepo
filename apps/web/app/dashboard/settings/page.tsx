@@ -178,7 +178,7 @@ function EditableMessInfo() {
             type="button"
             onClick={handleCancel}
             disabled={updateMess.isPending}
-            className="flex items-center gap-2 rounded-lg border border-foreground-muted/20 px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
+            className="flex items-center gap-2 rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
           >
             <X size={14} />
             Cancel
@@ -216,7 +216,7 @@ function EditableMessInfo() {
         <button
           type="button"
           onClick={handleEdit}
-          className="flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+          className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
         >
           <Pencil size={12} />
           Edit
@@ -307,7 +307,7 @@ function MealTypesConfig() {
             className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
               mt.is_active
                 ? "border-primary/30 bg-primary/5"
-                : "border-foreground-muted/15 bg-surface"
+                : "border-border bg-surface"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -318,7 +318,7 @@ function MealTypesConfig() {
                 className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
                   mt.is_active
                     ? "border-primary bg-primary text-white"
-                    : "border-foreground-muted/30 bg-transparent"
+                    : "border-border-strong bg-transparent"
                 }`}
               >
                 {mt.is_active && <Check size={12} />}
@@ -344,7 +344,7 @@ function MealTypesConfig() {
                       handleValueChange(mt, e.currentTarget.value);
                     }
                   }}
-                  className="w-20 rounded-md border border-foreground-muted/20 bg-background px-2 py-1 text-sm text-foreground focus:border-primary focus:outline-none"
+                  className="w-20 rounded-md border border-border-strong bg-surface-sunken px-2 py-1 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
                 />
               </div>
             )}
@@ -397,20 +397,18 @@ function SettingsContent() {
   return (
     <>
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Settings
-        </p>
-        <h1 className="mt-2 text-3xl font-bold text-foreground">
+        <p className="label-mono text-primary">Settings</p>
+        <h1 className="mt-2 heading-tight text-3xl text-foreground">
           Mess Settings
         </h1>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+        <div className="rounded-xl border border-border bg-surface p-6">
           <EditableMessInfo />
         </div>
 
-        <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+        <div className="rounded-xl border border-border bg-surface p-6">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-foreground">
               Meal Types

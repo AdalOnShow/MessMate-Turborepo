@@ -54,8 +54,8 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-2.5">
-            <div className="rounded-xl border border-foreground-muted/10 bg-background/40 p-3">
-              <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-foreground-muted">
+            <div className="rounded-xl border border-border bg-background/40 p-3">
+              <p className="flex items-center gap-1.5 text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 <ChefHat size={12} className="text-primary" />
                 Meals
               </p>
@@ -63,8 +63,8 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
                 {formatCompact(dashboard?.total_meals ?? 0)}
               </p>
             </div>
-            <div className="rounded-xl border border-foreground-muted/10 bg-background/40 p-3">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-foreground-muted">
+            <div className="rounded-xl border border-border bg-background/40 p-3">
+              <p className="text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 Rate
               </p>
               <p className="mt-1.5 text-xl font-bold text-foreground">
@@ -73,8 +73,8 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
                   : "—"}
               </p>
             </div>
-            <div className="rounded-xl border border-foreground-muted/10 bg-background/40 p-3">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-foreground-muted">
+            <div className="rounded-xl border border-border bg-background/40 p-3">
+              <p className="text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 Days
               </p>
               <p className="mt-1.5 text-xl font-bold text-foreground">
@@ -85,7 +85,7 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
 
           {summary?.member_summaries?.length ? (
             <div className="mt-5">
-              <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+              <p className="mb-2.5 text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 Top members
               </p>
               <div className="space-y-2.5">
@@ -109,7 +109,7 @@ export function MealOverview({ messId }: { messId: string | undefined }) {
                     <span className="w-24 truncate text-sm text-foreground">
                       {m.user.name}
                     </span>
-                    <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-foreground-muted/10">
+                    <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-surface-raised">
                       <div
                         className="h-full rounded-full bg-primary/60 transition-all duration-500"
                         style={{

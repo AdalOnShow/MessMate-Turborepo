@@ -77,7 +77,7 @@ export function AccountingSection() {
             </div>
 
             <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              <p className="text-xs font-mono font-medium uppercase tracking-[0.12em]r text-primary">
                 Formula
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2 font-heading">
@@ -111,9 +111,8 @@ export function AccountingSection() {
 
           <Reveal delay={120}>
             <div className="relative">
-              <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-primary/10 blur-2xl" />
-              <div className="relative overflow-hidden rounded-2xl border border-foreground-muted/15 bg-surface shadow-2xl shadow-black/40">
-                <div className="flex items-center justify-between border-b border-foreground-muted/10 bg-surface-raised px-4 py-3">
+              <div className="relative overflow-hidden rounded-2xl border border-border bg-surface shadow-panel">
+                <div className="flex items-center justify-between border-b border-border bg-surface-raised px-4 py-3">
                   <div className="flex items-center gap-2">
                     <Calculator className="size-4 text-primary" />
                     <span className="text-sm font-bold text-foreground font-heading">
@@ -153,8 +152,8 @@ export function AccountingSection() {
                     </div>
                   </div>
 
-                  <div className="mt-4 overflow-hidden rounded-xl border border-foreground-muted/10">
-                    <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-1 border-b border-foreground-muted/10 bg-surface-raised/70 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+                  <div className="mt-4 overflow-hidden rounded-xl border border-border">
+                    <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-1 border-b border-border bg-surface-raised/70 px-3 py-2 text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
                       <span>Member</span>
                       <span className="text-right">Meals</span>
                       <span className="text-right">Paid</span>
@@ -163,7 +162,7 @@ export function AccountingSection() {
                     {SETTLEMENT.map((row) => (
                       <div
                         key={row.who}
-                        className="grid grid-cols-[1.2fr_1fr_1fr_1fr] items-center gap-1 border-b border-foreground-muted/5 px-3 py-2.5 last:border-0"
+                        className="grid grid-cols-[1.2fr_1fr_1fr_1fr] items-center gap-1 border-b border-border px-3 py-2.5 last:border-0"
                       >
                         <span className="truncate text-xs font-semibold text-foreground">
                           {row.who}
@@ -185,7 +184,7 @@ export function AccountingSection() {
                     ))}
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between rounded-xl border border-foreground-muted/10 bg-surface-raised/70 px-3.5 py-2.5">
+                  <div className="mt-3 flex items-center justify-between rounded-xl border border-border bg-surface-raised/70 px-3.5 py-2.5">
                     <span className="text-[11px] text-foreground-muted">
                       Closing the month rolls balances forward
                     </span>

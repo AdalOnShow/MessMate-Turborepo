@@ -46,7 +46,7 @@ function FinanceRow({
         : "text-foreground";
 
   const inner = (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-foreground-muted/10 bg-background/40 px-4 py-3 transition-colors hover:bg-surface-raised">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/40 px-4 py-3 transition-colors hover:bg-surface-raised">
       <div className="flex items-center gap-3">
         <span className="rounded-lg bg-primary/10 p-2 text-primary">
           {icon}
@@ -128,14 +128,14 @@ export function MonthOverviewBento() {
     <BentoCard className="relative overflow-hidden p-6 md:p-7 lg:col-span-2 lg:row-span-2">
       <div className="flex h-full flex-col">
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-[5px] border border-primary/25 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] bg-primary/10 text-primary">
             <Sparkles size={11} />
             Current month
           </span>
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
           ) : activeMonth ? (
-            <span className="rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-semibold text-success">
+            <span className="rounded-[5px] border border-success/25 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] bg-success/10 text-success">
               Active
             </span>
           ) : null}
@@ -150,8 +150,8 @@ export function MonthOverviewBento() {
             />
           ) : isLoading ? (
             <div className="space-y-2">
-              <div className="h-9 w-2/3 animate-pulse rounded-lg bg-foreground-muted/10" />
-              <div className="h-4 w-1/3 animate-pulse rounded bg-foreground-muted/10" />
+              <div className="h-9 w-2/3 animate-pulse rounded-lg bg-surface-raised" />
+              <div className="h-4 w-1/3 animate-pulse rounded bg-surface-raised" />
             </div>
           ) : activeMonth ? (
             <>
@@ -182,7 +182,7 @@ export function MonthOverviewBento() {
                   <div className="rounded-xl border border-success/15 bg-success/[0.06] px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-foreground-muted">
+                        <p className="flex items-center gap-1.5 text-xs font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                           {balance > 0 ? (
                             <ArrowDownLeft size={13} className="text-success" />
                           ) : balance < 0 ? (
@@ -224,7 +224,7 @@ export function MonthOverviewBento() {
                 </div>
               </div>
 
-              <div className="mt-6 border-t border-foreground-muted/10 pt-5">
+              <div className="mt-6 border-t border-border pt-5">
                 <h2 className="text-3xl font-bold tracking-tight text-foreground">
                   {activeMonth.title}
                 </h2>
@@ -246,7 +246,7 @@ export function MonthOverviewBento() {
           )}
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-2.5 border-t border-foreground-muted/10 pt-5">
+        <div className="mt-6 flex flex-wrap gap-2.5 border-t border-border pt-5">
           {isManager && !loadFailed && !isLoading ? (
             activeMonth ? (
               <>
@@ -261,7 +261,7 @@ export function MonthOverviewBento() {
                 </button>
                 <Link
                   href="/dashboard/months"
-                  className="inline-flex items-center gap-1 rounded-xl border border-foreground-muted/20 px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-surface-raised"
+                  className="inline-flex items-center gap-1 rounded-xl border border-border-strong px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-surface-raised"
                 >
                   View Month
                   <ChevronRight size={15} />
@@ -288,7 +288,7 @@ export function MonthOverviewBento() {
 
       {confirmOpen && activeMonth && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl border border-foreground-muted/15 bg-background p-6">
+          <div className="w-full max-w-md rounded-xl border border-border bg-background p-6">
             <h2 className="mb-2 text-lg font-bold text-foreground">
               Start a new month?
             </h2>
@@ -315,7 +315,7 @@ export function MonthOverviewBento() {
               maxLength={100}
               onChange={(e) => setNewTitle(e.target.value)}
               disabled={creating}
-              className="w-full rounded-lg border border-foreground-muted/20 bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+              className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             />
 
             <div className="mt-5 flex justify-end gap-3">
@@ -323,7 +323,7 @@ export function MonthOverviewBento() {
                 type="button"
                 onClick={() => setConfirmOpen(false)}
                 disabled={creating}
-                className="rounded-lg border border-foreground-muted/20 px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
+                className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
               >
                 Cancel
               </button>

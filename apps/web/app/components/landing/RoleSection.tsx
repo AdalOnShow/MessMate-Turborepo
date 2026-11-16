@@ -43,7 +43,7 @@ function RoleCard({
   features: { icon: React.ElementType; text: string }[];
 }) {
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-foreground-muted/10 bg-surface-raised/50 p-6 transition-all duration-300 hover:border-primary/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 lg:p-8">
+    <div className="flex h-full flex-col rounded-2xl border border-border bg-surface-raised/50 p-6 transition-all duration-300 hover:border-primary/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 lg:p-8">
       <div className="flex items-center justify-between">
         <span
           className={`flex size-12 items-center justify-center rounded-xl ring-1 ${accent}`}
@@ -74,7 +74,7 @@ function RoleCard({
             <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <f.icon className="size-3.5" />
             </span>
-            <span className="text-sm font-light leading-relaxed text-foreground-muted">
+            <span className="text-sm leading-relaxed text-foreground-muted">
               {f.text}
             </span>
           </li>
@@ -96,7 +96,7 @@ function RoleCard({
 
 export function RoleSection() {
   return (
-    <section className="border-y border-foreground-muted/10 bg-surface py-20 lg:py-28">
+    <section className="border-y border-border bg-surface-sunken py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="Roles, Not Tiers"
@@ -131,7 +131,7 @@ export function RoleSection() {
         </div>
 
         <Reveal delay={120}>
-          <p className="mx-auto mt-8 max-w-xl text-center text-sm font-light text-foreground-muted">
+          <p className="mx-auto mt-8 max-w-xl text-center text-sm text-foreground-muted">
             Max two managers per mess, both with equal permissions. No
             hierarchies, no owner seats — just two people keeping the books
             honest.

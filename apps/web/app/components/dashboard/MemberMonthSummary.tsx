@@ -39,7 +39,7 @@ function FinanceRow({
         : "text-foreground";
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-foreground-muted/10 bg-background/40 px-4 py-3">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/40 px-4 py-3">
       <div className="flex items-center gap-3">
         <span className="rounded-lg bg-primary/10 p-2 text-primary">
           {icon}
@@ -83,10 +83,10 @@ export function MemberMonthSummary() {
 
       {isLoading ? (
         <div className="space-y-2">
-          <div className="h-20 animate-pulse rounded-xl bg-foreground-muted/10" />
+          <div className="h-20 animate-pulse rounded-xl bg-surface-raised" />
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            <div className="h-16 animate-pulse rounded-xl bg-foreground-muted/10" />
-            <div className="h-16 animate-pulse rounded-xl bg-foreground-muted/10" />
+            <div className="h-16 animate-pulse rounded-xl bg-surface-raised" />
+            <div className="h-16 animate-pulse rounded-xl bg-surface-raised" />
           </div>
         </div>
       ) : memberQuery.isError && !member ? (
@@ -100,11 +100,11 @@ export function MemberMonthSummary() {
       ) : hasMonth ? (
         <>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-[5px] border border-primary/25 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] bg-primary/10 text-primary">
               <Sparkles size={11} />
               {member?.month_title}
             </span>
-            <span className="rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-semibold text-success">
+            <span className="rounded-[5px] border border-success/25 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] bg-success/10 text-success">
               Active
             </span>
           </div>
@@ -138,7 +138,7 @@ export function MemberMonthSummary() {
             <div className="rounded-xl border border-success/15 bg-success/[0.06] px-4 py-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-foreground-muted">
+                  <p className="flex items-center gap-1.5 text-xs font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                     {balance > 0 ? (
                       <ArrowDownLeft size={13} className="text-success" />
                     ) : balance < 0 ? (
@@ -195,9 +195,9 @@ export function MemberMonthSummary() {
             </div>
           ) : null}
 
-          <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 border-t border-foreground-muted/10 pt-4">
+          <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 border-t border-border pt-4">
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-foreground-muted">
+              <p className="text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 My meals
               </p>
               <p className="mt-0.5 text-lg font-bold text-foreground">
@@ -205,7 +205,7 @@ export function MemberMonthSummary() {
               </p>
             </div>
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-foreground-muted">
+              <p className="text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 Meal rate
               </p>
               <p className="mt-0.5 text-lg font-bold text-foreground">
@@ -215,7 +215,7 @@ export function MemberMonthSummary() {
               </p>
             </div>
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-foreground-muted">
+              <p className="text-[11px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 Meals report
               </p>
               <CardActionLink href="/dashboard/meals/reports">

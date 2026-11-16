@@ -93,14 +93,14 @@ function StatTile({
   accent,
 }: (typeof STATS)[number]) {
   return (
-    <div className="rounded-xl border border-foreground-muted/10 bg-surface-raised/70 p-3">
+    <div className="rounded-xl border border-border bg-surface-raised/70 p-3">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-foreground-muted">{label}</span>
         <span
           className={`flex size-6 items-center justify-center rounded-lg ${
             accent
               ? "bg-primary/15 text-primary"
-              : "bg-foreground-muted/10 text-foreground-muted"
+              : "bg-surface-raised text-foreground-muted"
           }`}
         >
           <Icon className="size-3.5" />
@@ -117,13 +117,13 @@ function StatTile({
 export function DashboardPreview() {
   return (
     <div className="relative">
-      <div className="overflow-hidden rounded-2xl border border-foreground-muted/15 bg-surface shadow-2xl shadow-black/50">
-        <div className="flex items-center justify-between border-b border-foreground-muted/10 bg-surface-raised px-4 py-3">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-panel">
+        <div className="flex items-center justify-between border-b border-border bg-surface-raised px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="size-2.5 rounded-full bg-destructive" />
             <span className="size-2.5 rounded-full bg-accent-warm" />
             <span className="size-2.5 rounded-full bg-success" />
-            <span className="ml-2 text-xs font-medium text-foreground-muted">
+            <span className="ml-2 font-mono text-[11px] text-foreground-muted">
               messmate.app/dashboard
             </span>
           </div>
@@ -147,7 +147,7 @@ export function DashboardPreview() {
                 </span>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-lg border border-foreground-muted/15 bg-surface-raised px-2.5 py-1.5 text-[11px] font-semibold text-foreground-muted">
+            <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface-raised px-2.5 py-1.5 text-[11px] font-semibold text-foreground-muted">
               August 2026 <ChevronDown className="size-3" />
             </span>
           </div>
@@ -159,9 +159,9 @@ export function DashboardPreview() {
           </div>
 
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            <div className="rounded-xl border border-foreground-muted/10 bg-surface-raised/70 p-3.5">
+            <div className="rounded-xl border border-border bg-surface-raised/70 p-3.5">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+                <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
                   Member Balances
                 </p>
                 <Plus className="size-3.5 text-foreground-muted" />
@@ -193,8 +193,8 @@ export function DashboardPreview() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-foreground-muted/10 bg-surface-raised/70 p-3.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <div className="rounded-xl border border-border bg-surface-raised/70 p-3.5">
+              <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
                 Recent Activity
               </p>
               <div className="mt-2.5 space-y-2.5">
@@ -226,8 +226,8 @@ export function DashboardPreview() {
         </div>
       </div>
 
-      <div className="absolute -right-4 -top-6 hidden w-44 rounded-2xl border border-foreground-muted/15 bg-surface-raised p-4 shadow-xl shadow-black/40 md:block">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <div className="absolute -right-4 -top-6 hidden w-44 rounded-2xl border border-border bg-surface-raised p-4 shadow-panel md:block">
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
           Today&apos;s Meal Rate
         </p>
         <p className="mt-1 text-xl font-bold text-primary font-heading">
@@ -244,7 +244,7 @@ export function DashboardPreview() {
                 <span>{row.label}</span>
                 <span>{row.pct}</span>
               </div>
-              <div className="mt-0.5 h-1 overflow-hidden rounded-full bg-foreground-muted/10">
+              <div className="mt-0.5 h-1 overflow-hidden rounded-full bg-surface-raised">
                 <div
                   className="h-full rounded-full bg-primary/80"
                   style={{ width: row.pct }}
@@ -255,8 +255,8 @@ export function DashboardPreview() {
         </div>
       </div>
 
-      <div className="absolute -bottom-6 -left-4 hidden w-40 rounded-2xl border border-foreground-muted/15 bg-surface-raised p-4 shadow-xl shadow-black/40 md:block">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <div className="absolute -bottom-6 -left-4 hidden w-40 rounded-2xl border border-border bg-surface-raised p-4 shadow-panel md:block">
+        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
           Your Balance
         </p>
         <p className="mt-1 text-lg font-bold text-success font-heading">

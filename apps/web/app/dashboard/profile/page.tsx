@@ -105,7 +105,7 @@ function CompactAvatarUpload({
           onClick={() => fileInputRef.current?.click()}
           disabled={isBusy}
           aria-label="Change avatar"
-          className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-background transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+          className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Camera size={16} />
         </button>
@@ -135,7 +135,7 @@ function CompactAvatarUpload({
                 type="button"
                 onClick={handleSave}
                 disabled={isBusy}
-                className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-background transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {uploadAvatar.isPending ? (
                   <Loader2 size={13} className="animate-spin" />
@@ -148,7 +148,7 @@ function CompactAvatarUpload({
                 type="button"
                 onClick={handleDiscard}
                 disabled={isBusy}
-                className="flex items-center gap-1.5 rounded-lg border border-foreground-muted/20 px-3 py-1.5 text-xs font-medium text-foreground-muted transition-colors hover:bg-foreground-muted/10 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-medium text-foreground-muted transition-colors hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <X size={13} />
                 Discard
@@ -235,16 +235,14 @@ function ProfileContent() {
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Profile
-        </p>
-        <h1 className="mt-2 text-3xl font-bold text-foreground">
+        <p className="label-mono text-primary">Profile</p>
+        <h1 className="mt-2 heading-tight text-3xl text-foreground">
           Account settings
         </h1>
       </div>
 
       {profile.isLoading ? (
-        <div className="flex h-40 items-center justify-center rounded-xl border border-foreground-muted/15 bg-surface text-foreground-muted">
+        <div className="flex h-40 items-center justify-center rounded-xl border border-border bg-surface text-foreground-muted">
           <Loader2 className="mr-2 animate-spin" size={18} />
           Loading profile
         </div>
@@ -259,7 +257,7 @@ function ProfileContent() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
           <form
             onSubmit={handleProfileSubmit}
-            className="rounded-xl border border-foreground-muted/15 bg-surface p-6"
+            className="rounded-xl border border-border bg-surface p-6"
           >
             <h2 className="text-xl font-semibold text-foreground">
               Personal details
@@ -283,7 +281,7 @@ function ProfileContent() {
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   required
-                  className="mt-2 h-11 w-full rounded-lg border border-foreground-muted/15 bg-background px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-foreground-muted/50 focus:border-primary/60"
+                  className="mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-foreground-muted/50 focus:border-primary focus:ring-2 focus:ring-primary/15"
                 />
               </label>
 
@@ -295,7 +293,7 @@ function ProfileContent() {
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
                   maxLength={20}
-                  className="mt-2 h-11 w-full rounded-lg border border-foreground-muted/15 bg-background px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-foreground-muted/50 focus:border-primary/60"
+                  className="mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-foreground-muted/50 focus:border-primary focus:ring-2 focus:ring-primary/15"
                   placeholder="Add a phone number"
                 />
               </label>
@@ -307,7 +305,7 @@ function ProfileContent() {
                 <input
                   value={activeUser?.email ?? ""}
                   readOnly
-                  className="mt-2 h-11 w-full rounded-lg border border-foreground-muted/15 bg-background/60 px-3.5 text-sm text-foreground-muted outline-none"
+                  className="mt-2 h-11 w-full rounded-lg border border-border bg-background/60 px-3.5 text-sm text-foreground-muted outline-none"
                 />
               </label>
             </div>
@@ -315,7 +313,7 @@ function ProfileContent() {
             <button
               type="submit"
               disabled={updateProfile.isPending}
-              className="mt-6 flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-background transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-6 flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {updateProfile.isPending ? (
                 <Loader2 className="animate-spin" size={16} />
@@ -327,7 +325,7 @@ function ProfileContent() {
           </form>
 
           <div className="space-y-6">
-            <div className="rounded-xl border border-foreground-muted/15 bg-surface p-6">
+            <div className="rounded-xl border border-border bg-surface p-6">
               <h2 className="flex items-center gap-2 text-xl font-semibold text-foreground">
                 <Shield size={20} className="text-primary" />
                 Account status
@@ -350,7 +348,7 @@ function ProfileContent() {
 
             <form
               onSubmit={handlePasswordSubmit}
-              className="rounded-xl border border-foreground-muted/15 bg-surface p-6"
+              className="rounded-xl border border-border bg-surface p-6"
             >
               <h2 className="text-xl font-semibold text-foreground">
                 Change password
@@ -365,7 +363,7 @@ function ProfileContent() {
                     value={currentPassword}
                     onChange={(event) => setCurrentPassword(event.target.value)}
                     required
-                    className="mt-2 h-11 w-full rounded-lg border border-foreground-muted/15 bg-background px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary/60"
+                    className="mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
                   />
                 </label>
                 <label className="block">
@@ -378,7 +376,7 @@ function ProfileContent() {
                     onChange={(event) => setNewPassword(event.target.value)}
                     required
                     minLength={8}
-                    className="mt-2 h-11 w-full rounded-lg border border-foreground-muted/15 bg-background px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary/60"
+                    className="mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
                   />
                 </label>
               </div>

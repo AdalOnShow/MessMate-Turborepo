@@ -64,7 +64,7 @@ function CardShell({
 }) {
   return (
     <div
-      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-foreground-muted/10 bg-surface-raised/50 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-black/30 ${className}`}
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface-raised/50 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-black/30 ${className}`}
     >
       <div className="flex items-start gap-4">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/25">
@@ -72,7 +72,7 @@ function CardShell({
         </span>
         <div>
           <h3 className="font-bold text-foreground font-heading">{title}</h3>
-          <p className="mt-1 text-sm font-light leading-relaxed text-foreground-muted">
+          <p className="mt-1 text-sm leading-relaxed text-foreground-muted">
             {description}
           </p>
         </div>
@@ -107,12 +107,12 @@ export function FeaturesSection() {
               title="Meal Tracking"
               description="Record who ate what, when. Dynamic meal types per mess — Lunch, Dinner, Sehri, or your own — with one-tap entry and bulk mode for managers."
             >
-              <div className="h-full rounded-xl border border-foreground-muted/10 bg-background p-4">
+              <div className="h-full rounded-xl border border-border bg-background p-4">
                 <div className="grid grid-cols-7 gap-1.5 text-center">
                   {WEEK.map((d) => (
                     <span
                       key={d}
-                      className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted"
+                      className="text-[10px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted"
                     >
                       {d}
                     </span>
@@ -122,13 +122,13 @@ export function FeaturesSection() {
                       key={i}
                       className={`rounded-lg p-1.5 text-center ${
                         i === 2
-                          ? "bg-primary text-background shadow-[0_0_16px_rgba(6,182,212,0.45)]"
+                          ? "bg-primary text-white"
                           : "bg-surface-raised/80"
                       }`}
                     >
                       <span
                         className={`block text-[10px] font-semibold ${
-                          i === 2 ? "text-background" : "text-foreground-muted"
+                          i === 2 ? "text-white" : "text-foreground-muted"
                         }`}
                       >
                         {i + 1}
@@ -154,7 +154,7 @@ export function FeaturesSection() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 flex items-center justify-between border-t border-foreground-muted/10 pt-3 text-xs">
+                <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs">
                   <span className="font-semibold text-foreground">
                     Today&apos;s tally
                   </span>
@@ -173,7 +173,7 @@ export function FeaturesSection() {
               title="Expense Management"
               description="Log every taka as it's spent. Bazaar, utilities, gas — categorised, searchable, and always tied to a month."
             >
-              <div className="space-y-2 rounded-xl border border-foreground-muted/10 bg-background p-3.5">
+              <div className="space-y-2 rounded-xl border border-border bg-background p-3.5">
                 {EXPENSES.map((e) => (
                   <div
                     key={e.label}
@@ -199,7 +199,7 @@ export function FeaturesSection() {
                 ))}
                 <button
                   type="button"
-                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-foreground-muted/20 py-2 text-[11px] font-semibold text-foreground-muted transition-colors hover:border-primary/40 hover:text-primary"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border-strong py-2 text-[11px] font-semibold text-foreground-muted transition-colors hover:border-primary/40 hover:text-primary"
                 >
                   <Plus className="size-3.5" /> Add Expense
                 </button>
@@ -213,7 +213,7 @@ export function FeaturesSection() {
               title="Deposit Tracking"
               description="One running ledger per member. See exactly who has paid, who hasn't, and what your mess is up to."
             >
-              <div className="space-y-2.5 rounded-xl border border-foreground-muted/10 bg-background p-3.5">
+              <div className="space-y-2.5 rounded-xl border border-border bg-background p-3.5">
                 {DEPOSITS.map((d) => (
                   <div key={d.name}>
                     <div className="flex items-center justify-between text-xs">
@@ -222,7 +222,7 @@ export function FeaturesSection() {
                       </span>
                       <span className="font-bold text-success">{d.amount}</span>
                     </div>
-                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-foreground-muted/10">
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-raised">
                       <div
                         className="h-full rounded-full bg-success"
                         style={{ width: d.pct }}
@@ -246,7 +246,7 @@ export function FeaturesSection() {
               title="Monthly Accounting"
               description="Meal rates, member bills, and net balances are calculated the same way every month — no arithmetic, no disputes."
             >
-              <div className="rounded-xl border border-foreground-muted/10 bg-background p-4">
+              <div className="rounded-xl border border-border bg-background p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="flex-1 rounded-lg bg-surface-raised/80 px-3.5 py-2.5 min-w-[130px]">
                     <p className="text-[10px] uppercase tracking-wider text-foreground-muted">
@@ -274,7 +274,7 @@ export function FeaturesSection() {
                     <p className="text-sm font-bold text-primary">৳68.50</p>
                   </div>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-foreground-muted/10 pt-3">
+                <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-border pt-3">
                   {[
                     { who: "Adal", meals: 42 },
                     { who: "Rahim", meals: 40 },
@@ -305,9 +305,9 @@ export function FeaturesSection() {
               title="Activity History"
               description="Every meal, expense, deposit, and month transition leaves a trace. Nobody can claim they didn't see it — the record is public to the mess."
             >
-              <div className="relative rounded-xl border border-foreground-muted/10 bg-background p-4">
+              <div className="relative rounded-xl border border-border bg-background p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+                  <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em]r text-foreground-muted">
                     Mess-wide activity
                   </p>
                   <span className="rounded bg-success/10 px-1.5 py-0.5 text-[10px] font-bold text-success">
@@ -320,7 +320,7 @@ export function FeaturesSection() {
                       <div className="flex flex-col items-center">
                         <span className="size-2 rounded-full bg-primary" />
                         {i < TIMELINE.length - 1 && (
-                          <span className="w-px flex-1 bg-foreground-muted/15" />
+                          <span className="w-px flex-1 bg-surface-overlay" />
                         )}
                       </div>
                       <div className="pb-1">
@@ -347,7 +347,7 @@ export function FeaturesSection() {
               title="Member Management"
               description="Invite with a secure code, set roles, and let the app handle who is who — up to two managers, clearly marked."
             >
-              <div className="space-y-2 rounded-xl border border-foreground-muted/10 bg-background p-3.5">
+              <div className="space-y-2 rounded-xl border border-border bg-background p-3.5">
                 {MEMBER_ROWS.map((m) => (
                   <div
                     key={m.name}
@@ -376,7 +376,7 @@ export function FeaturesSection() {
                     )}
                   </div>
                 ))}
-                <div className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-foreground-muted/20 py-2 text-[11px] font-semibold text-foreground-muted">
+                <div className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-border-strong py-2 text-[11px] font-semibold text-foreground-muted">
                   <Users className="size-3.5" /> Invite Member
                 </div>
               </div>

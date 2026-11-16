@@ -47,7 +47,7 @@ const PROBLEMS = [
 
 export function ProblemSection() {
   return (
-    <section className="border-y border-foreground-muted/10 bg-surface py-20 lg:py-28">
+    <section className="border-y border-border bg-surface-sunken py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="The Problem"
@@ -63,7 +63,7 @@ export function ProblemSection() {
         <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {PROBLEMS.map((problem, idx) => (
             <RevealWrap key={problem.title} delay={idx * 90}>
-              <div className="group flex h-full flex-col rounded-2xl border border-foreground-muted/10 bg-background p-6 transition-all duration-300 hover:-translate-y-1 hover:border-foreground-muted/20 hover:shadow-lg hover:shadow-black/20">
+              <div className="group flex h-full flex-col rounded-2xl border border-border bg-background p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border-strong hover:shadow-lg hover:shadow-black/20">
                 <span
                   className={`flex size-11 items-center justify-center rounded-xl ring-1 ${problem.color}`}
                 >
@@ -74,10 +74,7 @@ export function ProblemSection() {
                 </h3>
                 <ul className="mt-3 space-y-2">
                   {problem.people.map((item) => (
-                    <li
-                      key={item}
-                      className="text-sm font-light text-foreground-muted"
-                    >
+                    <li key={item} className="text-sm text-foreground-muted">
                       {item}
                     </li>
                   ))}

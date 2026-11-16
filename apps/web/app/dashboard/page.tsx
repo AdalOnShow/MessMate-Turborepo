@@ -54,7 +54,7 @@ function InviteBanner() {
                 type="button"
                 onClick={() => reject.mutate(invite.id)}
                 disabled={reject.isPending}
-                className="rounded-lg border border-foreground-muted/20 px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
+                className="rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
               >
                 {reject.isPending ? "Rejecting..." : "Reject"}
               </button>
@@ -76,10 +76,8 @@ export default function DashboardPage() {
   return (
     <>
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Dashboard
-        </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
+        <p className="label-mono text-primary">Dashboard</p>
+        <h1 className="mt-2 heading-tight text-3xl text-foreground">
           Welcome back{user?.name ? `, ${user.name}` : ""}
         </h1>
       </div>
@@ -118,7 +116,7 @@ export default function DashboardPage() {
           </div>
         )
       ) : (
-        <div className="rounded-2xl border border-foreground-muted/15 bg-surface p-8 text-center">
+        <div className="rounded-2xl border border-border bg-surface p-8 text-center">
           <p className="text-lg font-semibold text-foreground">No mess yet</p>
           <p className="mt-1 text-sm text-foreground-muted">
             Create a mess to start tracking meals, deposits, and expenses.

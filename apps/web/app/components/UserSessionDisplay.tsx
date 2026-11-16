@@ -21,8 +21,8 @@ export function UserSessionDisplay() {
   };
 
   return (
-    <div className="mt-8 p-6 bg-surface-raised rounded-xl border border-foreground-muted/10">
-      <h2 className="text-2xl font-bold text-foreground mb-4">
+    <div className="mt-8 p-6 bg-surface-raised rounded-xl border border-border">
+      <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-foreground mb-4">
         Zustand Store Demo
       </h2>
 
@@ -39,7 +39,7 @@ export function UserSessionDisplay() {
           </div>
           <button
             onClick={clearSession}
-            className="px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer"
+            className="px-4 py-2 bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer"
           >
             Logout
           </button>

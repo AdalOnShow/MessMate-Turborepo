@@ -25,7 +25,7 @@ export function GoogleSignInButton({
       type="button"
       onClick={handleGoogleSignIn}
       disabled={disabled}
-      className="w-full h-11 rounded-xl bg-background border border-foreground-muted/15 text-foreground font-medium text-sm hover:bg-foreground-muted/5 active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+      className="w-full h-11 rounded-xl bg-background border border-border text-foreground font-medium text-sm hover:bg-surface-raised active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
     >
       {isRedirecting ? (
         <Loader2 size={16} className="animate-spin" />
