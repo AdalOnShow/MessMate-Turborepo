@@ -1,12 +1,8 @@
 "use client";
 
+import { getPendingInvites } from "../lib/reads";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  acceptInvite,
-  getPendingInvites,
-  inviteUser,
-  rejectInvite,
-} from "../actions/invites";
+import { acceptInvite, inviteUser, rejectInvite } from "../actions/invites";
 import { unwrap } from "../lib/action-result";
 
 export function usePendingInvites() {

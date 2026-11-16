@@ -1,9 +1,9 @@
 "use client";
 
+import { getBazaarHistory } from "../lib/reads";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   submitBazaar,
-  getBazaarHistory,
   updateBazaar,
   deleteBazaar,
   approveBazaar,

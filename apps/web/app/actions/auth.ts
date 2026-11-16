@@ -3,7 +3,8 @@
 import { cookies, headers as requestHeaders } from "next/headers";
 import { jwtDecode } from "jwt-decode";
 import type { ActionResult } from "../lib/action-result";
-import { apiFetch, readFailure } from "../lib/api-client";
+import { ErrorCode } from "@repo/shared";
+import { api, apiFetch, readFailure } from "../lib/api-client";
 import {
   clearAuthCookies,
   extractRefreshCookie,
@@ -206,40 +207,40 @@ export async function logout(): Promise<{ success: true }> {
   return { success: true };
 }
 
-export async function getCurrentUser() {
+/**
+ * The signed-in user, or null when there is no valid session.
+ *
+ * Goes through `api.get`, which renews an expired access token with the
+ * refresh token. Access tokens last an hour, so reading only the access
+ * cookie would sign people out every hour.
+ */
+export async function getCurrentUser(): Promise<ProfileUser | null> {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get?.("access_token")?.value;
+  const accessToken = cookieStore.get("access_token")?.value;
+  const refreshToken = cookieStore.get("refresh_token")?.value;
+  if (!accessToken && !refreshToken) return null;
 
-  if (!accessToken) {
+  const result = await api.get<ProfileUser>("/users/me");
+  if (result.ok) return result.data;
+
+  // The session is gone (refresh rejected): signed out.
+  if (result.code === ErrorCode.SESSION_EXPIRED || result.status === 401) {
     return null;
   }
 
-  const decoded = decodeJwt(accessToken);
-  if (!decoded) {
-    return null;
-  }
-
-  try {
-    return await getProfileWithToken(accessToken, {
-      id: decoded.sub,
-      email: decoded.email,
-      name: "",
-      phone: null,
-      avatar: null,
-      manager_created: false,
-      email_verified: false,
-    });
-  } catch {
-    return {
-      id: decoded.sub,
-      email: decoded.email,
-      name: "",
-      phone: null,
-      avatar: null,
-      manager_created: false,
-      email_verified: false,
-    };
-  }
+  // Network or server trouble: keep the user signed in with what the
+  // token says rather than bouncing them to the sign-in page.
+  const decoded = accessToken ? decodeJwt(accessToken) : null;
+  if (!decoded) throw new Error(result.message);
+  return {
+    id: decoded.sub,
+    email: decoded.email,
+    name: "",
+    phone: null,
+    avatar: null,
+    manager_created: false,
+    email_verified: false,
+  };
 }
 
 async function getProfileWithToken(

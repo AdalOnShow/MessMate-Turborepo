@@ -16,10 +16,6 @@ export async function inviteUser(email: string) {
   return api.post<PendingInvite>("/invites", { email });
 }
 
-export async function getPendingInvites() {
-  return api.get<PendingInvite[]>("/invites/pending");
-}
-
 export async function acceptInvite(inviteId: string) {
   return api.post<{ success: true }>(`/invites/${inviteId}/accept`, {});
 }

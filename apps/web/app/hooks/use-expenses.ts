@@ -1,9 +1,8 @@
 "use client";
 
+import { getExpenseSummary, getExpenses } from "../lib/reads";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  getExpenses,
-  getExpenseSummary,
   createExpense,
   updateExpense,
   deleteExpense,

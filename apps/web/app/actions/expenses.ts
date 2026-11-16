@@ -79,16 +79,6 @@ export interface UpdateExpensePayload {
   member_ids?: string[];
 }
 
-export async function getExpenses(messId: string, monthId: string) {
-  return api.get<ExpenseListInfo>(`/expenses/${messId}/${monthId}`);
-}
-
-export async function getExpenseSummary(messId: string, monthId: string) {
-  return api.get<ExpenseSummaryResponseInfo>(
-    `/expenses/${messId}/${monthId}/summary`,
-  );
-}
-
 export async function createExpense(
   messId: string,
   monthId: string,

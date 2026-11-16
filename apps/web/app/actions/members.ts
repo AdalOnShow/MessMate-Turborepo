@@ -58,39 +58,6 @@ export interface UserSearchResult {
   email_verified: boolean;
 }
 
-export async function getMembers(
-  messId: string,
-  filters?: { search?: string; role?: string; status?: string },
-) {
-  const params = new URLSearchParams();
-  if (filters?.search) params.set("search", filters.search);
-  if (filters?.role) params.set("role", filters.role);
-  if (filters?.status) params.set("status", filters.status);
-
-  const query = params.toString();
-  const path = `/messes/${messId}/members${query ? `?${query}` : ""}`;
-
-  return api.get<MemberData[]>(path);
-}
-
-export async function getMemberCalculations(messId: string) {
-  return api.get<MemberCalculationListInfo>(
-    `/messes/${messId}/members/calculations`,
-  );
-}
-
-export async function getMessDashboard(messId: string) {
-  return api.get<MessDashboardInfo>(`/messes/${messId}/dashboard`);
-}
-
-export async function getMemberDashboard(messId: string) {
-  return api.get<MemberDashboardInfo>(`/messes/${messId}/member/me`);
-}
-
-export async function getRecentActivities(messId: string) {
-  return api.get<ActivityLogInfo[]>(`/messes/${messId}/activities`);
-}
-
 export async function addMember(messId: string, userId: string) {
   return api.post<MemberData>(`/messes/${messId}/members`, { userId });
 }
@@ -109,12 +76,6 @@ export async function updateMemberRole(
   return api.patch<MemberData>(`/messes/${messId}/members/${userId}/role`, {
     role,
   });
-}
-
-export async function searchUsers(query: string) {
-  return api.get<UserSearchResult[]>(
-    `/users/search?q=${encodeURIComponent(query)}`,
-  );
 }
 
 export async function createMemberAccount(data: {

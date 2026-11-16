@@ -61,10 +61,6 @@ export async function submitBazaar(
   return api.post<BazaarSubmissionInfo>(`/bazaar/${messId}/${monthId}`, data);
 }
 
-export async function getBazaarHistory(messId: string, monthId: string) {
-  return api.get<BazaarHistoryInfo>(`/bazaar/${messId}/${monthId}`);
-}
-
 export async function updateBazaar(
   messId: string,
   submissionId: string,

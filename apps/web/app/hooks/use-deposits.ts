@@ -1,9 +1,8 @@
 "use client";
 
+import { getDepositSummary, getDeposits } from "../lib/reads";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  getDeposits,
-  getDepositSummary,
   createDeposit,
   updateDeposit,
   deleteDeposit,

@@ -24,10 +24,6 @@ export interface MessInfo {
   member_id: string;
 }
 
-export async function getMyMess() {
-  return api.get<MessInfo | null>("/messes/me");
-}
-
 export async function createMess(data: CreateMessPayload) {
   return api.post<MessInfo>("/messes", data);
 }
@@ -54,10 +50,6 @@ export interface UpdateMealTypePayload {
 export interface CreateMealTypePayload {
   name: string;
   value: number;
-}
-
-export async function getMealTypes(messId: string) {
-  return api.get<MealTypeInfo[]>(`/messes/${messId}/meal-types`);
 }
 
 export async function createMealType(

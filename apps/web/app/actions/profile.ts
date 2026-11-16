@@ -8,10 +8,6 @@ export type UpdateProfilePayload = {
   phone?: string | null;
 };
 
-export async function getProfile() {
-  return api.get<ProfileUser>("/users/me");
-}
-
 export async function updateProfile(data: UpdateProfilePayload) {
   return api.patch<ProfileUser>("/users/me", data);
 }

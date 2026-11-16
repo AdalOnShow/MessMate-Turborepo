@@ -1,11 +1,10 @@
 "use client";
 
+import { getMealTypes, getMyMess } from "../lib/reads";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createMess,
-  getMyMess,
   updateMess,
-  getMealTypes,
   createMealType,
   updateMealType,
   deleteMealType,

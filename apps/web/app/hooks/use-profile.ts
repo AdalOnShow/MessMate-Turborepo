@@ -1,10 +1,10 @@
 "use client";
 
+import { getProfile } from "../lib/reads";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSessionStore } from "../store";
 import {
   changePassword,
-  getProfile,
   updateProfile,
   uploadAvatar,
   deleteAvatar,

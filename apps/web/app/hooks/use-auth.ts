@@ -1,5 +1,6 @@
 "use client";
 
+import { clearOfflineData } from "../lib/offline-cache";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../store";
@@ -33,6 +34,8 @@ export function useSignin() {
     // The form shows the failure inline next to the fields.
     meta: { errorToast: false },
     onSuccess: (data) => {
+      // Start clean: never show data saved for a previous account.
+      clearOfflineData();
       setSession(data.user);
       router.push("/dashboard");
     },
@@ -48,6 +51,8 @@ export function useSignup() {
     // The form shows the failure inline next to the fields.
     meta: { errorToast: false },
     onSuccess: (data) => {
+      // Start clean: never show data saved for a previous account.
+      clearOfflineData();
       setSession(data.user);
       router.push("/dashboard");
     },
@@ -66,11 +71,13 @@ export function useLogout() {
     // Logout always ends the local session, even if the API call failed.
     meta: { errorToast: false },
     onSuccess: () => {
+      clearOfflineData();
       queryClient.clear();
       clearSession();
       router.push("/");
     },
     onError: () => {
+      clearOfflineData();
       queryClient.clear();
       clearSession();
       router.push("/");

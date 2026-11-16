@@ -35,6 +35,8 @@ async function handleSessionExpired() {
     description: "Please sign in again to continue.",
   });
   try {
+    const { clearOfflineData } = await import("./offline-cache");
+    clearOfflineData();
     const { logout } = await import("../actions/auth");
     await logout();
   } finally {

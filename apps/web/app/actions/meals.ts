@@ -41,17 +41,6 @@ export async function bulkSaveMealEntries(
   return api.post<MealEntryInfo[]>(`/meals/${messId}/${monthId}`, data);
 }
 
-export async function getMealEntries(
-  messId: string,
-  monthId: string,
-  startDate: string,
-  endDate: string,
-) {
-  return api.get<MealEntryInfo[]>(
-    `/meals/${messId}/${monthId}?startDate=${startDate}&endDate=${endDate}`,
-  );
-}
-
 export async function deleteMealEntry(messId: string, entryId: string) {
   return api.delete(`/meals/${messId}/${entryId}`);
 }
@@ -117,28 +106,4 @@ export interface MonthMealSummary {
   }[];
   meal_type_totals: Record<string, number>;
   active_days: number;
-}
-
-export async function getDailyMealReport(
-  messId: string,
-  monthId: string,
-  date: string,
-) {
-  return api.get<DailyMealReport>(
-    `/meals/${messId}/${monthId}/daily?date=${date}`,
-  );
-}
-
-export async function getMemberMealReport(
-  messId: string,
-  monthId: string,
-  memberId: string,
-) {
-  return api.get<MemberMealReport>(
-    `/meals/${messId}/${monthId}/member/${memberId}`,
-  );
-}
-
-export async function getMonthMealSummary(messId: string, monthId: string) {
-  return api.get<MonthMealSummary>(`/meals/${messId}/${monthId}/summary`);
 }

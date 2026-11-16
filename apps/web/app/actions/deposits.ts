@@ -62,16 +62,6 @@ export interface UpdateDepositPayload {
   deposit_date?: string;
 }
 
-export async function getDeposits(messId: string, monthId: string) {
-  return api.get<DepositListInfo>(`/deposits/${messId}/${monthId}`);
-}
-
-export async function getDepositSummary(messId: string, monthId: string) {
-  return api.get<DepositSummaryResponseInfo>(
-    `/deposits/${messId}/${monthId}/summary`,
-  );
-}
-
 export async function createDeposit(
   messId: string,
   monthId: string,

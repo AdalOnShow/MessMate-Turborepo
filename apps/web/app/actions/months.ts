@@ -41,18 +41,6 @@ export interface CreateMonthPayload {
   title?: string;
 }
 
-export async function getActiveMonth(messId: string) {
-  return api.get<MonthInfo | null>(`/months/${messId}/active`);
-}
-
 export async function createMonth(messId: string, data: CreateMonthPayload) {
   return api.post<MonthInfo>(`/months/${messId}`, data);
-}
-
-export async function getMonthHistory(messId: string) {
-  return api.get<MonthInfo[]>(`/months/${messId}/history`);
-}
-
-export async function getMonthSummary(messId: string, monthId: string) {
-  return api.get<MonthSummaryInfo>(`/months/${messId}/${monthId}/summary`);
 }
