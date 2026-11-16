@@ -3,45 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import {
-  BarChart3,
-  Calendar,
-  Home,
-  LogOut,
-  ReceiptText,
-  Settings,
-  ShoppingCart,
-  User,
-  Users,
-  Utensils,
-  WalletCards,
-} from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useSessionStore } from "../../store";
 import { useLogout } from "../../hooks/use-auth";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useTranslations } from "next-intl";
 import { LanguageToggle } from "../LanguageToggle";
-
-const navItems = [
-  { href: "/dashboard", label: "dashboard", icon: Home },
-  { href: "/dashboard/members", label: "members", icon: Users },
-  { href: "/dashboard/months", label: "months", icon: Calendar },
-  { href: "/dashboard/meals", label: "meals", icon: Utensils },
-  { href: "/dashboard/bazaar", label: "bazaar", icon: ShoppingCart },
-  { href: "/dashboard/expenses", label: "expenses", icon: ReceiptText },
-  { href: "/dashboard/deposits", label: "deposits", icon: WalletCards },
-  { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
-  { href: "/dashboard/profile", label: "profile", icon: User },
-] as const;
-
-function initials(name?: string | null, email?: string | null) {
-  const source = name?.trim() || email?.split("@")[0] || "User";
-  return source
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
+import { UserAvatar } from "./UserAvatar";
+import { MANAGER_NAV_ITEMS, NAV_ITEMS, isActivePath } from "./nav-items";
 
 export function Sidebar() {
   const t = useTranslations("nav");
@@ -77,12 +46,9 @@ export function Sidebar() {
         <p className="label-mono mb-2 px-3 text-[10px] text-foreground-muted">
           {t("workspace")}
         </p>
-        {navItems.map((item) => {
+        {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const active =
-            pathname === item.href ||
-            (item.href !== "/dashboard" &&
-              pathname.startsWith(item.href + "/"));
+          const active = isActivePath(pathname, item.href);
 
           return (
             <Link
@@ -103,37 +69,38 @@ export function Sidebar() {
         {isManager && (
           <>
             <p className="label-mono mb-2 mt-5 px-3 text-[10px] text-foreground-muted">
-            {t("manager")}
-          </p>
-            <Link
-              href="/dashboard/settings"
-              className={`relative flex h-10 items-center gap-3 rounded-lg border px-3 text-sm font-medium transition-colors ${
-                pathname === "/dashboard/settings"
-                  ? "border-primary/25 bg-primary/10 text-foreground before:absolute before:inset-y-2 before:-left-3 before:w-0.5 before:rounded-full before:bg-primary [&_svg]:text-primary"
-                  : "border-transparent text-foreground-muted hover:bg-surface-raised hover:text-foreground"
-              }`}
-            >
-              <Settings size={18} aria-hidden="true" />
-            {t("messSettings")}
-          </Link>
+              {t("manager")}
+            </p>
+            {MANAGER_NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const active = isActivePath(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`relative flex h-10 items-center gap-3 rounded-lg border px-3 text-sm font-medium transition-colors ${
+                    active
+                      ? "border-primary/25 bg-primary/10 text-foreground before:absolute before:inset-y-2 before:-left-3 before:w-0.5 before:rounded-full before:bg-primary [&_svg]:text-primary"
+                      : "border-transparent text-foreground-muted hover:bg-surface-raised hover:text-foreground"
+                  }`}
+                >
+                  <Icon size={18} aria-hidden="true" />
+                  {t(item.label)}
+                </Link>
+              );
+            })}
           </>
         )}
       </nav>
 
       <div className="border-t border-border p-4">
         <div className="mb-3 flex items-center gap-3 rounded-xl border border-border bg-surface p-3">
-          {user?.avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={user.avatar}
-              alt=""
-              className="h-10 w-10 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-sm font-bold text-primary">
-              {initials(user?.name, user?.email)}
-            </div>
-          )}
+          <UserAvatar
+            name={user?.name}
+            email={user?.email}
+            avatar={user?.avatar}
+          />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-foreground">
               {user?.name || t("userFallback")}

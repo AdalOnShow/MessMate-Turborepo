@@ -20,11 +20,13 @@ export default function DashboardLayout({
     return (
       <AuthInitializer>
         <ProtectedPage>
-          <div className="min-h-screen bg-background px-4 py-8 md:px-6 md:py-10 lg:px-8">
-            <div className="mb-6 flex justify-end">
-              <LanguageToggle />
+          <div className="pt-safe pb-safe min-h-dvh bg-background">
+            <div className="px-4 py-8 md:px-6 md:py-10 lg:px-8">
+              <div className="mb-6 flex justify-end">
+                <LanguageToggle />
+              </div>
+              {children}
             </div>
-            {children}
           </div>
         </ProtectedPage>
       </AuthInitializer>
@@ -34,10 +36,10 @@ export default function DashboardLayout({
   return (
     <AuthInitializer>
       <ProtectedPage>
-        <div className="min-h-screen bg-background pb-20 lg:ml-72 lg:pb-8">
+        <div className="pb-bottom-nav min-h-dvh bg-background lg:ml-72 lg:pb-8">
           <Sidebar />
           <MobileTopBar />
-          <main className="px-4 py-8 lg:px-8">
+          <main className="px-4 py-5 sm:py-8 lg:px-8">
             <div className="mx-auto max-w-6xl">{children}</div>
           </main>
           <BottomNav />

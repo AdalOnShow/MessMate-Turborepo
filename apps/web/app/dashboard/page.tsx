@@ -40,7 +40,7 @@ function InviteBanner() {
                 <span className="text-primary">{invite.mess_name}</span>
               </p>
               <p className="mt-1 text-xs text-foreground-muted">
-                {t("by")}{" "}{invite.requester_name} ({invite.requester_email})
+                {t("by")} {invite.requester_name} ({invite.requester_email})
               </p>
             </div>
             <div className="flex gap-2">
@@ -80,8 +80,9 @@ export default function DashboardPage() {
     <>
       <div className="mb-8">
         <p className="label-mono text-primary">{t("dashboard")}</p>
-        <h1 className="mt-2 heading-tight text-3xl text-foreground">
-          {t("welcomeBack")}{user?.name ? `, ${user.name}` : ""}
+        <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
+          {t("welcomeBack")}
+          {user?.name ? `, ${user.name}` : ""}
         </h1>
       </div>
 
@@ -120,7 +121,9 @@ export default function DashboardPage() {
         )
       ) : (
         <div className="rounded-2xl border border-border bg-surface p-8 text-center">
-          <p className="text-lg font-semibold text-foreground">{t("noMessYet")}</p>
+          <p className="text-lg font-semibold text-foreground">
+            {t("noMessYet")}
+          </p>
           <p className="mt-1 text-sm text-foreground-muted">
             {t("createMessStartTracking")}
           </p>

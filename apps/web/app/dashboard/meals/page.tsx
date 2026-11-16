@@ -22,6 +22,8 @@ import {
   Calendar,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   Minus,
   Plus,
@@ -45,6 +47,15 @@ function formatDate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+function shiftDate(ymd: string, days: number): string {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return formatDate(new Date(y!, m! - 1, d! + days));
+}
+
+function formatMealValue(n: number) {
+  return n % 1 === 0 ? String(n) : n.toFixed(1);
+}
+
 function MealCell({
   value,
   onIncrement,
@@ -62,18 +73,23 @@ function MealCell({
         type="button"
         onClick={onDecrement}
         disabled={disabled || value <= 0}
-        className="flex h-7 w-7 items-center justify-center rounded border border-border-strong text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-30"
+        aria-label="−"
+        className="flex size-11 items-center justify-center rounded-xl border border-border-strong text-foreground transition-colors hover:bg-surface-raised active:scale-95 active:bg-surface-raised disabled:opacity-30 md:size-7 md:rounded md:text-foreground-muted"
       >
         <Minus size={14} />
       </button>
-      <span className="w-8 text-center text-sm font-semibold text-foreground">
-        {value % 1 === 0 ? value : value.toFixed(1)}
+      <span
+        aria-live="polite"
+        className="w-10 text-center text-base font-semibold tabular-nums text-foreground md:w-8 md:text-sm"
+      >
+        {formatMealValue(value)}
       </span>
       <button
         type="button"
         onClick={onIncrement}
         disabled={disabled || value >= 10}
-        className="flex h-7 w-7 items-center justify-center rounded border border-border-strong text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-30"
+        aria-label="+"
+        className="flex size-11 items-center justify-center rounded-xl border border-border-strong text-foreground transition-colors hover:bg-surface-raised active:scale-95 active:bg-surface-raised disabled:opacity-30 md:size-7 md:rounded md:text-foreground-muted"
       >
         <Plus size={14} />
       </button>
@@ -205,7 +221,7 @@ export default function MealsPage() {
       <>
         <div className="mb-8">
           <p className="label-mono text-primary">{t("meals")}</p>
-          <h1 className="mt-2 heading-tight text-3xl text-foreground">
+          <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
             {t("mealManagement")}
           </h1>
         </div>
@@ -220,32 +236,60 @@ export default function MealsPage() {
 
   return (
     <>
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-5 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="label-mono text-primary">{t("meals")}</p>
-          <h1 className="mt-2 heading-tight text-3xl text-foreground">
+          <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
             {activeMonth.title}
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Calendar size={16} className="text-foreground-muted" />
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => {
-                setSelectedDate(e.target.value);
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex min-w-0 flex-1 items-center rounded-xl border border-border-strong bg-surface sm:flex-none">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDate((d) => shiftDate(d, -1));
                 setLocalGrid({});
               }}
-              className="rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-            />
+              aria-label="Previous day"
+              className="flex size-11 shrink-0 items-center justify-center text-foreground-muted active:text-foreground sm:size-9"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <label className="flex min-w-0 flex-1 items-center justify-center gap-2">
+              <Calendar
+                size={16}
+                className="hidden shrink-0 text-foreground-muted sm:block"
+              />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => {
+                  if (!e.target.value) return;
+                  setSelectedDate(e.target.value);
+                  setLocalGrid({});
+                }}
+                className="min-w-0 bg-transparent py-2 text-center text-base text-foreground focus:outline-none sm:text-sm"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDate((d) => shiftDate(d, 1));
+                setLocalGrid({});
+              }}
+              aria-label="Next day"
+              className="flex size-11 shrink-0 items-center justify-center text-foreground-muted active:text-foreground sm:size-9"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
           <Link
             href="/dashboard/meals/reports"
-            className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-2 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+            className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-border-strong px-3 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised sm:h-auto sm:rounded-lg sm:py-2"
           >
-            <BarChart3 size={14} />
+            <BarChart3 size={16} />
             {t("reports")}
           </Link>
         </div>
@@ -263,12 +307,21 @@ export default function MealsPage() {
       ) : (
         <>
           {isManager && (
-            <div className="mb-4 flex items-center gap-3">
+            <div
+              className={`bottom-above-nav fixed inset-x-4 z-40 items-center gap-3 rounded-2xl border border-border bg-surface-raised/95 p-2 pl-4 shadow-panel backdrop-blur-xl md:static md:mb-4 md:flex md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none ${
+                hasChanges ? "animate-pop-in flex" : "hidden"
+              }`}
+            >
+              {hasChanges && (
+                <span className="flex-1 text-sm text-foreground md:hidden">
+                  {t("unsavedChanges")}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={!hasChanges || saveMutation.isPending}
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60 md:h-auto md:rounded-lg md:px-4 md:py-2"
               >
                 {saveMutation.isPending ? (
                   <>
@@ -283,14 +336,81 @@ export default function MealsPage() {
                 )}
               </button>
               {hasChanges && (
-                <span className="text-xs text-foreground-muted">
+                <span className="hidden text-xs text-foreground-muted md:inline">
                   {t("unsavedChanges")}
                 </span>
               )}
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+          {/* Phones: one card per member with large steppers */}
+          <div className={`space-y-3 md:hidden ${hasChanges ? "pb-20" : ""}`}>
+            {entriesLoading ? (
+              <div className="flex justify-center rounded-2xl border border-border bg-surface py-10">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              </div>
+            ) : activeMealTypes.length === 0 ? (
+              <p className="rounded-2xl border border-border bg-surface px-4 py-10 text-center text-sm text-foreground-muted">
+                {t("noActiveMealTypes")}
+              </p>
+            ) : (activeMembers ?? []).length === 0 ? (
+              <p className="rounded-2xl border border-border bg-surface px-4 py-10 text-center text-sm text-foreground-muted">
+                {t("noMembersMessYet")}
+              </p>
+            ) : (
+              (activeMembers ?? []).map((member: MemberData) => {
+                const total = activeMealTypes.reduce(
+                  (sum, mt) => sum + getValue(member.id, mt.id),
+                  0,
+                );
+                const edited = localGrid[member.id] !== undefined;
+                return (
+                  <div
+                    key={member.id}
+                    className={`rounded-2xl border bg-surface p-4 ${
+                      edited ? "border-primary/40" : "border-border"
+                    }`}
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="min-w-0 truncate font-semibold text-foreground">
+                        {member.user.name}
+                      </p>
+                      <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold tabular-nums text-primary">
+                        {t("total")} {formatMealValue(total)}
+                      </span>
+                    </div>
+                    <div className="divide-y divide-border">
+                      {activeMealTypes.map((mt) => (
+                        <div
+                          key={mt.id}
+                          className="flex items-center justify-between gap-3 py-1.5"
+                        >
+                          <span className="min-w-0 text-sm text-foreground-body">
+                            {mt.name}
+                            <span className="ml-1 text-xs text-foreground-muted">
+                              ×{mt.value}
+                            </span>
+                          </span>
+                          <MealCell
+                            value={getValue(member.id, mt.id)}
+                            onIncrement={() =>
+                              updateValue(member.id, mt.id, mt.value || 1)
+                            }
+                            onDecrement={() =>
+                              updateValue(member.id, mt.id, -(mt.value || 1))
+                            }
+                            disabled={!isManager}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-border bg-surface md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
@@ -453,7 +573,9 @@ function CreateMealTypeForm({
     <div className="rounded-lg border border-border bg-background p-4">
       <div className="mb-3 flex items-center gap-2">
         <Plus size={16} className="text-primary" />
-        <p className="text-sm font-semibold text-foreground">{t("newMealType")}</p>
+        <p className="text-sm font-semibold text-foreground">
+          {t("newMealType")}
+        </p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -477,6 +599,7 @@ function CreateMealTypeForm({
         <div className="w-full sm:w-28">
           <input
             type="number"
+            inputMode="decimal"
             step="0.1"
             min="0"
             max="10"
@@ -586,9 +709,12 @@ function MealTypeRow({
       <div className="flex items-center gap-3">
         {mealType.is_active && (
           <div className="flex items-center gap-2">
-            <label className="text-xs text-foreground-muted">{t("value")}</label>
+            <label className="text-xs text-foreground-muted">
+              {t("value")}
+            </label>
             <input
               type="number"
+              inputMode="decimal"
               step="0.1"
               min="0"
               max="10"
@@ -669,7 +795,8 @@ function MealTypeManager({
               {t("mealTypeSettings")}
             </p>
             <p className="text-xs text-foreground-muted">
-              {activeTypes.length} active, {inactiveTypes.length}{" "}{t("inactive")}
+              {activeTypes.length} active, {inactiveTypes.length}{" "}
+              {t("inactive")}
             </p>
           </div>
         </div>

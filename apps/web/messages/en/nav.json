@@ -13,5 +13,21 @@
   "settings": "Settings",
   "workspace": "Workspace",
   "manager": "Manager",
-  "userFallback": "MessMate user"
+  "userFallback": "MessMate user",
+  "mealTypes": "Meal Types",
+  "mealReports": "Meal Reports",
+  "createAccount": "Create Account",
+  "createMess": "Create Mess",
+  "more": "More",
+  "menu": "Menu",
+  "back": "Back",
+  "close": "Close",
+  "theme": "Theme",
+  "language": "Language",
+  "installApp": "Install app",
+  "installDesc": "Add MessMate to your home screen",
+  "installIosTitle": "Install on iPhone",
+  "installIosHint": "Tap the Share button in Safari, then choose “Add to Home Screen”.",
+  "installed": "App installed",
+  "account": "Account"
 }

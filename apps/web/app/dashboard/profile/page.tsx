@@ -239,7 +239,7 @@ function ProfileContent() {
     <div className="mx-auto max-w-5xl">
       <div className="mb-8">
         <p className="label-mono text-primary">{t("profile")}</p>
-        <h1 className="mt-2 heading-tight text-3xl text-foreground">
+        <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
           {t("accountSettings")}
         </h1>
       </div>
@@ -335,13 +335,17 @@ function ProfileContent() {
               </h2>
               <dl className="mt-5 space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="text-foreground-muted">{t("managerCreated")}</dt>
+                  <dt className="text-foreground-muted">
+                    {t("managerCreated")}
+                  </dt>
                   <dd className="font-semibold text-foreground">
                     {activeUser?.manager_created ? "Yes" : "No"}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="text-foreground-muted">{t("emailVerified")}</dt>
+                  <dt className="text-foreground-muted">
+                    {t("emailVerified")}
+                  </dt>
                   <dd className="font-semibold text-foreground">
                     {activeUser?.email_verified ? "Yes" : "No"}
                   </dd>

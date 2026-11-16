@@ -23,6 +23,7 @@ import { useGetActiveMonth, useCreateMonth } from "../../hooks/use-months";
 import { useMessDashboard } from "../../hooks/use-members";
 import { formatMoney } from "../../lib/format";
 import { BentoCard, CardHeading } from "./bento";
+import { Sheet, SheetActions } from "../ui/sheet";
 
 type Tone = "success" | "destructive" | "neutral";
 
@@ -124,11 +125,7 @@ export function MonthOverviewBento() {
     balance > 0 ? "success" : balance < 0 ? "destructive" : "neutral";
   const balanceSign = balance > 0 ? "+" : balance < 0 ? "−" : "";
   const balanceLabel =
-    balance > 0
-      ? t("inSurplus")
-      : balance < 0
-        ? t("amountDue")
-        : t("settled");
+    balance > 0 ? t("inSurplus") : balance < 0 ? t("amountDue") : t("settled");
 
   return (
     <BentoCard className="relative overflow-hidden p-6 md:p-7 lg:col-span-2 lg:row-span-2">
@@ -235,7 +232,7 @@ export function MonthOverviewBento() {
                   {activeMonth.title}
                 </h2>
                 <p className="mt-1 text-sm text-foreground-muted">
-                  {t("opened")}{" "}{startedDate}
+                  {t("opened")} {startedDate}
                 </p>
               </div>
             </>
@@ -292,56 +289,55 @@ export function MonthOverviewBento() {
       </div>
 
       {confirmOpen && activeMonth && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl border border-border bg-background p-6">
-            <h2 className="mb-2 text-lg font-bold text-foreground">
-              {t("startNewMonth2")}
-            </h2>
-            <p className="mb-4 text-sm text-foreground-muted">
-              {t("closes")}{" "}
-              <span className="font-semibold text-foreground">
-                {activeMonth.title}
-              </span>
-              {t("itsBillsFinalizedBalances")}
-            </p>
+        <Sheet
+          onClose={() => setConfirmOpen(false)}
+          title={t("startNewMonth2")}
+          dismissible={!creating}
+        >
+          <p className="mb-4 text-sm text-foreground-muted">
+            {t("closes")}{" "}
+            <span className="font-semibold text-foreground">
+              {activeMonth.title}
+            </span>
+            {t("itsBillsFinalizedBalances")}
+          </p>
 
-            <label
-              htmlFor="new-month-title"
-              className="mb-1.5 block text-xs font-semibold text-foreground-muted"
-            >
-              {t("newMonthName")}
-            </label>
-            <input
-              id="new-month-title"
-              type="text"
-              value={newTitle}
-              maxLength={100}
-              onChange={(e) => setNewTitle(e.target.value)}
+          <label
+            htmlFor="new-month-title"
+            className="mb-1.5 block text-xs font-semibold text-foreground-muted"
+          >
+            {t("newMonthName")}
+          </label>
+          <input
+            id="new-month-title"
+            type="text"
+            value={newTitle}
+            maxLength={100}
+            onChange={(e) => setNewTitle(e.target.value)}
+            disabled={creating}
+            className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2.5 text-base text-foreground sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+          />
+
+          <SheetActions>
+            <button
+              type="button"
+              onClick={() => setConfirmOpen(false)}
               disabled={creating}
-              className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-            />
-
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmOpen(false)}
-                disabled={creating}
-                className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
-              >
-                {t("cancel")}
-              </button>
-              <button
-                type="button"
-                onClick={() => startMonth(newTitle)}
-                disabled={creating}
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {creating && <Loader2 size={14} className="animate-spin" />}
-                {creating ? t("closingMonth") : t("closeStartNew")}
-              </button>
-            </div>
-          </div>
-        </div>
+              className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-60"
+            >
+              {t("cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={() => startMonth(newTitle)}
+              disabled={creating}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {creating && <Loader2 size={14} className="animate-spin" />}
+              {creating ? t("closingMonth") : t("closeStartNew")}
+            </button>
+          </SheetActions>
+        </Sheet>
       )}
     </BentoCard>
   );

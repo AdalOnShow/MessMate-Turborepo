@@ -5,15 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useDebounce } from "../../../hooks/use-debounce";
 import { useSearchUsers } from "../../../hooks/use-members";
-
-function initials(name?: string | null, email?: string | null) {
-  const source = name?.trim() || email?.split("@")[0] || "User";
-  return source
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
+import { initials } from "../../../lib/format";
+import { Sheet, SheetActions } from "../../ui/sheet";
 
 export function AddMemberDialog({
   onClose,
@@ -44,138 +37,137 @@ export function AddMemberDialog({
     !searching && debouncedQuery.length >= 2 && searchResults.length === 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-xl border border-border bg-background p-6">
-        <h2 className="mb-4 text-lg font-bold text-foreground">{t("addMember")}</h2>
+    <Sheet onClose={onClose} title={t("addMember")} dismissible={!isPending}>
+      {!selectedUser ? (
+        <>
+          <input
+            type="search"
+            inputMode="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            placeholder={t("searchByNameOr")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            autoFocus
+            className="mb-4 w-full rounded-lg border border-border-strong bg-surface px-4 py-3 text-base text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+          />
 
-        {!selectedUser ? (
-          <>
-            <input
-              type="text"
-              placeholder={t("searchByNameOr")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              autoFocus
-              className="mb-4 w-full rounded-lg border border-border-strong bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-            />
+          {searching && debouncedQuery.length >= 2 && (
+            <p className="text-sm text-foreground-muted">{t("searching")}</p>
+          )}
 
-            {searching && debouncedQuery.length >= 2 && (
-              <p className="text-sm text-foreground-muted">{t("searching")}</p>
-            )}
-
-            {!searching && searchResults.length > 0 && (
-              <div className="mb-4 max-h-60 overflow-y-auto">
-                {searchResults.map((u) => (
-                  <button
-                    key={u.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedUser(u);
-                      setSearchQuery("");
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-surface-raised"
-                  >
-                    {u.avatar ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={u.avatar}
-                        alt=""
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
-                        {initials(u.name, u.email)}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-foreground">
-                        {u.name}
-                      </p>
-                      <p className="truncate text-xs text-foreground-muted">
-                        {u.email}
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {showNotFound && isEmail && (
-              <div className="mb-4 rounded-lg border border-accent-warm/30 bg-accent-warm/10 p-4">
-                <p className="text-sm font-medium text-foreground">
-                  {t("noAccountFound")}{" "}
-                  <span className="font-semibold">{searchQuery}</span>
-                </p>
-                <p className="mt-1 text-xs text-foreground-muted">
-                  {t("wouldLikeCreateAccount")}
-                </p>
-                <Link
-                  href={`/dashboard/members/create-account?email=${encodeURIComponent(searchQuery)}`}
-                  className="mt-3 inline-flex rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-hover"
+          {!searching && searchResults.length > 0 && (
+            <div className="mb-4 max-h-60 overflow-y-auto">
+              {searchResults.map((u) => (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedUser(u);
+                    setSearchQuery("");
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-surface-raised"
                 >
-                  {t("createAccount")}
-                </Link>
-              </div>
-            )}
-
-            {showNotFound && !isEmail && (
-              <p className="mb-4 text-sm text-foreground-muted">
-                {searchResults.length > 0
-                  ? t("allMatchingUsersAlready")
-                  : t("noUsersFound")}
-              </p>
-            )}
-          </>
-        ) : (
-          <div className="mb-4 flex items-center gap-3 rounded-lg bg-surface p-3">
-            {selectedUser.avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={selectedUser.avatar}
-                alt=""
-                className="h-8 w-8 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
-                {initials(selectedUser.name, selectedUser.email)}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-medium text-foreground">
-                {selectedUser.name}
-              </p>
-              <p className="truncate text-xs text-foreground-muted">
-                {selectedUser.email}
-              </p>
+                  {u.avatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={u.avatar}
+                      alt=""
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+                      {initials(u.name, u.email)}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-foreground">
+                      {u.name}
+                    </p>
+                    <p className="truncate text-xs text-foreground-muted">
+                      {u.email}
+                    </p>
+                  </div>
+                </button>
+              ))}
             </div>
-            <button
-              type="button"
-              onClick={() => setSelectedUser(null)}
-              className="text-xs text-foreground-muted hover:text-foreground"
-            >
-              {t("change")}
-            </button>
-          </div>
-        )}
+          )}
 
-        <div className="flex justify-end gap-3">
+          {showNotFound && isEmail && (
+            <div className="mb-4 rounded-lg border border-accent-warm/30 bg-accent-warm/10 p-4">
+              <p className="text-sm font-medium text-foreground">
+                {t("noAccountFound")}{" "}
+                <span className="font-semibold">{searchQuery}</span>
+              </p>
+              <p className="mt-1 text-xs text-foreground-muted">
+                {t("wouldLikeCreateAccount")}
+              </p>
+              <Link
+                href={`/dashboard/members/create-account?email=${encodeURIComponent(searchQuery)}`}
+                className="mt-3 inline-flex rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-hover"
+              >
+                {t("createAccount")}
+              </Link>
+            </div>
+          )}
+
+          {showNotFound && !isEmail && (
+            <p className="mb-4 text-sm text-foreground-muted">
+              {searchResults.length > 0
+                ? t("allMatchingUsersAlready")
+                : t("noUsersFound")}
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="mb-4 flex items-center gap-3 rounded-lg bg-surface p-3">
+          {selectedUser.avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={selectedUser.avatar}
+              alt=""
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+              {initials(selectedUser.name, selectedUser.email)}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-medium text-foreground">
+              {selectedUser.name}
+            </p>
+            <p className="truncate text-xs text-foreground-muted">
+              {selectedUser.email}
+            </p>
+          </div>
           <button
             type="button"
-            onClick={onClose}
-            className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+            onClick={() => setSelectedUser(null)}
+            className="text-xs text-foreground-muted hover:text-foreground"
           >
-            {t("cancel")}
-          </button>
-          <button
-            type="button"
-            onClick={() => selectedUser && onInvite(selectedUser.email)}
-            disabled={!selectedUser || isPending}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isPending ? t("sending") : t("sendInvite")}
+            {t("change")}
           </button>
         </div>
-      </div>
-    </div>
+      )}
+
+      <SheetActions>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+        >
+          {t("cancel")}
+        </button>
+        <button
+          type="button"
+          onClick={() => selectedUser && onInvite(selectedUser.email)}
+          disabled={!selectedUser || isPending}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isPending ? t("sending") : t("sendInvite")}
+        </button>
+      </SheetActions>
+    </Sheet>
   );
 }

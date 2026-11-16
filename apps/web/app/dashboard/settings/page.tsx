@@ -63,8 +63,7 @@ function EditableMessInfo() {
       newErrors.slug = t("slugMustAtMost");
     }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.trim())) {
-      newErrors.slug =
-        t("slugMustContainOnly");
+      newErrors.slug = t("slugMustContainOnly");
     }
     if (description.trim().length > 0 && description.trim().length > 300) {
       newErrors.description = t("descriptionMustAtMost");
@@ -213,7 +212,9 @@ function EditableMessInfo() {
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Settings size={18} className="text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">{t("messInfo")}</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            {t("messInfo")}
+          </h2>
         </div>
         <button
           type="button"
@@ -298,9 +299,7 @@ function MealTypesConfig() {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-foreground-muted">
-        {t("toggleMealTypesOff")}
-      </p>
+      <p className="text-sm text-foreground-muted">{t("toggleMealTypesOff")}</p>
 
       <div className="space-y-2">
         {mealTypes.map((mt) => (
@@ -333,9 +332,12 @@ function MealTypesConfig() {
             </div>
             {mt.is_active && (
               <div className="flex items-center gap-2">
-                <label className="text-xs text-foreground-muted">{t("value")}</label>
+                <label className="text-xs text-foreground-muted">
+                  {t("value")}
+                </label>
                 <input
                   type="number"
+                  inputMode="decimal"
                   step="0.1"
                   min="0"
                   max="10"
@@ -391,9 +393,7 @@ function SettingsContent() {
 
   if (!myMess) {
     return (
-      <p className="text-sm text-foreground-muted">
-        {t("needPartMessAccess")}
-      </p>
+      <p className="text-sm text-foreground-muted">{t("needPartMessAccess")}</p>
     );
   }
 
@@ -401,7 +401,7 @@ function SettingsContent() {
     <>
       <div className="mb-8">
         <p className="label-mono text-primary">{t("settings")}</p>
-        <h1 className="mt-2 heading-tight text-3xl text-foreground">
+        <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
           {t("messSettings")}
         </h1>
       </div>

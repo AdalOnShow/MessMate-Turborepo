@@ -186,7 +186,7 @@ export default function MonthsPage() {
     <>
       <div className="mb-8">
         <p className="label-mono text-primary">{t("months")}</p>
-        <h1 className="mt-2 heading-tight text-3xl text-foreground">
+        <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
           {t("monthHistory")}
         </h1>
       </div>

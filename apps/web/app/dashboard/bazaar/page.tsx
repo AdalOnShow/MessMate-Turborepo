@@ -147,7 +147,9 @@ function BazaarForm({
 
       <div className="space-y-4">
         <div>
-          <p className="mb-2 text-sm font-medium text-foreground">{t("items")}</p>
+          <p className="mb-2 text-sm font-medium text-foreground">
+            {t("items")}
+          </p>
           <div className="space-y-2">
             {items.map((item, index) => (
               <div key={index} className="flex items-center gap-2">
@@ -161,6 +163,7 @@ function BazaarForm({
                 />
                 <input
                   type="number"
+                  inputMode="decimal"
                   min="0"
                   step="0.01"
                   value={item.amount || ""}
@@ -387,14 +390,14 @@ function BazaarCard({
             </p>
           )}
 
-          <div className="flex gap-2 pt-1">
+          <div className="flex flex-wrap gap-2 pt-1">
             {isManager && isPending && (
               <>
                 <button
                   type="button"
                   onClick={() => approve.mutate(submission.id)}
                   disabled={approve.isPending || reject.isPending}
-                  className="flex items-center gap-1.5 rounded-lg bg-success/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-success disabled:opacity-60"
+                  className="flex items-center gap-1.5 rounded-lg bg-success/90 h-10 px-3 text-xs font-semibold sm:h-auto sm:py-1.5 text-white transition-colors hover:bg-success disabled:opacity-60"
                 >
                   {approve.isPending ? (
                     <Loader2 size={12} className="animate-spin" />
@@ -407,7 +410,7 @@ function BazaarCard({
                   type="button"
                   onClick={() => reject.mutate(submission.id)}
                   disabled={reject.isPending || approve.isPending}
-                  className="flex items-center gap-1.5 rounded-lg bg-destructive/90 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-destructive disabled:opacity-60"
+                  className="flex items-center gap-1.5 rounded-lg bg-destructive/90 h-10 px-3 text-xs font-semibold sm:h-auto sm:py-1.5 text-white transition-colors hover:bg-destructive disabled:opacity-60"
                 >
                   {reject.isPending ? (
                     <Loader2 size={12} className="animate-spin" />
@@ -424,7 +427,7 @@ function BazaarCard({
                 <button
                   type="button"
                   onClick={() => setShowEdit(true)}
-                  className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised"
+                  className="flex items-center gap-1.5 rounded-lg border border-border-strong h-10 px-3 text-xs font-semibold sm:h-auto sm:py-1.5 text-foreground-muted transition-colors hover:bg-surface-raised"
                 >
                   <Pencil size={12} />
                   {t("edit")}
@@ -455,7 +458,7 @@ function BazaarCard({
                   <button
                     type="button"
                     onClick={() => setConfirmDelete(true)}
-                    className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                    className="flex items-center gap-1.5 rounded-lg border border-border-strong h-10 px-3 text-xs font-semibold sm:h-auto sm:py-1.5 text-foreground-muted transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
                   >
                     <Trash2 size={12} />
                     {t("delete2")}
@@ -555,7 +558,7 @@ export default function BazaarPage() {
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="label-mono text-primary">{t("bazaar")}</p>
-            <h1 className="mt-2 heading-tight text-3xl text-foreground">
+            <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
               {t("bazaarManagement")}
             </h1>
             <p className="mt-1 text-sm text-foreground-muted">
@@ -570,15 +573,15 @@ export default function BazaarPage() {
       </div>
 
       <div className="mb-6">
-        <div className="flex gap-1 border-b border-border">
+        <div className="flex gap-1 rounded-xl border border-border bg-surface p-1 sm:rounded-none sm:border-0 sm:border-b sm:bg-transparent sm:p-0">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 border-b-2 px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-sm font-semibold transition-colors sm:flex-none sm:rounded-none sm:border-b-2 sm:px-4 sm:py-2 ${
                 activeTab === tab.key
-                  ? "border-primary text-foreground"
+                  ? "bg-primary/10 text-primary sm:border-primary sm:bg-transparent sm:text-foreground"
                   : "border-transparent text-foreground-muted hover:text-foreground"
               }`}
             >

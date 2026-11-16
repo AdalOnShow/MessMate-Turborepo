@@ -122,8 +122,10 @@ function monthOptionLabel(month: MonthInfo, all: MonthInfo[]): string {
 function UserCell({ name, email }: { name: string; email: string }) {
   return (
     <div>
-      <p className="font-medium text-foreground">{name}</p>
-      <p className="text-xs text-foreground-muted">{email}</p>
+      <p className="truncate font-medium text-foreground">{name}</p>
+      <p className="hidden truncate text-xs text-foreground-muted md:block">
+        {email}
+      </p>
     </div>
   );
 }
@@ -168,16 +170,17 @@ function MonthSummaryView({
   }
 
   if (!data || data.member_summaries.length === 0) {
-    return (
-      <EmptyBlock message={t("noSummaryDataAvailable")} />
-    );
+    return <EmptyBlock message={t("noSummaryDataAvailable")} />;
   }
 
   return (
     <div className="space-y-4">
-      <StatCard label={t("members")} value={String(data.member_summaries.length)} />
+      <StatCard
+        label={t("members")}
+        value={String(data.member_summaries.length)}
+      />
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="w-full text-sm">
+        <table className="table-sticky-first w-full text-sm">
           <thead>
             <tr className="border-b border-border">
               <ThLeft label={t("member")} />
@@ -250,9 +253,7 @@ function MealsSummaryView({
   }
 
   if (!data || data.member_summaries.length === 0) {
-    return (
-      <EmptyBlock message={t("noMealEntriesRecorded")} />
-    );
+    return <EmptyBlock message={t("noMealEntriesRecorded")} />;
   }
 
   return (
@@ -263,7 +264,7 @@ function MealsSummaryView({
         <StatCard label={t("entries")} value={String(data.total_entries)} />
       </div>
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="w-full text-sm">
+        <table className="table-sticky-first w-full text-sm">
           <thead>
             <tr className="border-b border-border">
               <ThLeft label={t("member")} />
@@ -324,8 +325,12 @@ function ExpensesSummaryView({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <StatCard label={t("total")} value={formatMoney(data.total)} highlight />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <StatCard
+          label={t("total")}
+          value={formatMoney(data.total)}
+          highlight
+        />
         <StatCard label={t("shared")} value={formatMoney(data.shared_total)} />
         <StatCard
           label={t("individual")}
@@ -335,7 +340,7 @@ function ExpensesSummaryView({
         <StatCard label={t("count")} value={String(data.count)} />
       </div>
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="w-full text-sm">
+        <table className="table-sticky-first w-full text-sm">
           <thead>
             <tr className="border-b border-border">
               <ThLeft label={t("member")} />
@@ -407,10 +412,13 @@ function DepositsSummaryView({
           highlight
         />
         <StatCard label={t("transactions")} value={String(data.count)} />
-        <StatCard label={t("depositors")} value={String(data.per_member.length)} />
+        <StatCard
+          label={t("depositors")}
+          value={String(data.per_member.length)}
+        />
       </div>
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="w-full text-sm">
+        <table className="table-sticky-first w-full text-sm">
           <thead>
             <tr className="border-b border-border">
               <ThLeft label={t("member")} />
@@ -480,9 +488,7 @@ function MembersSummaryView({
     return (
       <EmptyBlock
         message={
-          isActive
-            ? t("noMemberDataAvailable")
-            : t("noSummaryAvailableMonth")
+          isActive ? t("noMemberDataAvailable") : t("noSummaryAvailableMonth")
         }
       />
     );
@@ -496,7 +502,7 @@ function MembersSummaryView({
           : t("calculationsFromArchivedMonth")}
       </p>
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="w-full text-sm">
+        <table className="table-sticky-first w-full text-sm">
           <thead>
             <tr className="border-b border-border">
               <ThLeft label={t("member")} />
@@ -621,7 +627,7 @@ export default function ReportsPage() {
       <PageHeader />
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="flex flex-1 gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1">
+        <div className="no-scrollbar flex w-full snap-x gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1 sm:w-auto sm:flex-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -629,7 +635,7 @@ export default function ReportsPage() {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                className={`flex shrink-0 snap-start items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 sm:rounded-md sm:px-3 sm:py-2 ${
                   activeTab === tab.key
                     ? "bg-primary text-white"
                     : "text-foreground-muted hover:bg-surface-raised"
@@ -645,7 +651,7 @@ export default function ReportsPage() {
         <select
           value={selectedMonthId ?? ""}
           onChange={(e) => setSelectedMonthId(e.target.value)}
-          className="rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+          className="h-11 w-full rounded-xl sm:h-auto sm:w-auto sm:rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
         >
           {months.map((m) => (
             <option key={m.id} value={m.id}>
@@ -683,7 +689,9 @@ function PageHeader() {
   return (
     <div className="mb-8">
       <p className="label-mono text-primary">{t("reports")}</p>
-      <h1 className="mt-2 heading-tight text-3xl text-foreground">{t("reports")}</h1>
+      <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
+        {t("reports")}
+      </h1>
     </div>
   );
 }

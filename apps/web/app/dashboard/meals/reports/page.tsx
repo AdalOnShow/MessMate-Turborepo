@@ -178,7 +178,9 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-foreground">{t("date")}</label>
+        <label className="text-sm font-medium text-foreground">
+          {t("date")}
+        </label>
         <input
           type="date"
           value={date}
@@ -357,9 +359,7 @@ function EditDailyGrid({
   if (members.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-surface p-8 text-center">
-        <p className="text-sm text-foreground-muted">
-          {t("noMembersMessYet")}
-        </p>
+        <p className="text-sm text-foreground-muted">{t("noMembersMessYet")}</p>
       </div>
     );
   }
@@ -474,7 +474,9 @@ function MemberReport({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-foreground">{t("member2")}</label>
+        <label className="text-sm font-medium text-foreground">
+          {t("member2")}
+        </label>
         <select
           value={selectedMemberId}
           onChange={(e) => setSelectedMemberId(e.target.value)}
@@ -801,7 +803,7 @@ export default function MealReportsPage() {
       <>
         <div className="mb-8">
           <p className="label-mono text-primary">{t("mealReports")}</p>
-          <h1 className="mt-2 heading-tight text-3xl text-foreground">
+          <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
             {t("mealReports")}
           </h1>
         </div>
@@ -818,7 +820,7 @@ export default function MealReportsPage() {
     <>
       <div className="mb-8">
         <p className="label-mono text-primary">{t("mealReports")}</p>
-        <h1 className="mt-2 heading-tight text-3xl text-foreground">
+        <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
           {activeMonth.title}
         </h1>
       </div>

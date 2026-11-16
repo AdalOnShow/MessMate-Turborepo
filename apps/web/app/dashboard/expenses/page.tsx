@@ -182,9 +182,7 @@ export default function AddExpensePage() {
     return (
       <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
         <Receipt size={32} className="mb-3 text-foreground-muted" />
-        <p className="text-sm text-foreground-muted">
-          {t("needPartMessAdd")}
-        </p>
+        <p className="text-sm text-foreground-muted">{t("needPartMessAdd")}</p>
       </div>
     );
   }
@@ -220,7 +218,7 @@ export default function AddExpensePage() {
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
         <p className="label-mono text-primary">{t("expenses")}</p>
-        <h1 className="mt-1 heading-tight text-3xl text-foreground">
+        <h1 className="mt-1 heading-tight text-2xl text-foreground sm:text-3xl">
           {t("addExpense")}
         </h1>
         <p className="mt-1 text-sm text-foreground-muted">
@@ -234,7 +232,7 @@ export default function AddExpensePage() {
             <Plus size={16} />
           </div>
           <h2 className="text-lg font-semibold text-foreground">
-            {t("newExpense")}{" "}{activeMonth.title ?? "this month"}
+            {t("newExpense")} {activeMonth.title ?? "this month"}
           </h2>
         </div>
 
@@ -273,6 +271,7 @@ export default function AddExpensePage() {
                 </span>
                 <input
                   type="number"
+                  inputMode="decimal"
                   min="0"
                   step="0.01"
                   value={amount}
@@ -336,7 +335,7 @@ export default function AddExpensePage() {
               ) : (
                 selected.length > 0 && (
                   <span className="text-xs font-medium text-foreground-muted">
-                    {selected.length}{" "}{t("selected")}
+                    {selected.length} {t("selected")}
                   </span>
                 )
               )}
@@ -397,7 +396,8 @@ export default function AddExpensePage() {
                 <div className="mb-2 flex items-center gap-2 text-primary">
                   <Users size={14} />
                   <span className="text-xs font-mono font-medium uppercase tracking-[0.1em]">
-                    {t("autoSplit")}{" "}{formatMoney(parsedAmount)} ÷ {selected.length}
+                    {t("autoSplit")} {formatMoney(parsedAmount)} ÷{" "}
+                    {selected.length}
                   </span>
                 </div>
                 <div className="space-y-1.5">

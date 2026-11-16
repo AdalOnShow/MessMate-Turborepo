@@ -123,9 +123,7 @@ export default function AddDepositPage() {
     return (
       <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
         <WalletCards size={32} className="mb-3 text-foreground-muted" />
-        <p className="text-sm text-foreground-muted">
-          {t("needPartMessAdd")}
-        </p>
+        <p className="text-sm text-foreground-muted">{t("needPartMessAdd")}</p>
       </div>
     );
   }
@@ -161,7 +159,7 @@ export default function AddDepositPage() {
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
         <p className="label-mono text-primary">{t("deposits")}</p>
-        <h1 className="mt-1 heading-tight text-3xl text-foreground">
+        <h1 className="mt-1 heading-tight text-2xl text-foreground sm:text-3xl">
           {t("addDeposit")}
         </h1>
         <p className="mt-1 text-sm text-foreground-muted">
@@ -175,7 +173,7 @@ export default function AddDepositPage() {
             <Plus size={16} />
           </div>
           <h2 className="text-lg font-semibold text-foreground">
-            {t("newDeposit")}{" "}{activeMonth.title ?? "this month"}
+            {t("newDeposit")} {activeMonth.title ?? "this month"}
           </h2>
         </div>
 
@@ -206,6 +204,7 @@ export default function AddDepositPage() {
               </span>
               <input
                 type="number"
+                inputMode="decimal"
                 min="0"
                 step="0.01"
                 value={amount}

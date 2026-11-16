@@ -115,6 +115,18 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    /* Native-app feel on touch devices */
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  label {
+    touch-action: manipulation;
   }
 
   /* Custom scrollbar (webkit) — matches dark theme */
@@ -307,6 +319,110 @@
   border-radius: 9999px;
   background: var(--color-success);
   animation: pulse-ring 2s infinite;
+}
+
+/* Safe-area padding for notches / home indicator (needs viewport-fit=cover). */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Space reserved under page content for the mobile bottom nav. */
+@utility pb-bottom-nav {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
+
+/* Distance from the viewport bottom to just above the mobile bottom nav. */
+@utility bottom-above-nav {
+  bottom: calc(4.75rem + env(safe-area-inset-bottom));
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility animate-sheet-up {
+  animation: sheet-up 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@utility animate-fade-in {
+  animation: fade-in 200ms ease-out;
+}
+
+@utility animate-pop-in {
+  animation: pop-in 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheet-up,
+  .animate-fade-in,
+  .animate-pop-in {
+    animation: none;
+  }
+}
+
+/* Wide data tables on phones: keep the first (name) column pinned while the
+   numbers scroll horizontally. */
+@media (max-width: 767px) {
+  .table-sticky-first tr > :first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background-color: var(--color-surface);
+    box-shadow: 1px 0 0 var(--color-border);
+  }
+  .table-sticky-first td,
+  .table-sticky-first th {
+    white-space: nowrap;
+  }
+  .table-sticky-first td:first-child {
+    max-width: 9.5rem;
+    white-space: normal;
+  }
+}
+
+/* iOS Safari zooms the page when a focused field is under 16px. */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 [data-theme="light"] .shadow-panel {

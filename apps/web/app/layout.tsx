@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Noto_Sans_Bengali } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -26,15 +26,33 @@ const notoBengali = Noto_Sans_Bengali({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#020013" },
+    { media: "(prefers-color-scheme: light)", color: "#fcfcfd" },
+  ],
+};
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
   const locale = await getLocale();
   return {
     title: t("title"),
     description: t("description"),
+    applicationName: "MessMate",
     icons: {
       icon: "/messmate-icon.png",
+      apple: "/icons/apple-touch-icon.png",
     },
+    appleWebApp: {
+      capable: true,
+      title: "MessMate",
+      statusBarStyle: "black-translucent",
+    },
+    formatDetection: { telephone: false },
     keywords: [
       "mess management",
       "meal tracking",

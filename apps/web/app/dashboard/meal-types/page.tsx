@@ -65,7 +65,9 @@ function CreateMealTypeForm({
     <div className="rounded-lg border border-border bg-background p-4">
       <div className="mb-3 flex items-center gap-2">
         <Plus size={16} className="text-primary" />
-        <p className="text-sm font-semibold text-foreground">{t("newMealType")}</p>
+        <p className="text-sm font-semibold text-foreground">
+          {t("newMealType")}
+        </p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -89,6 +91,7 @@ function CreateMealTypeForm({
         <div className="w-full sm:w-28">
           <input
             type="number"
+            inputMode="decimal"
             step="0.1"
             min="0"
             max="10"
@@ -198,9 +201,12 @@ function MealTypeRow({
       <div className="flex items-center gap-3">
         {mealType.is_active && (
           <div className="flex items-center gap-2">
-            <label className="text-xs text-foreground-muted">{t("value")}</label>
+            <label className="text-xs text-foreground-muted">
+              {t("value")}
+            </label>
             <input
               type="number"
+              inputMode="decimal"
               step="0.1"
               min="0"
               max="10"
@@ -302,7 +308,7 @@ export default function MealTypesPage() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="label-mono text-primary">{t("mealTypes")}</p>
-          <h1 className="mt-2 heading-tight text-3xl text-foreground">
+          <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
             {t("configureMealTypes")}
           </h1>
           <p className="mt-1 text-sm text-foreground-muted">

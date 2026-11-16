@@ -13,5 +13,21 @@
   "settings": "সেটিংস",
   "workspace": "ওয়ার্কস্পেস",
   "manager": "ম্যানেজার",
-  "userFallback": "মেসমেট ব্যবহারকারী"
+  "userFallback": "মেসমেট ব্যবহারকারী",
+  "mealTypes": "মিলের ধরন",
+  "mealReports": "মিল রিপোর্ট",
+  "createAccount": "অ্যাকাউন্ট তৈরি",
+  "createMess": "মেস তৈরি",
+  "more": "আরও",
+  "menu": "মেনু",
+  "back": "ফিরে যান",
+  "close": "বন্ধ করুন",
+  "theme": "থিম",
+  "language": "ভাষা",
+  "installApp": "অ্যাপ ইনস্টল করুন",
+  "installDesc": "হোম স্ক্রিনে মেসমেট যোগ করুন",
+  "installIosTitle": "আইফোনে ইনস্টল",
+  "installIosHint": "Safari-তে Share বাটনে চাপুন, তারপর “Add to Home Screen” বেছে নিন।",
+  "installed": "অ্যাপ ইনস্টল করা আছে",
+  "account": "অ্যাকাউন্ট"
 }
