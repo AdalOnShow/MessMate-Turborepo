@@ -8,6 +8,9 @@ import {
 } from '@nestjs/common';
 import { type Prisma, prisma } from '@repo/database';
 import type { MonthResponse, MonthSummaryResponse } from '@repo/shared';
+import { computeMemberSummaries } from './month-summary';
+
+type CarryForwardSource = { member_id: string; final_balance: number };
 
 @Injectable()
 export class MonthsService {
@@ -40,6 +43,7 @@ export class MonthsService {
         removed_at: null,
         deleted_at: null,
       },
+      select: { id: true },
     });
 
     if (!membership) {
@@ -72,220 +76,185 @@ export class MonthsService {
       });
     }
 
-    if (activeMonth) {
-      await this.closeMonth(messId, activeMonth.id, actorId);
-    }
-
     const monthTitle = await this.uniqueMonthTitle(
       messId,
       title?.trim() ||
         now.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
     );
 
-    const month = await prisma.months.create({
-      data: {
-        mess_id: messId,
-        title: monthTitle,
-        month_status: 'ACTIVE',
-        started_at: now,
-        created_by: actorId,
-      },
-    });
+    // Close, summaries, new month, carry forward and logs succeed or fail
+    // together (ADR-008). Without this a failure after the close would leave
+    // the mess with no active month and balances that never carried over.
+    const month = await prisma.$transaction(
+      async (tx) => {
+        let carryRows: CarryForwardSource[] = [];
+        if (activeMonth) {
+          carryRows = await this.closeMonthTx(
+            tx,
+            messId,
+            activeMonth.id,
+            actorId,
+          );
+        }
 
-    if (activeMonth) {
-      await this.generateCarryForward(messId, activeMonth.id, month.id);
-    }
+        const created = await tx.months.create({
+          data: {
+            mess_id: messId,
+            title: monthTitle,
+            month_status: 'ACTIVE',
+            started_at: now,
+            created_by: actorId,
+          },
+        });
 
-    await prisma.activity_logs.create({
-      data: {
-        mess_id: messId,
-        month_id: month.id,
-        actor_id: actorId,
-        action: 'MONTH_OPENED',
-        entity_type: 'months',
-        entity_id: month.id,
+        if (activeMonth) {
+          await this.generateCarryForward(
+            tx,
+            activeMonth.id,
+            created.id,
+            carryRows,
+          );
+        }
+
+        await tx.activity_logs.create({
+          data: {
+            mess_id: messId,
+            month_id: created.id,
+            actor_id: actorId,
+            action: 'MONTH_OPENED',
+            entity_type: 'months',
+            entity_id: created.id,
+          },
+        });
+
+        return created;
       },
-    });
+      { timeout: 20_000, maxWait: 10_000 },
+    );
 
     this.logger.log(`✅ Month created: ${month.id} (${monthTitle})`);
 
     return this.mapMonthResponse(month);
   }
 
-  async closeMonth(
+  /**
+   * Archives the month and writes every member's summary. Runs inside the
+   * caller's transaction. The status-guarded update comes first and acts as
+   * a lock: the data is read only after the claim, so an entry saved while
+   * the month was closing cannot be left out of the bill.
+   *
+   * Returns the balances of members still in the mess, for carry forward.
+   */
+  private async closeMonthTx(
+    tx: Prisma.TransactionClient,
     messId: string,
     monthId: string,
     actorId: string,
-  ): Promise<void> {
-    const month = await prisma.months.findFirst({
+  ): Promise<CarryForwardSource[]> {
+    const closedAt = new Date();
+    const claimed = await tx.months.updateMany({
       where: {
         id: monthId,
         mess_id: messId,
         month_status: 'ACTIVE',
         deleted_at: null,
       },
+      data: {
+        month_status: 'ARCHIVED',
+        ended_at: closedAt,
+        updated_at: closedAt,
+      },
     });
 
-    if (!month) {
-      throw new NotFoundException({
-        message: 'Active month not found',
-        code: ErrorCode.NO_ACTIVE_MONTH,
+    if (claimed.count === 0) {
+      throw new ConflictException({
+        message: 'This month has already been closed',
+        code: ErrorCode.MONTH_ALREADY_CLOSED,
       });
     }
 
-    const [activeMembers, mealEntries, expenses, deposits] = await Promise.all([
-      prisma.mess_members.findMany({
-        where: {
-          mess_id: messId,
-          removed_at: null,
-          deleted_at: null,
-        },
-        select: { id: true },
-      }),
-      prisma.meal_entries.findMany({
-        where: {
-          month_id: monthId,
-          deleted_at: null,
-        },
-      }),
-      prisma.expenses.findMany({
-        where: {
-          month_id: monthId,
-        },
-        include: {
-          members: true,
-        },
-      }),
-      prisma.deposits.findMany({
-        where: {
-          month_id: monthId,
-        },
-      }),
-    ]);
-
-    const memberIds = activeMembers.map((m) => m.id);
-
-    const totalMealsAll = mealEntries.reduce(
-      (sum, e) => sum + Number(e.total_meal),
-      0,
-    );
-
-    const totalMealCost = expenses
-      .filter((e) => e.type === 'BAZAAR')
-      .reduce((sum, e) => sum + Number(e.amount), 0);
-
-    const mealRate = totalMealsAll > 0 ? totalMealCost / totalMealsAll : 0;
-
-    const summaries = memberIds.map((memberId) => {
-      const memberMeals = mealEntries
-        .filter((e) => e.member_id === memberId)
-        .reduce((sum, e) => sum + Number(e.total_meal), 0);
-
-      const memberMealCost = memberMeals * mealRate;
-
-      const memberSharedCost = expenses
-        .filter((e) => e.type === 'SHARED')
-        .reduce((sum, expense) => {
-          const alloc = expense.members.find((m) => m.member_id === memberId);
-          return sum + (alloc ? Number(alloc.allocated_amount) : 0);
-        }, 0);
-
-      const memberIndividualCost = expenses
-        .filter((e) => e.type === 'INDIVIDUAL')
-        .reduce((sum, expense) => {
-          const alloc = expense.members.find((m) => m.member_id === memberId);
-          return sum + (alloc ? Number(alloc.allocated_amount) : 0);
-        }, 0);
-
-      const memberDeposits = deposits
-        .filter((d) => d.member_id === memberId)
-        .reduce((sum, d) => sum + Number(d.amount), 0);
-
-      const finalBill =
-        memberMealCost + memberSharedCost + memberIndividualCost;
-      const finalBalance = memberDeposits - finalBill;
-
-      return {
-        month_id: monthId,
-        member_id: memberId,
-        total_meals: memberMeals,
-        meal_cost: memberMealCost,
-        shared_cost: memberSharedCost,
-        individual_cost: memberIndividualCost,
-        deposit_amount: memberDeposits,
-        final_bill: finalBill,
-        final_balance: finalBalance,
-      };
+    const activeMembers = await tx.mess_members.findMany({
+      where: { mess_id: messId, removed_at: null, deleted_at: null },
+      select: { id: true },
+    });
+    const mealEntries = await tx.meal_entries.findMany({
+      where: { month_id: monthId, deleted_at: null },
+      select: { member_id: true, total_meal: true },
+    });
+    const expenses = await tx.expenses.findMany({
+      where: { month_id: monthId, mess_id: messId },
+      select: {
+        type: true,
+        amount: true,
+        members: { select: { member_id: true, allocated_amount: true } },
+      },
+    });
+    // Soft-deleted deposits must not be credited to anyone.
+    const deposits = await tx.deposits.findMany({
+      where: { month_id: monthId, mess_id: messId, deleted_at: null },
+      select: { member_id: true, amount: true },
     });
 
-    // Archive, summaries and log are written together. The status-guarded
-    // update is the claim: if another request already closed this month,
-    // nothing is written twice.
-    await prisma.$transaction(async (tx) => {
-      const closedAt = new Date();
-      const claimed = await tx.months.updateMany({
-        where: { id: monthId, month_status: 'ACTIVE' },
-        data: {
-          month_status: 'ARCHIVED',
-          ended_at: closedAt,
-          updated_at: closedAt,
-        },
-      });
+    const carries = await tx.carry_forward_balances.findMany({
+      where: { target_month_id: monthId },
+      select: { member_id: true, amount: true, carry_forward_type: true },
+    });
 
-      if (claimed.count === 0) {
-        throw new ConflictException({
-          message: 'This month has already been closed',
-          code: ErrorCode.MONTH_ALREADY_CLOSED,
-        });
-      }
+    const activeMemberIds = activeMembers.map((m) => m.id);
+    const { rows } = computeMemberSummaries(monthId, {
+      activeMemberIds,
+      mealEntries,
+      expenses,
+      deposits,
+      carries,
+    });
 
-      if (summaries.length > 0) {
-        await tx.member_month_summaries.createMany({ data: summaries });
-      }
+    if (rows.length > 0) {
+      await tx.member_month_summaries.createMany({ data: rows });
+    }
 
-      await tx.activity_logs.create({
-        data: {
-          mess_id: messId,
-          month_id: monthId,
-          actor_id: actorId,
-          action: 'MONTH_CLOSED',
-          entity_type: 'months',
-          entity_id: monthId,
-        },
-      });
+    await tx.activity_logs.create({
+      data: {
+        mess_id: messId,
+        month_id: monthId,
+        actor_id: actorId,
+        action: 'MONTH_CLOSED',
+        entity_type: 'months',
+        entity_id: monthId,
+      },
     });
 
     this.logger.log(`✅ Month closed: ${monthId}`);
+
+    // Removed members keep their summary (what they owe or are owed) but
+    // are not carried into a month they are no longer part of.
+    const stillActive = new Set(activeMemberIds);
+    return rows
+      .filter((r) => stillActive.has(r.member_id))
+      .map((r) => ({ member_id: r.member_id, final_balance: r.final_balance }));
   }
 
   private async generateCarryForward(
-    messId: string,
+    tx: Prisma.TransactionClient,
     sourceMonthId: string,
     targetMonthId: string,
+    balances: CarryForwardSource[],
   ): Promise<void> {
-    const summaries = await prisma.member_month_summaries.findMany({
-      where: { month_id: sourceMonthId },
-    });
-
-    const rows = summaries
-      .map((summary) => ({
-        summary,
-        finalBalance: Number(summary.final_balance),
-      }))
-      .filter(({ finalBalance }) => finalBalance !== 0)
-      .map(({ summary, finalBalance }) => ({
+    const rows = balances
+      .filter(({ final_balance }) => final_balance !== 0)
+      .map(({ member_id, final_balance }) => ({
         source_month_id: sourceMonthId,
         target_month_id: targetMonthId,
-        member_id: summary.member_id,
-        amount: Math.abs(finalBalance),
+        member_id,
+        amount: Math.abs(final_balance),
         carry_forward_type:
-          finalBalance > 0
+          final_balance > 0
             ? ('PREVIOUS_BALANCE' as const)
             : ('PREVIOUS_DUE' as const),
       }));
 
     if (rows.length > 0) {
-      await prisma.carry_forward_balances.createMany({ data: rows });
+      await tx.carry_forward_balances.createMany({ data: rows });
     }
   }
 

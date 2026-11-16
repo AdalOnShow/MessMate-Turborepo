@@ -58,128 +58,170 @@ export class MealsService {
       });
     }
 
-    const activeMealTypes = await prisma.meal_types.findMany({
+    // One query each instead of one per entry, so a full day for a large
+    // mess stays fast.
+    const memberIds = [...new Set(data.entries.map((e) => e.memberId))];
+    const [mealTypes, members] = await Promise.all([
+      // Inactive types are included: a saved day can still hold counts for
+      // a type that was switched off later, and they keep their value.
+      prisma.meal_types.findMany({
+        where: { mess_id: messId, deleted_at: null },
+        select: { id: true, value: true },
+      }),
+      prisma.mess_members.findMany({
+        where: {
+          id: { in: memberIds },
+          mess_id: messId,
+          removed_at: null,
+          deleted_at: null,
+        },
+        select: { id: true },
+      }),
+    ]);
+
+    // Every member must belong to this mess, or a manager could write meals
+    // for someone in another mess.
+    if (members.length !== memberIds.length) {
+      throw new BadRequestException({
+        message: 'Some members are not active members of this mess',
+        code: ErrorCode.VALIDATION_FAILED,
+      });
+    }
+
+    const mealTypeValues = new Map(
+      mealTypes.map((mt) => [mt.id, Number(mt.value)]),
+    );
+
+    const seen = new Set<string>();
+    const prepared = data.entries.map((entry) => {
+      const date = new Date(entry.date);
+      const key = `${entry.memberId}|${date.toISOString()}`;
+      if (seen.has(key)) {
+        throw new BadRequestException({
+          message: 'The same member and date appear more than once',
+          code: ErrorCode.VALIDATION_FAILED,
+        });
+      }
+      seen.add(key);
+
+      let totalMeal = 0;
+      for (const [mealTypeId, quantity] of Object.entries(entry.meals)) {
+        const value = mealTypeValues.get(mealTypeId);
+        // Unknown ids used to count as 1 meal each; reject them instead.
+        if (value === undefined) {
+          throw new BadRequestException({
+            message: 'Unknown meal type',
+            code: ErrorCode.VALIDATION_FAILED,
+          });
+        }
+        totalMeal += quantity * value;
+      }
+
+      return { memberId: entry.memberId, date, meals: entry.meals, totalMeal };
+    });
+
+    const existing = await prisma.meal_entries.findMany({
       where: {
-        mess_id: messId,
-        is_active: true,
+        month_id: monthId,
         deleted_at: null,
+        member_id: { in: memberIds },
+        date: {
+          in: [...new Set(prepared.map((p) => p.date.getTime()))].map(
+            (t) => new Date(t),
+          ),
+        },
+      },
+      select: { id: true, member_id: true, date: true },
+    });
+    const existingId = new Map(
+      existing.map((e) => [`${e.member_id}|${e.date.toISOString()}`, e.id]),
+    );
+
+    // All rows and their activity logs are saved together, or none are.
+    const savedIds = await prisma.$transaction(
+      async (tx) => {
+        const ids: string[] = [];
+        const logs: Prisma.activity_logsCreateManyInput[] = [];
+
+        for (const p of prepared) {
+          const id = existingId.get(`${p.memberId}|${p.date.toISOString()}`);
+          if (id) {
+            await tx.meal_entries.update({
+              where: { id },
+              data: {
+                meals: p.meals,
+                total_meal: p.totalMeal,
+                updated_at: new Date(),
+              },
+              select: { id: true },
+            });
+            ids.push(id);
+            logs.push({
+              mess_id: messId,
+              month_id: monthId,
+              actor_id: actorId,
+              action: 'MEAL_UPDATED',
+              entity_type: 'meal_entries',
+              entity_id: id,
+            });
+          } else {
+            const created = await tx.meal_entries.create({
+              data: {
+                month_id: monthId,
+                member_id: p.memberId,
+                date: p.date,
+                meals: p.meals,
+                total_meal: p.totalMeal,
+                created_by: actorId,
+              },
+              select: { id: true },
+            });
+            ids.push(created.id);
+            logs.push({
+              mess_id: messId,
+              month_id: monthId,
+              actor_id: actorId,
+              action: 'MEAL_ADDED',
+              entity_type: 'meal_entries',
+              entity_id: created.id,
+            });
+          }
+        }
+
+        await tx.activity_logs.createMany({ data: logs });
+        return ids;
+      },
+      { timeout: 20_000, maxWait: 10_000 },
+    );
+
+    const savedRows = await prisma.meal_entries.findMany({
+      where: { id: { in: savedIds } },
+      include: {
+        member: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true, avatar: true },
+            },
+          },
+        },
       },
     });
 
-    const mealTypeValues: Record<string, number> = {};
-    for (const mt of activeMealTypes) {
-      mealTypeValues[mt.id] = Number(mt.value);
-    }
-
-    const results: MealEntryWithMember[] = [];
-
-    for (const entry of data.entries) {
-      const totalMeal = Object.entries(entry.meals).reduce(
-        (sum, [mealTypeId, quantity]) => {
-          const value = mealTypeValues[mealTypeId] ?? 1;
-          return sum + quantity * value;
-        },
-        0,
-      );
-
-      const existing = await prisma.meal_entries.findFirst({
-        where: {
-          month_id: monthId,
-          member_id: entry.memberId,
-          date: new Date(entry.date),
-          deleted_at: null,
-        },
-      });
-
-      let saved;
-      if (existing) {
-        saved = await prisma.meal_entries.update({
-          where: { id: existing.id },
-          data: {
-            meals: entry.meals,
-            total_meal: totalMeal,
-            updated_at: new Date(),
-          },
-          include: {
-            member: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    avatar: true,
-                  },
-                },
-              },
-            },
-          },
-        });
-
-        await prisma.activity_logs.create({
-          data: {
-            mess_id: messId,
-            month_id: monthId,
-            actor_id: actorId,
-            action: 'MEAL_UPDATED',
-            entity_type: 'meal_entries',
-            entity_id: saved.id,
-          },
-        });
-      } else {
-        saved = await prisma.meal_entries.create({
-          data: {
-            month_id: monthId,
-            member_id: entry.memberId,
-            date: new Date(entry.date),
-            meals: entry.meals,
-            total_meal: totalMeal,
-            created_by: actorId,
-          },
-          include: {
-            member: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    avatar: true,
-                  },
-                },
-              },
-            },
-          },
-        });
-
-        await prisma.activity_logs.create({
-          data: {
-            mess_id: messId,
-            month_id: monthId,
-            actor_id: actorId,
-            action: 'MEAL_ADDED',
-            entity_type: 'meal_entries',
-            entity_id: saved.id,
-          },
-        });
-      }
-
-      results.push({
-        id: saved.id,
-        month_id: saved.month_id,
-        member_id: saved.member_id,
-        date: saved.date.toISOString(),
-        meals: saved.meals as Record<string, number>,
-        total_meal: Number(saved.total_meal),
-        created_by: saved.created_by,
-        created_at: saved.created_at.toISOString(),
-        updated_at: saved.updated_at.toISOString(),
-        member: {
-          id: saved.member.id,
-          user: saved.member.user,
-        },
-      });
-    }
+    const results: MealEntryWithMember[] = savedRows.map((saved) => ({
+      id: saved.id,
+      month_id: saved.month_id,
+      member_id: saved.member_id,
+      date: saved.date.toISOString(),
+      meals: saved.meals as Record<string, number>,
+      total_meal: Number(saved.total_meal),
+      created_by: saved.created_by,
+      created_at: saved.created_at.toISOString(),
+      updated_at: saved.updated_at.toISOString(),
+      member: {
+        id: saved.member.id,
+        user: saved.member.user,
+      },
+    }));
 
     this.logger.log(
       `✅ Bulk meal entries saved: ${results.length} entries for month ${monthId}`,

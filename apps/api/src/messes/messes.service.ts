@@ -22,6 +22,7 @@ import type {
   MessDashboard,
   MessMemberWithUser,
 } from '@repo/shared';
+import { computeMemberSummaries, roundMoney } from '../months/month-summary';
 
 export type MessWithMembership = {
   id: string;
@@ -261,54 +262,31 @@ export class MessesService {
       }),
     ]);
 
-    const totalMealsAll = mealEntries.reduce(
-      (sum, e) => sum + Number(e.total_meal),
-      0,
-    );
+    // Same maths as month close, without carries: those are shown
+    // separately as the previous balance.
+    const { mealRate, rows } = computeMemberSummaries(month.id, {
+      activeMemberIds: members.map((m) => m.id),
+      mealEntries,
+      expenses,
+      deposits,
+    });
+    const rowByMember = new Map(rows.map((r) => [r.member_id, r]));
 
-    const totalMealCost = expenses
-      .filter((e) => e.type === 'BAZAAR')
-      .reduce((sum, e) => sum + Number(e.amount), 0);
-
-    const mealRate = totalMealsAll > 0 ? totalMealCost / totalMealsAll : 0;
+    const previousByMember = new Map<string, number>();
+    for (const c of carries) {
+      const signed =
+        c.carry_forward_type === 'PREVIOUS_BALANCE'
+          ? Number(c.amount)
+          : -Number(c.amount);
+      previousByMember.set(
+        c.member_id,
+        (previousByMember.get(c.member_id) ?? 0) + signed,
+      );
+    }
 
     const items = members.map((m) => {
-      const memberMeals = mealEntries
-        .filter((e) => e.member_id === m.id)
-        .reduce((sum, e) => sum + Number(e.total_meal), 0);
-
-      const mealCost = memberMeals * mealRate;
-
-      const sharedCost = expenses
-        .filter((e) => e.type === 'SHARED')
-        .reduce((sum, expense) => {
-          const alloc = expense.members.find((em) => em.member_id === m.id);
-          return sum + (alloc ? Number(alloc.allocated_amount) : 0);
-        }, 0);
-
-      const individualCost = expenses
-        .filter((e) => e.type === 'INDIVIDUAL')
-        .reduce((sum, expense) => {
-          const alloc = expense.members.find((em) => em.member_id === m.id);
-          return sum + (alloc ? Number(alloc.allocated_amount) : 0);
-        }, 0);
-
-      const depositAmount = deposits
-        .filter((d) => d.member_id === m.id)
-        .reduce((sum, d) => sum + Number(d.amount), 0);
-
-      const finalBill = mealCost + sharedCost + individualCost;
-      const finalBalance = depositAmount - finalBill;
-
-      const previousBalance = carries
-        .filter((c) => c.member_id === m.id)
-        .reduce(
-          (sum, c) =>
-            c.carry_forward_type === 'PREVIOUS_BALANCE'
-              ? sum + Number(c.amount)
-              : sum - Number(c.amount),
-          0,
-        );
+      const r = rowByMember.get(m.id)!;
+      const previousBalance = roundMoney(previousByMember.get(m.id) ?? 0);
 
       return {
         member_id: m.id,
@@ -316,15 +294,15 @@ export class MessesService {
         mess_role: m.mess_role as 'MANAGER' | 'MEMBER',
         removed_at: m.removed_at?.toISOString() ?? null,
         user: m.user,
-        total_meals: memberMeals,
-        meal_cost: mealCost,
-        shared_cost: sharedCost,
-        individual_cost: individualCost,
-        deposit_amount: depositAmount,
-        final_bill: finalBill,
-        final_balance: finalBalance,
+        total_meals: r.total_meals,
+        meal_cost: r.meal_cost,
+        shared_cost: r.shared_cost,
+        individual_cost: r.individual_cost,
+        deposit_amount: r.deposit_amount,
+        final_bill: r.final_bill,
+        final_balance: r.final_balance,
         previous_balance: previousBalance,
-        current_balance: finalBalance + previousBalance,
+        current_balance: roundMoney(r.final_balance + previousBalance),
       };
     });
 

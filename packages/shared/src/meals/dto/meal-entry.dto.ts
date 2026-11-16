@@ -9,7 +9,8 @@ export const mealEntryItemSchema = z.object({
 export const bulkMealEntriesSchema = z.object({
   entries: z
     .array(mealEntryItemSchema)
-    .min(1, "At least one entry is required"),
+    .min(1, "At least one entry is required")
+    .max(200, "Too many entries in one save"),
 });
 
 export type BulkMealEntriesDto = z.infer<typeof bulkMealEntriesSchema>;
