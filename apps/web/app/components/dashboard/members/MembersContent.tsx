@@ -181,8 +181,8 @@ export function MembersContent() {
 
       <MembersDialogs
         addDialogOpen={addDialogOpen}
-        onInviteMember={(email) =>
-          inviteUser.mutate(email, {
+        onInviteMember={(userId) =>
+          inviteUser.mutate(userId, {
             onSuccess: () => {
               setAddDialogOpen(false);
             },

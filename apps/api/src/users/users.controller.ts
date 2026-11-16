@@ -41,8 +41,8 @@ export class UsersController {
   }
 
   @Get('search')
-  searchUsers(@Query('q') query: string) {
-    return this.usersService.searchUsers(query ?? '');
+  searchUsers(@Req() req: AuthenticatedRequest, @Query('q') query: string) {
+    return this.usersService.searchUsers(req.user!.id, query ?? '');
   }
 
   @Patch('me')

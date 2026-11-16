@@ -8,7 +8,9 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { REQUEST_ID_HEADER } from './common/request-id/request-id.middleware';
 
 const expressApp = express();
-let isInitialized = false;
+// One shared start-up promise: requests that arrive together on a cold
+// start used to each build their own Nest app.
+let serverPromise: Promise<express.Express> | null = null;
 
 function resolveCorsOrigin(): string[] {
   const raw = process.env.CORS_ORIGIN;
@@ -42,6 +44,23 @@ const corsOptions = {
 
 /** Shared by the local server and the Vercel handler; keep them identical. */
 function configureApp(app: INestApplication) {
+  const http = app.getHttpAdapter().getInstance() as express.Express;
+  http.disable('x-powered-by');
+  // Basic security headers for a JSON API (what helmet would set that
+  // matters here), without another dependency.
+  http.use((_req: express.Request, res: express.Response, next: () => void) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    if (process.env.NODE_ENV === 'production') {
+      res.setHeader(
+        'Strict-Transport-Security',
+        'max-age=31536000; includeSubDomains',
+      );
+    }
+    next();
+  });
   app.enableCors(corsOptions);
   app.useGlobalPipes(
     new ValidationPipe({
@@ -54,19 +73,22 @@ function configureApp(app: INestApplication) {
   app.useGlobalFilters(new ApiExceptionFilter());
 }
 
-async function createServer() {
-  if (isInitialized) return expressApp;
-
-  const app = await NestFactory.create(
-    AppModule,
-    new ExpressAdapter(expressApp),
-    { logger: false },
-  );
-
-  configureApp(app);
-  await app.init();
-  isInitialized = true;
-  return expressApp;
+function createServer(): Promise<express.Express> {
+  serverPromise ??= (async () => {
+    const app = await NestFactory.create(
+      AppModule,
+      new ExpressAdapter(expressApp),
+      { logger: false },
+    );
+    configureApp(app);
+    await app.init();
+    return expressApp;
+  })().catch((error: unknown) => {
+    // Let the next request try again instead of failing forever.
+    serverPromise = null;
+    throw error;
+  });
+  return serverPromise;
 }
 
 const isVercel = process.env.VERCEL === '1';
@@ -105,7 +127,7 @@ if (!isVercel) {
   });
 }
 
-export default async (req: any, res: any) => {
+export default async (req: express.Request, res: express.Response) => {
   const server = await createServer();
   server(req, res);
 };

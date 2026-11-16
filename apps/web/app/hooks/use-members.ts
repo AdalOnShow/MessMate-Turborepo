@@ -157,11 +157,11 @@ export function useSearchUsers(query: string) {
   return useQuery({
     queryKey: ["users", "search", debouncedQuery],
     queryFn: async () => {
-      if (!debouncedQuery || debouncedQuery.length < 2) return [];
+      if (!debouncedQuery || debouncedQuery.trim().length < 3) return [];
       const result = await unwrap(searchUsers(debouncedQuery));
       return result;
     },
-    enabled: debouncedQuery.length >= 2,
+    enabled: debouncedQuery.trim().length >= 3,
     retry: false,
   });
 }

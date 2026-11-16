@@ -14,7 +14,7 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
     "build": "prisma generate && tsc",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -29,7 +29,7 @@
     "@types/node": "^25.9.2",
     "@types/ws": "^8.18.1",
     "dotenv": "^17.4.2",
-    "eslint": "^10.4.1",
+    "eslint": "^9.39.1",
     "prisma": "^7.8.0",
     "typescript": "6.0.3"
   }

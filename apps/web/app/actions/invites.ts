@@ -12,8 +12,10 @@ export interface PendingInvite {
   created_at: string;
 }
 
-export async function inviteUser(email: string) {
-  return api.post<PendingInvite>("/invites", { email });
+export async function inviteUser(
+  target: { userId: string } | { email: string },
+) {
+  return api.post<PendingInvite>("/invites", target);
 }
 
 export async function acceptInvite(inviteId: string) {

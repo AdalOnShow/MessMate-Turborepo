@@ -2,9 +2,9 @@ import { ApiResponse } from "../../api-response/api-response";
 import { SigninDto } from "../dto/signin.dto";
 import { SignupDto } from "../dto/signup.dto";
 
-export interface SignInRequest extends SigninDto {}
+export type SignInRequest = SigninDto;
 
-export interface SignUpRequest extends SignupDto {}
+export type SignUpRequest = SignupDto;
 
 export interface AuthTokensResponse {
   accessToken: string;

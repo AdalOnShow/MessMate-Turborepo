@@ -7,7 +7,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSignup } from "../hooks/use-auth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { useTranslations } from "next-intl";
-import { LanguageToggle } from "../components/LanguageToggle";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { formatZodError, signUpSchema } from "@repo/shared";
 

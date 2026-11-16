@@ -14,7 +14,7 @@ export function AddMemberDialog({
   isPending,
 }: {
   onClose: () => void;
-  onInvite: (email: string) => void;
+  onInvite: (userId: string) => void;
   isPending: boolean;
 }) {
   const t = useTranslations("members.addMemberDialog");
@@ -34,7 +34,9 @@ export function AddMemberDialog({
   const isEmail = searchQuery.includes("@") && searchQuery.length >= 3;
 
   const showNotFound =
-    !searching && debouncedQuery.length >= 2 && searchResults.length === 0;
+    !searching &&
+    debouncedQuery.trim().length >= 3 &&
+    searchResults.length === 0;
 
   return (
     <Sheet onClose={onClose} title={t("addMember")} dismissible={!isPending}>
@@ -52,7 +54,7 @@ export function AddMemberDialog({
             className="mb-4 w-full rounded-lg border border-border-strong bg-surface px-4 py-3 text-base text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
           />
 
-          {searching && debouncedQuery.length >= 2 && (
+          {searching && debouncedQuery.trim().length >= 3 && (
             <p className="text-sm text-foreground-muted">{t("searching")}</p>
           )}
 
@@ -161,7 +163,7 @@ export function AddMemberDialog({
         </button>
         <button
           type="button"
-          onClick={() => selectedUser && onInvite(selectedUser.email)}
+          onClick={() => selectedUser && onInvite(selectedUser.id)}
           disabled={!selectedUser || isPending}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
         >

@@ -49,10 +49,7 @@ export class InvitesController {
       });
     }
 
-    return this.invitesService.inviteUserForActor(
-      req.user!.id,
-      parsed.data.email,
-    );
+    return this.invitesService.inviteUserForActor(req.user!.id, parsed.data);
   }
 
   @Get('pending')

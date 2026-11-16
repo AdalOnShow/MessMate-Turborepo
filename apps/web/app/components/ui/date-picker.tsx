@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import * as React from "react";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";

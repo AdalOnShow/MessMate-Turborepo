@@ -18,11 +18,13 @@ type PendingInvite = {
   created_at: string;
 };
 
+type InviteTarget = { userId?: string; email?: string };
+
 @Injectable()
 export class InvitesService {
   async inviteUserForActor(
     actorId: string,
-    userEmail: string,
+    target: InviteTarget,
   ): Promise<PendingInvite> {
     const membership = await prisma.mess_members.findFirst({
       where: { user_id: actorId, removed_at: null, deleted_at: null },
@@ -43,16 +45,21 @@ export class InvitesService {
       });
     }
 
-    return this.inviteUser(membership.mess_id, actorId, userEmail);
+    return this.inviteUser(membership.mess_id, actorId, target);
   }
 
   async inviteUser(
     messId: string,
     actorId: string,
-    userEmail: string,
+    target: InviteTarget,
   ): Promise<PendingInvite> {
     const user = await prisma.users.findFirst({
-      where: { email: userEmail.trim().toLowerCase(), deleted_at: null },
+      where: {
+        ...(target.userId
+          ? { id: target.userId }
+          : { email: (target.email ?? '').trim().toLowerCase() }),
+        deleted_at: null,
+      },
       select: { id: true, name: true, email: true },
     });
 

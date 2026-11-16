@@ -9,7 +9,32 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const monorepoRoot = join(__dirname, "../..");
 
 /** @type {import('next').NextConfig} */
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=()",
+  },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=31536000; includeSubDomains",
+  },
+];
+
 const nextConfig = {
+  poweredByHeader: false,
+  async headers() {
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      {
+        // The service worker must never be cached, or app updates stall.
+        source: "/sw.js",
+        headers: [{ key: "Cache-Control", value: "no-cache, no-store" }],
+      },
+    ];
+  },
   outputFileTracingRoot: monorepoRoot,
   turbopack: {
     root: monorepoRoot,

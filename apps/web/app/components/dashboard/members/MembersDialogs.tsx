@@ -21,7 +21,7 @@ export function MembersDialogs({
   onCloseRemoveDialog,
 }: {
   addDialogOpen: boolean;
-  onInviteMember: (email: string) => void;
+  onInviteMember: (userId: string) => void;
   inviteMemberPending: boolean;
   onCloseAddDialog: () => void;
   roleDialogMember: MemberData | null;

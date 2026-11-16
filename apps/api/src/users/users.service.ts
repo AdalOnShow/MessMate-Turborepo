@@ -36,6 +36,14 @@ export type UserSearchResult = {
   email_verified: boolean;
 };
 
+/** "sharif@gmail.com" -> "sh****@gmail.com" */
+function maskEmail(email: string): string {
+  const at = email.indexOf('@');
+  if (at <= 0) return '****';
+  const local = email.slice(0, at);
+  return `${local.slice(0, Math.min(2, local.length))}****${email.slice(at)}`;
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -219,17 +227,46 @@ export class UsersService {
     return user.user;
   }
 
-  async searchUsers(query: string): Promise<UserSearchResult[]> {
-    if (!query || query.trim().length < 2) {
+  /**
+   * Finds people a manager can invite.
+   *
+   * This used to let any signed-in user list everyone's name and email by
+   * typing two letters. Now only managers may search, the query needs 3+
+   * characters, and emails are masked unless the manager typed the exact
+   * address. Invites are sent by user id, so the full email is not needed.
+   */
+  async searchUsers(
+    actorId: string,
+    query: string,
+  ): Promise<UserSearchResult[]> {
+    const q = query.trim();
+    if (q.length < 3) {
       return [];
+    }
+
+    const isManager = await prisma.mess_members.findFirst({
+      where: {
+        user_id: actorId,
+        mess_role: 'MANAGER',
+        removed_at: null,
+        deleted_at: null,
+      },
+      select: { id: true },
+    });
+    if (!isManager) {
+      throw new ForbiddenException({
+        message: 'Only managers can search for people to invite',
+        code: ErrorCode.MANAGER_ONLY,
+      });
     }
 
     const users = await prisma.users.findMany({
       where: {
         deleted_at: null,
+        id: { not: actorId },
         OR: [
-          { name: { contains: query.trim(), mode: 'insensitive' } },
-          { email: { contains: query.trim(), mode: 'insensitive' } },
+          { name: { contains: q, mode: 'insensitive' } },
+          { email: { contains: q, mode: 'insensitive' } },
         ],
       },
       select: {
@@ -240,11 +277,15 @@ export class UsersService {
         manager_created: true,
         email_verified: true,
       },
-      take: 20,
+      take: 10,
       orderBy: { name: 'asc' },
     });
 
-    return users;
+    const exact = q.toLowerCase();
+    return users.map((u) => ({
+      ...u,
+      email: u.email.toLowerCase() === exact ? u.email : maskEmail(u.email),
+    }));
   }
 
   async createMemberAccount(

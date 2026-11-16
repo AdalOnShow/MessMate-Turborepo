@@ -85,7 +85,6 @@ function StatCard({
 }
 
 function BalanceBadge({ value }: { value: number }) {
-  const t = useTranslations("pages.reports");
   const color =
     value > 0
       ? "text-success"

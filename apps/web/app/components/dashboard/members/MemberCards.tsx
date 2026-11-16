@@ -94,7 +94,6 @@ function BalanceChip({
   value: number;
   positive: boolean;
 }) {
-  const t = useTranslations("members.memberCards");
   return (
     <div className="flex items-baseline gap-1.5">
       <span className="text-[10px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">

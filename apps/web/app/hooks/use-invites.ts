@@ -20,7 +20,7 @@ export function useInviteUser() {
 
   return useMutation({
     meta: { successMessage: "Invite sent" },
-    mutationFn: (email: string) => unwrap(inviteUser(email)),
+    mutationFn: (userId: string) => unwrap(inviteUser({ userId })),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invites"] });
     },

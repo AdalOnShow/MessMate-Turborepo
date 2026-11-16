@@ -38,7 +38,7 @@ export function OfflineBanner() {
       wasOffline.current = false;
       toast.success(t("backOnline"));
     }
-  }, [online]);
+  }, [online, t]);
 
   if (online) return null;
 
