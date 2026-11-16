@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, Lock, RefreshCw, SearchX, WifiOff } from "lucide-react";
 import { toActionError } from "@/app/lib/action-result";
 import { cn } from "@/app/lib/utils";
@@ -30,6 +30,7 @@ export function QueryErrorState({
   className,
 }: QueryErrorStateProps) {
   const t = useTranslations("feedback.queryErrorState");
+  const locale = useLocale();
   const err = toActionError(error);
 
   const kind = err.isNetworkError
@@ -51,7 +52,11 @@ export function QueryErrorState({
     network: t("reOfflineOrServer"),
     forbidden: t("donTHaveAccess"),
     notFound: t("notFound"),
-    generic: resource ? `Couldn't load ${resource}` : t("couldnTLoad"),
+    // `resource` labels are English, so only use them in English.
+    generic:
+      resource && locale === "en"
+        ? t("couldntLoadResource", { resource })
+        : t("couldnTLoad"),
   }[kind];
 
   const canRetry = onRetry && kind !== "forbidden" && kind !== "notFound";
@@ -85,7 +90,7 @@ export function QueryErrorState({
         <p className="text-sm text-foreground-muted">{err.message}</p>
         {err.isServerError && err.requestId && (
           <p className="font-mono text-[11px] text-foreground-muted/70">
-            {t("ref")}{" "}{err.requestId.slice(0, 8)}
+            {t("ref")} {err.requestId.slice(0, 8)}
           </p>
         )}
       </div>

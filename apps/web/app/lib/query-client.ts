@@ -2,6 +2,7 @@ import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
 import { ErrorCode } from "@repo/shared";
 import { toast } from "../store/toast";
 import { ActionError, toActionError } from "./action-result";
+import { errorText } from "./error-text";
 
 declare module "@tanstack/react-query" {
   interface Register {
@@ -31,8 +32,8 @@ let redirectingToSignin = false;
 async function handleSessionExpired() {
   if (redirectingToSignin || typeof window === "undefined") return;
   redirectingToSignin = true;
-  toast.error("Your session has expired", {
-    description: "Please sign in again to continue.",
+  toast.error(errorText("sessionExpired", "Your session has expired"), {
+    description: errorText("sessionExpiredHint", "Please sign in again."),
   });
   try {
     const { clearOfflineData } = await import("./offline-cache");
@@ -44,15 +45,21 @@ async function handleSessionExpired() {
   }
 }
 
-function reportError(error: unknown, fallbackTitle: string) {
+function reportError(error: unknown, retry?: () => void) {
   const err = toActionError(error);
   if (err.code === ErrorCode.SESSION_EXPIRED) {
     void handleSessionExpired();
     return;
   }
+  const fallbackTitle = errorText("somethingWrong", "Something went wrong");
   toast.error(err.isServerError ? fallbackTitle : err.message, {
     description: err.isServerError ? err.message : undefined,
     reference: err.isServerError ? err.requestId : undefined,
+    // Network blips and server hiccups often succeed on a second try.
+    action:
+      retry && err.isRetryable
+        ? { label: errorText("tryAgain", "Try again"), onClick: retry }
+        : undefined,
   });
 }
 
@@ -70,7 +77,7 @@ function makeQueryClient() {
         // on screen, so the user knows it may be out of date.
         if (query.state.data === undefined) return;
         if (query.meta?.errorToast === false) return;
-        toast.error("Couldn't refresh data", {
+        toast.error(errorText("couldntRefresh", "Couldn't refresh data"), {
           description: err.message,
         });
       },
@@ -85,7 +92,7 @@ function makeQueryClient() {
         if (message) toast.success(message);
         void client.invalidateQueries();
       },
-      onError: (error, _vars, _ctx, mutation) => {
+      onError: (error, variables, _ctx, mutation) => {
         if (mutation.meta?.errorToast === false) {
           // Still handle an expired session globally.
           if (toActionError(error).code === ErrorCode.SESSION_EXPIRED) {
@@ -93,7 +100,10 @@ function makeQueryClient() {
           }
           return;
         }
-        reportError(error, "Something went wrong");
+        reportError(error, () => {
+          // Re-run the same request; the cache handlers toast the outcome.
+          mutation.execute(variables).catch(() => {});
+        });
       },
     }),
     defaultOptions: {

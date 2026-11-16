@@ -16,6 +16,9 @@ import {
   type BazaarSubmissionInfo,
 } from "../../hooks/use-bazaar";
 import { DatePicker } from "../../components/ui/date-picker";
+import { FieldError } from "../../components/ui/field-error";
+import { OfflineHint } from "../../components/ui/offline-hint";
+import { useOnline } from "../../hooks/use-online";
 import {
   Check,
   CheckCircle2,
@@ -77,6 +80,7 @@ function BazaarForm({
     editing?.expense_date ? new Date(editing.expense_date) : new Date(),
   );
   const [error, setError] = useState("");
+  const online = useOnline();
 
   const isPending = submit.isPending || update.isPending;
 
@@ -156,7 +160,10 @@ function BazaarForm({
                 <input
                   type="text"
                   value={item.name}
-                  onChange={(e) => updateItem(index, { name: e.target.value })}
+                  onChange={(e) => {
+                    updateItem(index, { name: e.target.value });
+                    setError("");
+                  }}
                   placeholder={t("itemNameEG")}
                   className="flex-1 rounded-lg border border-border bg-surface-sunken px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
                   disabled={isPending}
@@ -233,9 +240,9 @@ function BazaarForm({
           </span>
         </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        <FieldError message={error} />
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           {editing && (
             <button
               type="button"
@@ -249,7 +256,7 @@ function BazaarForm({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isPending}
+            disabled={isPending || !online}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
           >
             {isPending ? (
@@ -265,6 +272,7 @@ function BazaarForm({
             )}
           </button>
         </div>
+        <OfflineHint />
       </div>
     </div>
   );
@@ -331,10 +339,10 @@ function BazaarCard({
             }`}
           >
             {submission.status === "PENDING"
-              ? "Pending"
+              ? t("statusPending")
               : submission.status === "APPROVED"
-                ? "Approved"
-                : "Rejected"}
+                ? t("statusApproved")
+                : t("statusRejected")}
           </span>
         </div>
       </div>
@@ -354,7 +362,7 @@ function BazaarCard({
             </p>
           )}
 
-          <div className="mb-3 overflow-hidden rounded-lg border border-border">
+          <div className="mb-3 overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-sm">
               <tbody>
                 {submission.items.map((item, index) => (
@@ -362,8 +370,10 @@ function BazaarCard({
                     key={index}
                     className="border-b border-border last:border-0"
                   >
-                    <td className="px-3 py-1.5 text-foreground">{item.name}</td>
-                    <td className="px-3 py-1.5 text-right font-medium text-foreground">
+                    <td className="break-words px-3 py-1.5 text-foreground">
+                      {item.name}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-1.5 text-right font-medium text-foreground">
                       {formatMoney(item.amount)}
                     </td>
                   </tr>
@@ -372,7 +382,7 @@ function BazaarCard({
                   <td className="px-3 py-2 font-semibold text-foreground">
                     {t("total")}
                   </td>
-                  <td className="px-3 py-2 text-right font-bold text-foreground">
+                  <td className="whitespace-nowrap px-3 py-2 text-right font-bold text-foreground">
                     {formatMoney(submission.total_amount)}
                   </td>
                 </tr>
@@ -382,10 +392,11 @@ function BazaarCard({
 
           {submission.approver && (
             <p className="mb-2 text-xs text-foreground-muted">
-              {submission.status === "APPROVED" ? "Approved" : "Reviewed"} by{" "}
-              {submission.approver.name}
+              {submission.status === "APPROVED"
+                ? t("approvedBy", { name: submission.approver.name })
+                : t("reviewedBy", { name: submission.approver.name })}
               {submission.approved_at
-                ? ` on ${formatDate(submission.approved_at)}`
+                ? ` ${t("onDate", { date: formatDate(submission.approved_at) })}`
                 : ""}
             </p>
           )}
@@ -496,11 +507,23 @@ export default function BazaarPage() {
 
   const tabs = useMemo(
     () => [
-      { key: "pending" as const, label: "Pending", count: pendingCount },
-      { key: "approved" as const, label: "Approved", count: approvedCount },
-      { key: "rejected" as const, label: "Rejected", count: rejectedCount },
+      {
+        key: "pending" as const,
+        label: t("statusPending"),
+        count: pendingCount,
+      },
+      {
+        key: "approved" as const,
+        label: t("statusApproved"),
+        count: approvedCount,
+      },
+      {
+        key: "rejected" as const,
+        label: t("statusRejected"),
+        count: rejectedCount,
+      },
     ],
-    [pendingCount, approvedCount, rejectedCount],
+    [pendingCount, approvedCount, rejectedCount, t],
   );
 
   if (isLoading) {

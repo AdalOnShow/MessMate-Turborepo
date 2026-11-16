@@ -28,7 +28,13 @@
     "deleting": "Deleting...",
     "noPendingBazaarSubmissions": "No pending bazaar submissions.",
     "noApprovedBazaarSubmissions": "No approved bazaar submissions yet.",
-    "noRejectedBazaarSubmissions": "No rejected bazaar submissions."
+    "noRejectedBazaarSubmissions": "No rejected bazaar submissions.",
+    "statusPending": "Pending",
+    "statusApproved": "Approved",
+    "statusRejected": "Rejected",
+    "approvedBy": "Approved by {name}",
+    "reviewedBy": "Reviewed by {name}",
+    "onDate": "on {date}"
   },
   "createMess": {
     "messSetup": "Mess Setup",
@@ -105,7 +111,8 @@
     "eGBreakfastLunch": "e.g. Breakfast, Lunch, Dinner",
     "value2": "Value",
     "nameRequired": "Name is required",
-    "nameMustAtMost": "Name must be at most 50 characters"
+    "nameMustAtMost": "Name must be at most 50 characters",
+    "valueRange": "Value must be a number from 0 to 10."
   },
   "meals": {
     "meals": "Meals",
@@ -132,7 +139,8 @@
     "eGBreakfastLunch": "e.g. Breakfast, Lunch, Dinner",
     "value2": "Value",
     "nameRequired": "Name is required",
-    "nameMustAtMost": "Name must be at most 50 characters"
+    "nameMustAtMost": "Name must be at most 50 characters",
+    "saveTodaysMeals": "Save today's meals"
   },
   "mealsReports": {
     "date": "Date:",

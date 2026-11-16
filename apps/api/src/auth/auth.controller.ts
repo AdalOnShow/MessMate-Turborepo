@@ -66,7 +66,12 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {
-    this.webAppUrl = this.configService.getOrThrow<string>('CORS_ORIGIN');
+    // CORS_ORIGIN may be a comma-separated list; redirect to the first entry.
+    this.webAppUrl = this.configService
+      .getOrThrow<string>('CORS_ORIGIN')
+      .split(',')[0]!
+      .trim()
+      .replace(/\/$/, '');
     this.cookieDomain =
       this.configService.get<string>('COOKIE_DOMAIN') || undefined;
   }

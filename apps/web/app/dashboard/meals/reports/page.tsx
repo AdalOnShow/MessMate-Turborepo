@@ -52,7 +52,7 @@ function MealCell({
         type="button"
         onClick={onDecrement}
         disabled={disabled || value <= 0}
-        className="flex h-7 w-7 items-center justify-center rounded border border-border-strong text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-30"
+        className="flex size-11 items-center justify-center rounded-lg border md:size-7 md:rounded border-border-strong text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-30"
       >
         <Minus size={14} />
       </button>
@@ -63,7 +63,7 @@ function MealCell({
         type="button"
         onClick={onIncrement}
         disabled={disabled || value >= 10}
-        className="flex h-7 w-7 items-center justify-center rounded border border-border-strong text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-30"
+        className="flex size-11 items-center justify-center rounded-lg border md:size-7 md:rounded border-border-strong text-foreground-muted transition-colors hover:bg-surface-raised disabled:opacity-30"
       >
         <Plus size={14} />
       </button>
@@ -282,10 +282,10 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-            <table className="w-full text-sm">
+            <table className="w-full whitespace-nowrap text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-foreground-muted">
+                  <th className="sticky left-0 z-10 bg-surface px-3 py-3 text-left text-xs font-semibold text-foreground-muted sm:px-4">
                     {t("member")}
                   </th>
                   {Object.entries(report.summary.meal_type_totals).map(
@@ -298,7 +298,7 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
                       </th>
                     ),
                   )}
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted">
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-foreground-muted sm:px-4">
                     {t("total")}
                   </th>
                 </tr>
@@ -306,7 +306,7 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
               <tbody>
                 {report.entries.map((entry) => (
                   <tr key={entry.member_id} className="border-b border-border">
-                    <td className="px-4 py-3">
+                    <td className="sticky left-0 z-10 bg-surface px-3 py-3 sm:px-4">
                       <p className="font-medium text-foreground">
                         {entry.user.name}
                       </p>
@@ -376,24 +376,24 @@ function EditDailyGrid({
 
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-      <table className="w-full text-sm">
+      <table className="w-full whitespace-nowrap text-sm">
         <thead>
           <tr className="border-b border-border">
-            <th className="px-4 py-3 text-left text-xs font-semibold text-foreground-muted">
+            <th className="sticky left-0 z-10 bg-surface px-3 py-3 text-left text-xs font-semibold text-foreground-muted sm:px-4">
               {t("member")}
             </th>
             {mealTypes.map((mt) => (
               <th
                 key={mt.id}
-                className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted"
+                className="px-3 py-3 text-center text-xs font-semibold text-foreground-muted sm:px-4"
               >
                 {mt.name}
-                <span className="ml-1 text-foreground-muted/50">
-                  ({mt.value})
+                <span className="block text-[10px] text-foreground-muted/60">
+                  ×{mt.value}
                 </span>
               </th>
             ))}
-            <th className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted">
+            <th className="px-3 py-3 text-center text-xs font-semibold text-foreground-muted sm:px-4">
               {t("total")}
             </th>
           </tr>
@@ -403,7 +403,7 @@ function EditDailyGrid({
             let rowTotal = 0;
             return (
               <tr key={member.id} className="border-b border-border">
-                <td className="px-4 py-3">
+                <td className="sticky left-0 z-10 bg-surface px-3 py-3 sm:px-4">
                   <p className="font-medium text-foreground">
                     {member.user.name}
                   </p>
@@ -554,10 +554,10 @@ function MemberReport({
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-            <table className="w-full text-sm">
+            <table className="w-full whitespace-nowrap text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-foreground-muted">
+                  <th className="sticky left-0 z-10 bg-surface px-3 py-3 text-left text-xs font-semibold text-foreground-muted sm:px-4">
                     {t("date2")}
                   </th>
                   {Object.entries(report.summary.meal_type_totals).map(
@@ -570,7 +570,7 @@ function MemberReport({
                       </th>
                     ),
                   )}
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted">
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-foreground-muted sm:px-4">
                     {t("total")}
                   </th>
                 </tr>
@@ -578,7 +578,7 @@ function MemberReport({
               <tbody>
                 {report.entries.map((entry) => (
                   <tr key={entry.date} className="border-b border-border">
-                    <td className="px-4 py-3 text-foreground">
+                    <td className="sticky left-0 z-10 bg-surface px-3 py-3 sm:px-4 text-foreground">
                       {new Date(entry.date).toLocaleDateString("en-US", {
                         weekday: "short",
                         month: "short",
@@ -702,10 +702,10 @@ function MonthlySummary({
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="w-full text-sm">
+        <table className="w-full whitespace-nowrap text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="px-4 py-3 text-left text-xs font-semibold text-foreground-muted">
+              <th className="sticky left-0 z-10 bg-surface px-3 py-3 text-left text-xs font-semibold text-foreground-muted sm:px-4">
                 {t("member")}
               </th>
               <th className="px-3 py-3 text-center text-xs font-semibold text-foreground-muted">
@@ -719,7 +719,7 @@ function MonthlySummary({
                   {mealTypeMap[key] ?? key}
                 </th>
               ))}
-              <th className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted">
+              <th className="px-3 py-3 text-center text-xs font-semibold text-foreground-muted sm:px-4">
                 {t("total")}
               </th>
             </tr>
@@ -727,7 +727,7 @@ function MonthlySummary({
           <tbody>
             {summary.member_summaries.map((ms) => (
               <tr key={ms.member_id} className="border-b border-border">
-                <td className="px-4 py-3">
+                <td className="sticky left-0 z-10 bg-surface px-3 py-3 sm:px-4">
                   <p className="font-medium text-foreground">{ms.user.name}</p>
                   <p className="text-xs text-foreground-muted">
                     {ms.user.email}
@@ -825,7 +825,7 @@ export default function MealReportsPage() {
         </h1>
       </div>
 
-      <div className="mb-6 flex gap-1 rounded-lg border border-border bg-surface p-1">
+      <div className="no-scrollbar mb-6 flex snap-x gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1 sm:w-fit">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -833,7 +833,7 @@ export default function MealReportsPage() {
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`flex shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-md px-4 py-2.5 text-sm font-semibold transition-colors sm:py-2 ${
                 activeTab === tab.key
                   ? "bg-primary text-white"
                   : "text-foreground-muted hover:bg-surface-raised"

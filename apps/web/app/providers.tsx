@@ -7,6 +7,7 @@ import { getQueryClient } from "./lib/query-client";
 import { initPwa } from "./lib/pwa";
 import { Toaster } from "./components/feedback/Toaster";
 import { OfflineBanner } from "./components/feedback/OfflineBanner";
+import { CursorFollower } from "./components/ui/cursor-follower";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const initialized = useRef(false);
@@ -25,6 +26,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <OfflineBanner />
       {children}
       <Toaster />
+      <CursorFollower />
     </QueryClientProvider>
   );
 }

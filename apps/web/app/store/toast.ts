@@ -9,7 +9,14 @@ export interface Toast {
   description?: string;
   /** Request id shown as a reference code for support on server errors. */
   reference?: string;
+  /** Optional button, e.g. "Try again". Clicking it also dismisses. */
+  action?: ToastAction;
   duration: number;
+}
+
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
 }
 
 interface ToastStore {
@@ -42,6 +49,7 @@ export const useToastStore = create<ToastStore>((set, get) => ({
 type ToastOptions = {
   description?: string;
   reference?: string;
+  action?: ToastAction;
   duration?: number;
 };
 
@@ -51,6 +59,7 @@ function show(variant: ToastVariant, title: string, options?: ToastOptions) {
     title,
     description: options?.description,
     reference: options?.reference,
+    action: options?.action,
     duration: options?.duration ?? (variant === "error" ? 7000 : 4000),
   });
 }

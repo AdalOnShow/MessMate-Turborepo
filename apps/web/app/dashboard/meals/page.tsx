@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { OfflineHint } from "../../components/ui/offline-hint";
+import { useOnline } from "../../hooks/use-online";
 import Link from "next/link";
 import { useState, useMemo, useCallback } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
@@ -179,6 +181,7 @@ export default function MealsPage() {
   }, [localGrid]);
 
   const saveMutation = useBulkSaveMealEntries(messId, monthId);
+  const online = useOnline();
 
   const handleSave = () => {
     const entries = Object.entries(localGrid).map(([memberId, meals]) => ({
@@ -320,7 +323,7 @@ export default function MealsPage() {
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={!hasChanges || saveMutation.isPending}
+                disabled={!hasChanges || saveMutation.isPending || !online}
                 className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60 md:h-auto md:rounded-lg md:px-4 md:py-2"
               >
                 {saveMutation.isPending ? (
@@ -331,7 +334,7 @@ export default function MealsPage() {
                 ) : (
                   <>
                     <Save size={14} />
-                    Save Today&apos;s Meals
+                    {t("saveTodaysMeals")}
                   </>
                 )}
               </button>
@@ -340,6 +343,7 @@ export default function MealsPage() {
                   {t("unsavedChanges")}
                 </span>
               )}
+              {hasChanges && <OfflineHint />}
             </div>
           )}
 
@@ -688,7 +692,7 @@ function MealTypeRow({
           type="button"
           onClick={handleToggleActive}
           disabled={updateMealType.isPending}
-          className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
+          className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors before:absolute before:-inset-3 before:content-[''] ${
             mealType.is_active
               ? "border-primary bg-primary text-white"
               : "border-border-strong bg-transparent"

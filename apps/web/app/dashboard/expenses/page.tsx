@@ -9,6 +9,10 @@ import { useCreateExpense } from "../../hooks/use-expenses";
 import { DatePicker } from "../../components/ui/date-picker";
 import { Select } from "../../components/ui/select";
 import { Button } from "../../components/ui/button";
+import { FieldError, invalidInput } from "../../components/ui/field-error";
+import { OfflineHint } from "../../components/ui/offline-hint";
+import { useOnline } from "../../hooks/use-online";
+import { useFieldErrors } from "../../lib/field-errors";
 import { Check, Loader2, Plus, Receipt, Users } from "lucide-react";
 import {
   QueriesErrorState,
@@ -57,7 +61,9 @@ export default function AddExpensePage() {
   const [amount, setAmount] = useState("");
   const [expenseDate, setExpenseDate] = useState<Date | undefined>(new Date());
   const [selected, setSelected] = useState<string[]>([]);
-  const [error, setError] = useState("");
+  const fieldErrors = useFieldErrors();
+  const errors = fieldErrors.errors;
+  const online = useOnline();
 
   const parsedAmount = parseFloat(amount);
   const shares = useMemo(
@@ -77,27 +83,18 @@ export default function AddExpensePage() {
   };
 
   const handleSubmit = () => {
-    setError("");
-
-    if (!title.trim()) {
-      setError(t("titleRequired"));
-      return;
-    }
-
+    const next: Record<string, string> = {};
     if (!parsedAmount || parsedAmount <= 0) {
-      setError(t("amountMustGreaterThan"));
-      return;
+      next.amount = t("amountMustGreaterThan");
     }
-
+    if (!title.trim()) next.title = t("titleRequired");
     if (selected.length === 0) {
-      setError(t("selectAtLeastOne"));
-      return;
+      next.member_ids = t("selectAtLeastOne");
+    } else if (type === "INDIVIDUAL" && selected.length !== 1) {
+      next.member_ids = t("selectExactlyOneMember");
     }
-
-    if (type === "INDIVIDUAL" && selected.length !== 1) {
-      setError(t("selectExactlyOneMember"));
-      return;
-    }
+    fieldErrors.set(next);
+    if (Object.keys(next).length > 0) return;
 
     const payload = {
       type,
@@ -117,7 +114,10 @@ export default function AddExpensePage() {
         setAmount("");
         setSelected([]);
         setExpenseDate(new Date());
-        setError("");
+        fieldErrors.reset();
+      },
+      onError: (err) => {
+        fieldErrors.fromServer(err);
       },
     });
   };
@@ -275,13 +275,19 @@ export default function AddExpensePage() {
                   min="0"
                   step="0.01"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => {
+                    setAmount(e.target.value);
+                    fieldErrors.clear("amount");
+                  }}
+                  aria-invalid={!!errors.amount}
+                  aria-describedby={errors.amount ? "amount-error" : undefined}
                   onWheel={(e) => e.currentTarget.blur()}
                   placeholder="0.00"
-                  className="w-full appearance-none rounded-lg border border-border-strong bg-surface-sunken py-2.5 pl-8 pr-3 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0"
+                  className={`w-full appearance-none rounded-lg border border-border-strong bg-surface-sunken py-2.5 pl-8 pr-3 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 ${errors.amount ? invalidInput : ""}`}
                   disabled={create.isPending}
                 />
               </div>
+              <FieldError id="amount-error" message={errors.amount} />
             </div>
           </div>
 
@@ -292,11 +298,17 @@ export default function AddExpensePage() {
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                fieldErrors.clear("title");
+              }}
+              aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? "title-error" : undefined}
               placeholder={type === "SHARED" ? "e.g. Gas Bill" : "e.g. Shampoo"}
-              className="w-full rounded-lg border border-border-strong bg-surface-sunken px-3 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+              className={`w-full rounded-lg border border-border-strong bg-surface-sunken px-3 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none ${errors.title ? invalidInput : ""}`}
               disabled={create.isPending}
             />
+            <FieldError id="title-error" message={errors.title} />
           </div>
 
           <div>
@@ -369,7 +381,10 @@ export default function AddExpensePage() {
                       <input
                         type="checkbox"
                         checked={isChecked}
-                        onChange={() => toggleMember(member.id)}
+                        onChange={() => {
+                          toggleMember(member.id);
+                          fieldErrors.clear("member_ids");
+                        }}
                         disabled={create.isPending}
                         className="sr-only"
                       />
@@ -386,6 +401,7 @@ export default function AddExpensePage() {
                 })
               )}
             </div>
+            <FieldError message={errors.member_ids} />
           </div>
 
           {type === "SHARED" &&
@@ -424,12 +440,10 @@ export default function AddExpensePage() {
               </div>
             )}
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={create.isPending}
+            disabled={create.isPending || !online}
             className="w-full"
           >
             {create.isPending ? (
@@ -444,6 +458,7 @@ export default function AddExpensePage() {
               </>
             )}
           </Button>
+          <OfflineHint />
         </div>
       </div>
     </div>

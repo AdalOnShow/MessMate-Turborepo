@@ -2,7 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2, Copy, Info, X } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Copy,
+  Info,
+  RotateCw,
+  X,
+} from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { useToastStore, type Toast } from "@/app/store/toast";
 
@@ -69,11 +76,24 @@ function ToastItem({ toast }: { toast: Toast }) {
             {copied ? "Copied" : `Ref: ${toast.reference.slice(0, 8)}`}
           </button>
         )}
+        {toast.action && (
+          <button
+            type="button"
+            onClick={() => {
+              dismiss(toast.id);
+              toast.action?.onClick();
+            }}
+            className="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-semibold text-white transition-transform active:scale-95"
+          >
+            <RotateCw size={14} aria-hidden />
+            {toast.action.label}
+          </button>
+        )}
       </div>
       <button
         type="button"
         onClick={() => dismiss(toast.id)}
-        className="-mr-1 -mt-1 h-7 w-7 shrink-0 rounded-md text-foreground-muted transition-colors hover:bg-surface hover:text-foreground"
+        className="-mr-2 -mt-2 h-10 w-10 shrink-0 rounded-md text-foreground-muted transition-colors hover:bg-surface hover:text-foreground"
         aria-label={t("dismissNotification")}
       >
         <X size={16} className="mx-auto" />

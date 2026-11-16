@@ -1,4 +1,5 @@
 import { ErrorCode } from "@repo/shared";
+import { errorCodeText, errorText } from "./error-text";
 
 /**
  * Server actions must not throw for expected API failures: in production
@@ -74,24 +75,35 @@ function firstDetail(details: unknown): string | null {
   return null;
 }
 
-/** Human-readable message for a failed result. */
+/** Human-readable message for a failed result, in the user's language. */
 export function failureMessage(result: {
   status: number;
   message: string;
   code?: ErrorCode;
   details?: unknown;
 }): string {
-  if (result.code === ErrorCode.TIMEOUT) return TIMEOUT_MESSAGE;
-  if (result.status === 0) return NETWORK_MESSAGE;
+  if (result.code === ErrorCode.TIMEOUT) {
+    return errorText("timeout", TIMEOUT_MESSAGE);
+  }
+  if (result.status === 0) return errorText("network", NETWORK_MESSAGE);
   if (result.status === 429) {
-    return "Too many requests. Please wait a moment and try again.";
+    return errorText(
+      "rateLimited",
+      "Too many requests. Please wait a moment and try again.",
+    );
   }
   if (result.status === 502 || result.status === 503 || result.status === 504) {
-    return UNAVAILABLE_MESSAGE;
+    return errorText("unavailable", UNAVAILABLE_MESSAGE);
   }
-  if (result.status >= 500) return SERVER_MESSAGE;
-  // "Validation failed" alone is useless; prefer the first field message.
-  return firstDetail(result.details) ?? result.message;
+  if (result.status >= 500) return errorText("server", SERVER_MESSAGE);
+  // Field problems are shown next to the field when the form supports it;
+  // otherwise the first field message is more useful than a generic one.
+  const isValidation =
+    result.code === ErrorCode.VALIDATION_FAILED ||
+    result.code === ErrorCode.BAD_REQUEST;
+  const detail = firstDetail(result.details);
+  if (isValidation && detail) return detail;
+  return errorCodeText(result.code) ?? detail ?? result.message;
 }
 
 /** Normalize anything thrown into an `ActionError`. */
@@ -104,14 +116,14 @@ export function toActionError(error: unknown): ActionError {
   if (offline || error instanceof TypeError) {
     return new ActionError(
       0,
-      NETWORK_MESSAGE,
+      errorText("network", NETWORK_MESSAGE),
       undefined,
       ErrorCode.NETWORK_ERROR,
     );
   }
   return new ActionError(
     500,
-    SERVER_MESSAGE,
+    errorText("server", SERVER_MESSAGE),
     undefined,
     ErrorCode.INTERNAL_ERROR,
   );

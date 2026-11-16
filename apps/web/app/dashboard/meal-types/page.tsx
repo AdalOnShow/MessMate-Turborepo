@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { FieldError } from "../../components/ui/field-error";
+import { useOnline } from "../../hooks/use-online";
 import { useState } from "react";
 import {
   useGetMyMess,
@@ -28,6 +30,7 @@ function CreateMealTypeForm({
   const [name, setName] = useState("");
   const [value, setValue] = useState("1");
   const [error, setError] = useState("");
+  const online = useOnline();
 
   const handleSubmit = () => {
     setError("");
@@ -45,7 +48,7 @@ function CreateMealTypeForm({
 
     const numVal = parseFloat(value);
     if (isNaN(numVal) || numVal < 0 || numVal > 10) {
-      setError("Value must be between 0 and 10");
+      setError(t("valueRange"));
       return;
     }
 
@@ -96,7 +99,10 @@ function CreateMealTypeForm({
             min="0"
             max="10"
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+              setValue(e.target.value);
+              setError("");
+            }}
             placeholder={t("value2")}
             className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
             disabled={createMealType.isPending}
@@ -115,7 +121,7 @@ function CreateMealTypeForm({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={createMealType.isPending}
+            disabled={createMealType.isPending || !online}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
           >
             {createMealType.isPending ? (
@@ -128,7 +134,7 @@ function CreateMealTypeForm({
         </div>
       </div>
 
-      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+      <FieldError message={error} />
     </div>
   );
 }
@@ -180,7 +186,7 @@ function MealTypeRow({
           type="button"
           onClick={handleToggleActive}
           disabled={updateMealType.isPending}
-          className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
+          className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors before:absolute before:-inset-3 before:content-[''] ${
             mealType.is_active
               ? "border-primary bg-primary text-white"
               : "border-border-strong bg-transparent"

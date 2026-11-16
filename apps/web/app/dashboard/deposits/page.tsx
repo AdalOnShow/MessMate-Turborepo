@@ -9,6 +9,10 @@ import { useCreateDeposit } from "../../hooks/use-deposits";
 import { DatePicker } from "../../components/ui/date-picker";
 import { Select } from "../../components/ui/select";
 import { Button } from "../../components/ui/button";
+import { FieldError, invalidInput } from "../../components/ui/field-error";
+import { OfflineHint } from "../../components/ui/offline-hint";
+import { useOnline } from "../../hooks/use-online";
+import { useFieldErrors } from "../../lib/field-errors";
 import { Loader2, Plus, WalletCards } from "lucide-react";
 import {
   QueriesErrorState,
@@ -42,7 +46,9 @@ export default function AddDepositPage() {
   const [memberId, setMemberId] = useState("");
   const [amount, setAmount] = useState("");
   const [depositDate, setDepositDate] = useState<Date | undefined>(new Date());
-  const [error, setError] = useState("");
+  const fieldErrors = useFieldErrors();
+  const errors = fieldErrors.errors;
+  const online = useOnline();
 
   const activeMembers = (members ?? []).filter((m) => !m.removed_at);
   const parsedAmount = parseFloat(amount);
@@ -50,17 +56,13 @@ export default function AddDepositPage() {
   const selectedMember = activeMembers.find((m) => m.id === memberId);
 
   const handleSubmit = () => {
-    setError("");
-
-    if (!memberId) {
-      setError(t("selectMember2"));
-      return;
-    }
-
+    const next: Record<string, string> = {};
+    if (!memberId) next.member_id = t("selectMember2");
     if (!parsedAmount || parsedAmount <= 0) {
-      setError(t("amountMustGreaterThan"));
-      return;
+      next.amount = t("amountMustGreaterThan");
     }
+    fieldErrors.set(next);
+    if (Object.keys(next).length > 0) return;
 
     const payload = {
       member_id: memberId,
@@ -77,7 +79,10 @@ export default function AddDepositPage() {
         setMemberId("");
         setAmount("");
         setDepositDate(new Date());
-        setError("");
+        fieldErrors.reset();
+      },
+      onError: (err) => {
+        fieldErrors.fromServer(err);
       },
     });
   };
@@ -184,7 +189,10 @@ export default function AddDepositPage() {
             </label>
             <Select
               value={memberId}
-              onValueChange={setMemberId}
+              onValueChange={(v) => {
+                setMemberId(v);
+                fieldErrors.clear("member_id");
+              }}
               options={activeMembers.map((m) => ({
                 value: m.id,
                 label: m.user.name,
@@ -192,6 +200,7 @@ export default function AddDepositPage() {
               placeholder={t("selectMember")}
               className="w-full"
             />
+            <FieldError message={errors.member_id} />
           </div>
 
           <div>
@@ -208,13 +217,18 @@ export default function AddDepositPage() {
                 min="0"
                 step="0.01"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                  fieldErrors.clear("amount");
+                }}
+                aria-invalid={!!errors.amount}
                 onWheel={(e) => e.currentTarget.blur()}
                 placeholder="0.00"
-                className="w-full appearance-none rounded-lg border border-border-strong bg-surface-sunken py-2.5 pl-8 pr-3 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0"
+                className={`w-full appearance-none rounded-lg border border-border-strong bg-surface-sunken py-2.5 pl-8 pr-3 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 ${errors.amount ? invalidInput : ""}`}
                 disabled={create.isPending}
               />
             </div>
+            <FieldError message={errors.amount} />
           </div>
 
           <div>
@@ -247,12 +261,10 @@ export default function AddDepositPage() {
             </div>
           )}
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={create.isPending}
+            disabled={create.isPending || !online}
             className="w-full"
           >
             {create.isPending ? (
@@ -267,6 +279,7 @@ export default function AddDepositPage() {
               </>
             )}
           </Button>
+          <OfflineHint />
         </div>
       </div>
     </div>

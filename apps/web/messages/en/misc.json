@@ -25,13 +25,13 @@
     "goHome": "Go home"
   },
   "globalError": {
-    "messmateCouldnTLoad": "MessMate couldn’t load",
-    "criticalErrorStoppedApp": "A critical error stopped the app from loading. Please try again in a moment.",
-    "reloadHome": "Reload home"
+    "messmateCouldnTLoad": "MessMate couldn't open",
+    "criticalErrorStoppedApp": "Something broke. Please try again in a minute.",
+    "reloadHome": "Go to home"
   },
   "notFound": {
     "pageNotFound": "Page not found",
-    "pageReLookingDoesn": "The page you’re looking for doesn’t exist or has been moved. Check the address, or head back home.",
+    "pageReLookingDoesn": "This page doesn't exist. Check the link, or go back home.",
     "pageNotFoundMessmate": "Page not found — MessMate",
     "goHome": "Go home"
   },

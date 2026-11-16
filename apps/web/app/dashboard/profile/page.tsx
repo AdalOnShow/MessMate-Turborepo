@@ -21,6 +21,10 @@ import {
   useUploadAvatar,
 } from "../../hooks/use-profile";
 import { QueryErrorState } from "../../components/feedback/QueryErrorState";
+import { FieldError, invalidInput } from "../../components/ui/field-error";
+import { OfflineHint } from "../../components/ui/offline-hint";
+import { useOnline } from "../../hooks/use-online";
+import { useFieldErrors } from "../../lib/field-errors";
 
 function CompactAvatarUpload({
   currentAvatarUrl,
@@ -204,6 +208,9 @@ function ProfileContent() {
   const [phone, setPhone] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const profileErrors = useFieldErrors();
+  const passwordErrors = useFieldErrors();
+  const online = useOnline();
 
   useEffect(() => {
     const source = profile.data ?? user;
@@ -216,10 +223,13 @@ function ProfileContent() {
 
   const handleProfileSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    updateProfile.mutate({
-      name,
-      phone: phone.trim() ? phone.trim() : null,
-    });
+    updateProfile.mutate(
+      {
+        name,
+        phone: phone.trim() ? phone.trim() : null,
+      },
+      { onError: (err) => profileErrors.fromServer(err) },
+    );
   };
 
   const handlePasswordSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -230,7 +240,9 @@ function ProfileContent() {
         onSuccess: () => {
           setCurrentPassword("");
           setNewPassword("");
+          passwordErrors.reset();
         },
+        onError: (err) => passwordErrors.fromServer(err),
       },
     );
   };
@@ -282,10 +294,15 @@ function ProfileContent() {
                 </span>
                 <input
                   value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    profileErrors.clear("name");
+                  }}
+                  aria-invalid={!!profileErrors.errors.name}
                   required
-                  className="mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-foreground-muted/50 focus:border-primary focus:ring-2 focus:ring-primary/15"
+                  className={`mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-foreground-muted/50 focus:border-primary focus:ring-2 focus:ring-primary/15 ${profileErrors.errors.name ? invalidInput : ""}`}
                 />
+                <FieldError message={profileErrors.errors.name} />
               </label>
 
               <label className="block">
@@ -294,11 +311,16 @@ function ProfileContent() {
                 </span>
                 <input
                   value={phone}
-                  onChange={(event) => setPhone(event.target.value)}
+                  onChange={(event) => {
+                    setPhone(event.target.value);
+                    profileErrors.clear("phone");
+                  }}
+                  aria-invalid={!!profileErrors.errors.phone}
                   maxLength={20}
-                  className="mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-foreground-muted/50 focus:border-primary focus:ring-2 focus:ring-primary/15"
+                  className={`mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-foreground-muted/50 focus:border-primary focus:ring-2 focus:ring-primary/15 ${profileErrors.errors.phone ? invalidInput : ""}`}
                   placeholder={t("addPhoneNumber")}
                 />
+                <FieldError message={profileErrors.errors.phone} />
               </label>
 
               <label className="block">
@@ -315,7 +337,7 @@ function ProfileContent() {
 
             <button
               type="submit"
-              disabled={updateProfile.isPending}
+              disabled={updateProfile.isPending || !online}
               className="mt-6 flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {updateProfile.isPending ? (
@@ -368,10 +390,15 @@ function ProfileContent() {
                   <input
                     type="password"
                     value={currentPassword}
-                    onChange={(event) => setCurrentPassword(event.target.value)}
+                    onChange={(event) => {
+                      setCurrentPassword(event.target.value);
+                      passwordErrors.clear("currentPassword");
+                    }}
+                    aria-invalid={!!passwordErrors.errors.currentPassword}
                     required
-                    className="mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                    className={`mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 ${passwordErrors.errors.currentPassword ? invalidInput : ""}`}
                   />
+                  <FieldError message={passwordErrors.errors.currentPassword} />
                 </label>
                 <label className="block">
                   <span className="text-sm font-medium text-foreground">
@@ -380,17 +407,22 @@ function ProfileContent() {
                   <input
                     type="password"
                     value={newPassword}
-                    onChange={(event) => setNewPassword(event.target.value)}
+                    onChange={(event) => {
+                      setNewPassword(event.target.value);
+                      passwordErrors.clear("newPassword");
+                    }}
+                    aria-invalid={!!passwordErrors.errors.newPassword}
                     required
                     minLength={8}
-                    className="mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                    className={`mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 ${passwordErrors.errors.newPassword ? invalidInput : ""}`}
                   />
+                  <FieldError message={passwordErrors.errors.newPassword} />
                 </label>
               </div>
 
               <button
                 type="submit"
-                disabled={changePassword.isPending}
+                disabled={changePassword.isPending || !online}
                 className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-primary/40 text-sm font-bold text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {changePassword.isPending && (
@@ -398,6 +430,7 @@ function ProfileContent() {
                 )}
                 {t("updatePassword")}
               </button>
+              <OfflineHint />
             </form>
           </div>
         </div>

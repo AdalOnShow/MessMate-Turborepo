@@ -174,7 +174,7 @@ function EditableMessInfo() {
           )}
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <button
             type="button"
             onClick={handleCancel}
@@ -316,7 +316,7 @@ function MealTypesConfig() {
                 type="button"
                 onClick={() => handleToggleActive(mt)}
                 disabled={updateMealType.isPending}
-                className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
+                className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors before:absolute before:-inset-3 before:content-[''] ${
                   mt.is_active
                     ? "border-primary bg-primary text-white"
                     : "border-border-strong bg-transparent"

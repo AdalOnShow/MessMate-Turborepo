@@ -100,23 +100,23 @@ function MonthSummary({ month }: { month: MonthInfo }) {
               <p className="text-xs font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
                 {t("memberSummaries")}
               </p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="-mx-1 overflow-x-auto px-1">
+                <table className="w-full whitespace-nowrap text-sm">
                   <thead>
                     <tr className="border-b border-border">
                       <th className="pb-2 text-left text-xs font-semibold text-foreground-muted">
                         {t("member")}
                       </th>
-                      <th className="pb-2 text-right text-xs font-semibold text-foreground-muted">
+                      <th className="pb-2 pl-4 text-right text-xs font-semibold text-foreground-muted">
                         {t("meals")}
                       </th>
-                      <th className="pb-2 text-right text-xs font-semibold text-foreground-muted">
+                      <th className="pb-2 pl-4 text-right text-xs font-semibold text-foreground-muted">
                         {t("bill")}
                       </th>
-                      <th className="pb-2 text-right text-xs font-semibold text-foreground-muted">
+                      <th className="pb-2 pl-4 text-right text-xs font-semibold text-foreground-muted">
                         {t("deposit")}
                       </th>
-                      <th className="pb-2 text-right text-xs font-semibold text-foreground-muted">
+                      <th className="pb-2 pl-4 text-right text-xs font-semibold text-foreground-muted">
                         {t("balance")}
                       </th>
                     </tr>
@@ -132,17 +132,17 @@ function MonthSummary({ month }: { month: MonthInfo }) {
                             {s.user.email}
                           </p>
                         </td>
-                        <td className="py-2 text-right text-foreground">
+                        <td className="py-2 pl-4 text-right text-foreground">
                           {s.total_meals}
                         </td>
-                        <td className="py-2 text-right text-foreground">
+                        <td className="py-2 pl-4 text-right text-foreground">
                           ৳{s.final_bill.toLocaleString()}
                         </td>
-                        <td className="py-2 text-right text-foreground">
+                        <td className="py-2 pl-4 text-right text-foreground">
                           ৳{s.deposit_amount.toLocaleString()}
                         </td>
                         <td
-                          className={`py-2 text-right font-semibold ${
+                          className={`py-2 pl-4 text-right font-semibold ${
                             s.final_balance > 0
                               ? "text-success"
                               : s.final_balance < 0

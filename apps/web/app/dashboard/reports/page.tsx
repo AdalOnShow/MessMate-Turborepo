@@ -71,10 +71,12 @@ function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-surface p-3">
-      <p className="text-xs font-medium text-foreground-muted">{label}</p>
+    <div className="min-w-0 rounded-lg border border-border bg-surface p-2.5 sm:p-3">
+      <p className="text-xs font-medium leading-tight text-foreground-muted">
+        {label}
+      </p>
       <p
-        className={`mt-1 text-xl font-bold ${
+        className={`mt-1 truncate text-lg font-bold tabular-nums sm:text-xl ${
           highlight ? "text-primary" : "text-foreground"
         }`}
       >
@@ -257,7 +259,7 @@ function MealsSummaryView({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <StatCard label={t("totalMeals")} value={String(data.total_meals)} />
         <StatCard label={t("activeDays")} value={String(data.active_days)} />
         <StatCard label={t("entries")} value={String(data.total_entries)} />

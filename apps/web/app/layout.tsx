@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Noto_Sans_Bengali } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
+import { ErrorTranslatorBridge } from "./components/feedback/ErrorTranslatorBridge";
 import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -89,6 +90,7 @@ export default async function RootLayout({
     >
       <body className="font-body antialiased">
         <NextIntlClientProvider>
+          <ErrorTranslatorBridge />
           <Providers>{children}</Providers>
         </NextIntlClientProvider>
         <Analytics />
