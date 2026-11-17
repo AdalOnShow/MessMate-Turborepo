@@ -10,7 +10,6 @@ import {
 } from "../lib/reads";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  addMember,
   removeMember,
   updateMemberRole,
   type ActivityLogInfo,
@@ -89,24 +88,6 @@ export function useMemberDashboard(messId: string | undefined) {
       return result;
     },
     enabled: !!messId,
-  });
-}
-
-export function useAddMember(messId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    meta: { successMessage: "Member added" },
-    mutationFn: async (userId: string) => {
-      const result = await unwrap(addMember(messId, userId));
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["members", messId] });
-      queryClient.invalidateQueries({
-        queryKey: ["member-calculations", messId],
-      });
-    },
   });
 }
 

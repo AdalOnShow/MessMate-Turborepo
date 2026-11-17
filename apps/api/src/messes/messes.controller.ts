@@ -19,7 +19,6 @@ import {
   updateMessSchema,
   createMealTypeSchema,
   updateMealTypeSchema,
-  addMemberSchema,
   updateMemberRoleSchema,
   formatZodError,
   type MemberFilters,
@@ -229,45 +228,6 @@ export class MessesController {
     return {
       success: true,
       message: 'Recent activities retrieved successfully',
-      data,
-    };
-  }
-
-  @Post(':messId/members')
-  @UseGuards(RolesGuard)
-  @Roles('MANAGER')
-  async addMember(
-    @Req() req: AuthenticatedRequest,
-    @Param('messId') messId: string,
-    @Body() body: unknown,
-  ): Promise<{
-    success: true;
-    message: string;
-    data: import('@repo/shared').MessMemberWithUser;
-  }> {
-    validateUuid(messId, 'messId');
-
-    const parsed = addMemberSchema.safeParse(body);
-    if (!parsed.success) {
-      const fieldErrors = formatZodError(parsed.error);
-      throw new BadRequestException({
-        message: 'Validation failed',
-        details: fieldErrors,
-      });
-    }
-
-    const actorId = req.user!.id;
-    this.logger.log(`📮 POST /messes/${messId}/members - actor: ${actorId}`);
-
-    const data = await this.messesService.addMember(
-      messId,
-      actorId,
-      parsed.data.userId,
-    );
-
-    return {
-      success: true,
-      message: 'Member added successfully',
       data,
     };
   }

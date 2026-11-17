@@ -108,6 +108,7 @@ describe('UsersService', () => {
       });
       prismaMock.users.findFirst.mockResolvedValue(null);
       prismaMock.users.create.mockResolvedValue({ id: 'new-user' });
+      prismaMock.mess_members.create.mockResolvedValue({ id: 'new-member' });
 
       await service.createMemberAccount(input, MANAGER);
 
@@ -131,9 +132,7 @@ describe('UsersService', () => {
       });
     });
 
-    // BUG: the activity log says entity_type 'mess_members' but stores the
-    // new *user* id, so the log entry can't be joined back to the membership.
-    it.failing("logs the new membership's id", async () => {
+    it("logs the new membership's id", async () => {
       prismaMock.mess_members.findFirst.mockResolvedValue({
         mess_role: 'MANAGER',
       });

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -13,7 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 import type { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { signUpSchema, type SignupDto } from '@repo/shared';
+import { formatZodError, signUpSchema } from '@repo/shared';
 import {
   ACCESS_TOKEN_TTL_SECONDS,
   AuthService,
@@ -80,11 +81,19 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('signup')
   async signup(
-    @Body() signupDto: SignupDto,
+    @Body() body: unknown,
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
-    const parsedSignup = signUpSchema.parse(signupDto);
+    // safeParse, not parse: a thrown ZodError became a 500.
+    const parsed = signUpSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
+    const parsedSignup = parsed.data;
     this.logger.log(`📝 POST /auth/signup - email: ${parsedSignup.email}`);
 
     const tokens: AuthTokens = await this.authService.register(

@@ -28,6 +28,11 @@ export const ACCESS_TOKEN_TTL_SECONDS = 60 * 60;
 /** Sliding: every refresh pushes a session's expiry this far out. */
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 
+/** Emails are stored and compared in lower case. */
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
@@ -79,7 +84,9 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<AuthUser | null> {
-    const user = await prisma.users.findUnique({ where: { email } });
+    const user = await prisma.users.findUnique({
+      where: { email: normalizeEmail(email) },
+    });
     if (!user?.password) {
       this.logger.warn(`⚠️ Login attempt with non-existent email: ${email}`);
       return null;
@@ -135,8 +142,9 @@ export class AuthService {
       };
     }
 
+    const email = normalizeEmail(profile.email);
     const existingUser = await prisma.users.findUnique({
-      where: { email: profile.email },
+      where: { email },
     });
 
     if (existingUser) {
@@ -154,7 +162,7 @@ export class AuthService {
     const user = await prisma.users.create({
       data: {
         name: profile.name,
-        email: profile.email,
+        email,
         avatar: profile.avatar ?? null,
         email_verified: true,
         oauth_accounts: {
@@ -187,8 +195,9 @@ export class AuthService {
   ): Promise<AuthTokens> {
     this.logger.log(`📝 Registration attempt for email: ${signupDto.email}`);
 
+    const email = normalizeEmail(signupDto.email);
     const existing = await prisma.users.findUnique({
-      where: { email: signupDto.email },
+      where: { email },
     });
     if (existing) {
       this.logger.warn(`⚠️ Duplicate email registration: ${signupDto.email}`);
@@ -203,7 +212,7 @@ export class AuthService {
     const user = await prisma.users.create({
       data: {
         name: signupDto.name,
-        email: signupDto.email,
+        email,
         password: hashedPassword,
         phone: signupDto.phone ?? null,
       },

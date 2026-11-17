@@ -49,16 +49,23 @@ describe('MessesService – members', () => {
   beforeEach(resetPrismaMock);
 
   describe('createMess', () => {
-    it('makes the creator the manager and seeds Lunch/Dinner, in one transaction', async () => {
-      prismaMock.messes.create.mockResolvedValue({
-        id: MESS,
-        name: 'Green Villa',
-        slug: 'green-villa',
-        description: null,
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
+    function createSucceeds() {
+      prismaMock.mess_members.findFirst.mockResolvedValue(null);
+      prismaMock.messes.findMany.mockResolvedValue([]);
+      prismaMock.messes.create.mockImplementation(
+        ({ data }: { data: { name: string; slug: string } }) => ({
+          id: MESS,
+          ...data,
+          description: null,
+          created_at: new Date(),
+          updated_at: new Date(),
+        }),
+      );
       prismaMock.mess_members.create.mockResolvedValue({ id: 'member-1' });
+    }
+
+    it('makes the creator the manager and seeds Lunch/Dinner, in one transaction', async () => {
+      createSucceeds();
 
       const mess = await service.createMess(MANAGER, { name: ' Green Villa ' });
 
@@ -73,41 +80,35 @@ describe('MessesService – members', () => {
           slug: 'green-villa',
         }),
       });
+      expect(prismaMock.meal_types.createMany).toHaveBeenCalled();
     });
-  });
 
-  describe('addMember (direct add by a manager)', () => {
-    it('rejects someone already in the mess (including removed members)', async () => {
-      prismaMock.mess_members.findFirst.mockResolvedValue(memberRow());
+    it('refuses when the user is already in a mess (ADR-003)', async () => {
+      prismaMock.mess_members.findFirst.mockResolvedValue({ id: 'existing' });
+
       await rejectsWith(
-        service.addMember(MESS, MANAGER, TARGET),
+        service.createMess(MANAGER, { name: 'Second Mess' }),
         ConflictException,
-        ErrorCode.ALREADY_MEMBER,
+        ErrorCode.ALREADY_IN_MESS,
       );
-      expect(prismaMock.mess_members.findFirst).toHaveBeenCalledWith({
-        where: { mess_id: MESS, user_id: TARGET, deleted_at: null },
-      });
+      expect(prismaMock.mess_members.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { user_id: MANAGER, removed_at: null, deleted_at: null },
+        }),
+      );
+      expect(prismaMock.messes.create).not.toHaveBeenCalled();
     });
 
-    it('adds the user as a MEMBER and logs it', async () => {
-      prismaMock.mess_members.findFirst.mockResolvedValue(null);
-      prismaMock.mess_members.create.mockResolvedValue(memberRow());
+    it('gives a mess with a taken name a numbered slug', async () => {
+      createSucceeds();
+      prismaMock.messes.findMany.mockResolvedValue([
+        { slug: 'green-villa' },
+        { slug: 'green-villa-2' },
+      ]);
 
-      const result = await service.addMember(MESS, MANAGER, TARGET);
+      const mess = await service.createMess(MANAGER, { name: 'Green Villa' });
 
-      expect(result.mess_role).toBe('MEMBER');
-      expect(prismaMock.mess_members.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { mess_id: MESS, user_id: TARGET, mess_role: 'MEMBER' },
-        }),
-      );
-      expect(prismaMock.activity_logs.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          action: 'MEMBER_ADDED',
-          actor_id: MANAGER,
-          entity_id: 'member-1',
-        }),
-      });
+      expect(mess.slug).toBe('green-villa-3');
     });
   });
 
@@ -206,10 +207,7 @@ describe('MessesService – members', () => {
       });
     });
 
-    // BUG: demoting is never checked against the manager count, so the
-    // only manager can demote themselves (or be demoted) and leave the mess
-    // with nobody who can manage it. removeMember already guards this case.
-    it.failing('refuses to demote the last manager', async () => {
+    it('refuses to demote the last manager', async () => {
       prismaMock.mess_members.findFirst.mockResolvedValue(
         memberRow({ user_id: MANAGER, mess_role: 'MANAGER' }),
       );
@@ -220,6 +218,49 @@ describe('MessesService – members', () => {
         service.updateMemberRole(MESS, MANAGER, MANAGER, 'MEMBER'),
         BadRequestException,
       );
+      expect(prismaMock.mess_members.update).not.toHaveBeenCalled();
+    });
+
+    it('can demote one of two managers', async () => {
+      prismaMock.mess_members.findFirst.mockResolvedValue(
+        memberRow({ mess_role: 'MANAGER' }),
+      );
+      prismaMock.mess_members.count.mockResolvedValue(2);
+      prismaMock.mess_members.update.mockResolvedValue(memberRow());
+
+      const result = await service.updateMemberRole(
+        MESS,
+        MANAGER,
+        TARGET,
+        'MEMBER',
+      );
+
+      expect(result.mess_role).toBe('MEMBER');
+      expect(prismaMock.activity_logs.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ action: 'MANAGER_REMOVED' }),
+      });
+    });
+
+    it('treats a change to the same role as a no-op', async () => {
+      // Two managers already: promoting one of them used to hit the limit.
+      prismaMock.mess_members.findFirst.mockResolvedValue(
+        memberRow({ mess_role: 'MANAGER' }),
+      );
+      prismaMock.mess_members.count.mockResolvedValue(2);
+      prismaMock.mess_members.findUniqueOrThrow.mockResolvedValue(
+        memberRow({ mess_role: 'MANAGER' }),
+      );
+
+      const result = await service.updateMemberRole(
+        MESS,
+        MANAGER,
+        TARGET,
+        'MANAGER',
+      );
+
+      expect(result.mess_role).toBe('MANAGER');
+      expect(prismaMock.mess_members.update).not.toHaveBeenCalled();
+      expect(prismaMock.activity_logs.create).not.toHaveBeenCalled();
     });
   });
 });

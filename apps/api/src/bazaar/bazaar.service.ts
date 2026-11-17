@@ -1,6 +1,7 @@
 import { ErrorCode } from '@repo/shared';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -170,24 +171,70 @@ export class BazaarService {
     return toSubmissionWithRelations(submission);
   }
 
-  async updateBazaar(
+  /**
+   * Loads a submission of this mess that can still change: PENDING and in
+   * an ACTIVE month. A closed month is already billed, and its leftover
+   * pending submissions are rejected when it closes.
+   */
+  private async findOpenSubmission(
     messId: string,
     submissionId: string,
-    actorId: string,
-    data: UpdateBazaarDto,
-  ): Promise<BazaarSubmissionWithRelations> {
+    verb: string,
+  ) {
     const submission = await prisma.bazaar_submissions.findFirst({
       where: { id: submissionId, mess_id: messId, deleted_at: null },
+      include: { month: { select: { month_status: true } } },
     });
 
     if (!submission) {
       throw new NotFoundException('Bazaar submission not found');
     }
 
-    if (submission.status !== 'PENDING') {
-      throw new BadRequestException('Only pending submissions can be edited');
+    if (submission.month.month_status !== 'ACTIVE') {
+      throw new ConflictException({
+        message: 'This month is closed. Its bazaar can no longer be changed.',
+        code: ErrorCode.MONTH_ALREADY_CLOSED,
+      });
     }
 
+    if (submission.status !== 'PENDING') {
+      throw new BadRequestException(`Only pending submissions can be ${verb}`);
+    }
+
+    return submission;
+  }
+
+  /**
+   * Atomically moves a submission out of PENDING (or just re-checks it is
+   * still pending and open, when `data` keeps the status). Two managers
+   * approving at the same moment used to both succeed and create two
+   * BAZAAR expenses; now the second one matches nothing and gets a 409.
+   */
+  private async claimPending(
+    tx: Prisma.TransactionClient,
+    messId: string,
+    submissionId: string,
+    data: Prisma.bazaar_submissionsUncheckedUpdateManyInput,
+  ) {
+    const claimed = await tx.bazaar_submissions.updateMany({
+      where: {
+        id: submissionId,
+        mess_id: messId,
+        status: 'PENDING',
+        deleted_at: null,
+        month: { month_status: 'ACTIVE', deleted_at: null },
+      },
+      data,
+    });
+
+    if (claimed.count === 0) {
+      throw new ConflictException(
+        'This submission was just changed by someone else. Refresh and try again.',
+      );
+    }
+  }
+
+  private async requireMember(messId: string, actorId: string, action: string) {
     const membership = await prisma.mess_members.findFirst({
       where: {
         mess_id: messId,
@@ -199,10 +246,49 @@ export class BazaarService {
 
     if (!membership) {
       throw new ForbiddenException({
-        message: 'You must be an active member to edit a bazaar',
+        message: `You must be an active member to ${action} a bazaar`,
         code: ErrorCode.NOT_MESS_MEMBER,
       });
     }
+
+    return membership;
+  }
+
+  private async requireManager(
+    messId: string,
+    actorId: string,
+    action: string,
+  ) {
+    const membership = await prisma.mess_members.findFirst({
+      where: {
+        mess_id: messId,
+        user_id: actorId,
+        mess_role: 'MANAGER',
+        removed_at: null,
+        deleted_at: null,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException({
+        message: `Only managers can ${action} bazaar submissions`,
+        code: ErrorCode.MANAGER_ONLY,
+      });
+    }
+  }
+
+  async updateBazaar(
+    messId: string,
+    submissionId: string,
+    actorId: string,
+    data: UpdateBazaarDto,
+  ): Promise<BazaarSubmissionWithRelations> {
+    const submission = await this.findOpenSubmission(
+      messId,
+      submissionId,
+      'edited',
+    );
+    const membership = await this.requireMember(messId, actorId, 'edit');
 
     const isSubmitter = submission.submitted_by === actorId;
     const isManager = membership.mess_role === 'MANAGER';
@@ -223,21 +309,19 @@ export class BazaarService {
     }
 
     const updated = await prisma.$transaction(async (tx) => {
-      const result = await tx.bazaar_submissions.update({
-        where: { id: submissionId },
-        data: {
-          items: items as Prisma.InputJsonValue,
-          total_amount: totalAmount,
-          description:
-            data.description !== undefined
-              ? data.description || null
-              : submission.description,
-          expense_date: data.expense_date
-            ? new Date(data.expense_date)
-            : submission.expense_date,
-          updated_at: new Date(),
-        },
-        include: submissionInclude,
+      // Fails if it was approved/rejected meanwhile, so an approved amount
+      // can never be edited after its expense was created.
+      await this.claimPending(tx, messId, submissionId, {
+        items: items as Prisma.InputJsonValue,
+        total_amount: totalAmount,
+        description:
+          data.description !== undefined
+            ? data.description || null
+            : submission.description,
+        expense_date: data.expense_date
+          ? new Date(data.expense_date)
+          : submission.expense_date,
+        updated_at: new Date(),
       });
 
       await tx.activity_logs.create({
@@ -251,7 +335,10 @@ export class BazaarService {
         },
       });
 
-      return result;
+      return tx.bazaar_submissions.findUniqueOrThrow({
+        where: { id: submissionId },
+        include: submissionInclude,
+      });
     });
 
     this.logger.log(`✅ Bazaar updated: ${submissionId}`);
@@ -263,33 +350,12 @@ export class BazaarService {
     submissionId: string,
     actorId: string,
   ): Promise<{ success: true }> {
-    const submission = await prisma.bazaar_submissions.findFirst({
-      where: { id: submissionId, mess_id: messId, deleted_at: null },
-    });
-
-    if (!submission) {
-      throw new NotFoundException('Bazaar submission not found');
-    }
-
-    if (submission.status !== 'PENDING') {
-      throw new BadRequestException('Only pending submissions can be deleted');
-    }
-
-    const membership = await prisma.mess_members.findFirst({
-      where: {
-        mess_id: messId,
-        user_id: actorId,
-        removed_at: null,
-        deleted_at: null,
-      },
-    });
-
-    if (!membership) {
-      throw new ForbiddenException({
-        message: 'You must be an active member to delete a bazaar',
-        code: ErrorCode.NOT_MESS_MEMBER,
-      });
-    }
+    const submission = await this.findOpenSubmission(
+      messId,
+      submissionId,
+      'deleted',
+    );
+    const membership = await this.requireMember(messId, actorId, 'delete');
 
     const isSubmitter = submission.submitted_by === actorId;
     const isManager = membership.mess_role === 'MANAGER';
@@ -300,9 +366,21 @@ export class BazaarService {
       );
     }
 
-    await prisma.bazaar_submissions.update({
-      where: { id: submissionId },
-      data: { deleted_at: new Date() },
+    await prisma.$transaction(async (tx) => {
+      await this.claimPending(tx, messId, submissionId, {
+        deleted_at: new Date(),
+      });
+
+      await tx.activity_logs.create({
+        data: {
+          mess_id: messId,
+          month_id: submission.month_id,
+          actor_id: actorId,
+          action: 'BAZAAR_DELETED',
+          entity_type: 'bazaar_submissions',
+          entity_id: submissionId,
+        },
+      });
     });
 
     this.logger.log(`✅ Bazaar deleted: ${submissionId}`);
@@ -314,56 +392,38 @@ export class BazaarService {
     submissionId: string,
     actorId: string,
   ): Promise<BazaarSubmissionWithRelations> {
-    const membership = await prisma.mess_members.findFirst({
-      where: {
-        mess_id: messId,
-        user_id: actorId,
-        mess_role: 'MANAGER',
-        removed_at: null,
-        deleted_at: null,
-      },
-    });
-
-    if (!membership) {
-      throw new ForbiddenException({
-        message: 'Only managers can approve bazaar submissions',
-        code: ErrorCode.MANAGER_ONLY,
-      });
-    }
-
-    const submission = await prisma.bazaar_submissions.findFirst({
-      where: { id: submissionId, mess_id: messId, deleted_at: null },
-    });
-
-    if (!submission) {
-      throw new NotFoundException('Bazaar submission not found');
-    }
-
-    if (submission.status !== 'PENDING') {
-      throw new BadRequestException('Only pending submissions can be approved');
-    }
+    await this.requireManager(messId, actorId, 'approve');
+    const submission = await this.findOpenSubmission(
+      messId,
+      submissionId,
+      'approved',
+    );
 
     const approved = await prisma.$transaction(async (tx) => {
-      const updated = await tx.bazaar_submissions.update({
+      const now = new Date();
+      await this.claimPending(tx, messId, submissionId, {
+        status: 'APPROVED',
+        approved_by: actorId,
+        approved_at: now,
+        updated_at: now,
+      });
+
+      const updated = await tx.bazaar_submissions.findUniqueOrThrow({
         where: { id: submissionId },
-        data: {
-          status: 'APPROVED',
-          approved_by: actorId,
-          approved_at: new Date(),
-          updated_at: new Date(),
-        },
         include: submissionInclude,
       });
 
       await tx.expenses.create({
         data: {
           mess_id: messId,
-          month_id: submission.month_id,
+          month_id: updated.month_id,
           type: 'BAZAAR',
-          title: `Bazaar - ${new Date(submission.expense_date).toISOString().split('T')[0]}`,
-          amount: submission.total_amount,
+          title: `Bazaar - ${updated.expense_date.toISOString().split('T')[0]}`,
+          // Read after the claim, so a concurrent edit can't leave the
+          // expense with a stale amount.
+          amount: updated.total_amount,
           created_by: actorId,
-          expense_date: submission.expense_date,
+          expense_date: updated.expense_date,
         },
       });
 
@@ -392,45 +452,20 @@ export class BazaarService {
     submissionId: string,
     actorId: string,
   ): Promise<BazaarSubmissionWithRelations> {
-    const membership = await prisma.mess_members.findFirst({
-      where: {
-        mess_id: messId,
-        user_id: actorId,
-        mess_role: 'MANAGER',
-        removed_at: null,
-        deleted_at: null,
-      },
-    });
-
-    if (!membership) {
-      throw new ForbiddenException({
-        message: 'Only managers can reject bazaar submissions',
-        code: ErrorCode.MANAGER_ONLY,
-      });
-    }
-
-    const submission = await prisma.bazaar_submissions.findFirst({
-      where: { id: submissionId, mess_id: messId, deleted_at: null },
-    });
-
-    if (!submission) {
-      throw new NotFoundException('Bazaar submission not found');
-    }
-
-    if (submission.status !== 'PENDING') {
-      throw new BadRequestException('Only pending submissions can be rejected');
-    }
+    await this.requireManager(messId, actorId, 'reject');
+    const submission = await this.findOpenSubmission(
+      messId,
+      submissionId,
+      'rejected',
+    );
 
     const rejected = await prisma.$transaction(async (tx) => {
-      const updated = await tx.bazaar_submissions.update({
-        where: { id: submissionId },
-        data: {
-          status: 'REJECTED',
-          approved_by: actorId,
-          approved_at: new Date(),
-          updated_at: new Date(),
-        },
-        include: submissionInclude,
+      const now = new Date();
+      await this.claimPending(tx, messId, submissionId, {
+        status: 'REJECTED',
+        approved_by: actorId,
+        approved_at: now,
+        updated_at: now,
       });
 
       await tx.activity_logs.create({
@@ -444,7 +479,10 @@ export class BazaarService {
         },
       });
 
-      return updated;
+      return tx.bazaar_submissions.findUniqueOrThrow({
+        where: { id: submissionId },
+        include: submissionInclude,
+      });
     });
 
     this.logger.log(`✅ Bazaar rejected: ${submissionId}`);

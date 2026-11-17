@@ -4,7 +4,12 @@ import { z } from "zod";
 export const inviteUserSchema = z
   .object({
     userId: z.string().uuid().optional(),
-    email: z.string().trim().email("Enter a valid email address").optional(),
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email("Enter a valid email address")
+      .optional(),
   })
   .refine((v) => Boolean(v.userId) !== Boolean(v.email), {
     message: "Provide either a user or an email address",

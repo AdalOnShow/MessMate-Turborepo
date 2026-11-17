@@ -58,10 +58,6 @@ export interface UserSearchResult {
   email_verified: boolean;
 }
 
-export async function addMember(messId: string, userId: string) {
-  return api.post<MemberData>(`/messes/${messId}/members`, { userId });
-}
-
 export async function removeMember(messId: string, userId: string) {
   return api.delete<{ success: boolean; message: string }>(
     `/messes/${messId}/members/${userId}`,

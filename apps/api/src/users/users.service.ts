@@ -352,7 +352,7 @@ export class UsersService {
         },
       });
 
-      await tx.mess_members.create({
+      const member = await tx.mess_members.create({
         data: {
           mess_id: data.messId,
           user_id: newUser.id,
@@ -366,7 +366,7 @@ export class UsersService {
           actor_id: managerId,
           action: 'MEMBER_ADDED',
           entity_type: 'mess_members',
-          entity_id: newUser.id,
+          entity_id: member.id,
         },
       });
 

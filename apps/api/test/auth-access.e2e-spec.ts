@@ -225,13 +225,12 @@ describe('Authentication & authorization (HTTP)', () => {
   });
 
   describe('manager-only member management (RolesGuard)', () => {
-    it('403 for a plain member adding someone', async () => {
-      const res = await http()
+    it('the direct "add member" route is gone (join by invite only)', async () => {
+      await http()
         .post(`/messes/${MESS_A}/members`)
-        .set(as(BOB))
+        .set(as(ALICE))
         .send({ userId: CAROL })
-        .expect(403);
-      expect(res.body.code).toBe(ErrorCode.MANAGER_ONLY);
+        .expect(404);
       expect(prismaMock.mess_members.create).not.toHaveBeenCalled();
     });
 
@@ -262,9 +261,9 @@ describe('Authentication & authorization (HTTP)', () => {
 
     it('400 for a manager sending a bad body', async () => {
       const res = await http()
-        .post(`/messes/${MESS_A}/members`)
+        .patch(`/messes/${MESS_A}/members/${BOB}/role`)
         .set(as(ALICE))
-        .send({ userId: 'not-a-uuid' })
+        .send({ role: 'OWNER' })
         .expect(400);
       expect(res.body.code).toBe(ErrorCode.VALIDATION_FAILED);
     });
@@ -393,7 +392,8 @@ describe('Authentication & authorization (HTTP)', () => {
 
       const res = await http()
         .post('/auth/signin')
-        .send({ email: 'alice@example.com', password: 'right-password' })
+        // Mixed case: emails are matched in lower case.
+        .send({ email: 'Alice@Example.COM', password: 'right-password' })
         .expect(200);
 
       const body = res.body as { data: { accessToken: string } };
@@ -411,19 +411,39 @@ describe('Authentication & authorization (HTTP)', () => {
       expect(JSON.stringify(res.body)).not.toContain('refresh');
     });
 
-    // BUG: signup calls `signUpSchema.parse()` instead of `safeParse()`, so
-    // a bad body throws a raw ZodError that the exception filter turns into
-    // a 500 "Something went wrong" instead of a 400 with field errors.
-    it.failing(
-      'signup: 400 with field errors for an invalid body',
-      async () => {
-        const res = await http()
-          .post('/auth/signup')
-          .send({ name: 'A', email: 'bad', password: '1' });
-        expect(res.status).toBe(400);
-        expect(res.body.code).toBe(ErrorCode.VALIDATION_FAILED);
-      },
-    );
+    it('signup: 400 with field errors for an invalid body', async () => {
+      const res = await http()
+        .post('/auth/signup')
+        .send({ name: 'A', email: 'bad', password: '1' })
+        .expect(400);
+      expect(res.body.code).toBe(ErrorCode.VALIDATION_FAILED);
+      expect(res.body.details).toEqual(
+        expect.objectContaining({
+          name: expect.any(String),
+          email: expect.any(String),
+          password: expect.any(String),
+        }),
+      );
+      expect(prismaMock.users.create).not.toHaveBeenCalled();
+    });
+
+    it('signup: stores the email in lower case', async () => {
+      prismaMock.users.findUnique.mockResolvedValue(null);
+      prismaMock.users.create.mockImplementation(
+        ({ data }: { data: { email: string } }) => ({ id: CAROL, ...data }),
+      );
+      await http()
+        .post('/auth/signup')
+        .send({
+          name: 'Dave',
+          email: 'Dave@Example.COM',
+          password: 'long-enough-1',
+        })
+        .expect(201);
+      expect(prismaMock.users.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ email: 'dave@example.com' }),
+      });
+    });
 
     it('refresh: 401 without the cookie', () =>
       http().post('/auth/refresh').expect(401));

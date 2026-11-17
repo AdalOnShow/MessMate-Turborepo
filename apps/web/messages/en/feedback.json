@@ -58,6 +58,7 @@
       "NO_ACTIVE_MESS": "You haven't joined a mess yet.",
       "MANAGER_ONLY": "Only a manager can do this.",
       "ALREADY_MEMBER": "This person is already in a mess.",
+      "ALREADY_IN_MESS": "This person is already in another mess. They must leave it first.",
       "MEMBER_PREVIOUSLY_REMOVED": "This person was removed before. A manager must add them back.",
       "INVITE_ALREADY_PENDING": "An invite was already sent to this person.",
       "MONTH_ALREADY_ACTIVE": "A month is already running. Close it first.",

@@ -1,6 +1,7 @@
 import { ErrorCode } from '@repo/shared';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -413,10 +414,20 @@ export class ExpensesService {
 
     const expense = await prisma.expenses.findFirst({
       where: { id: expenseId, mess_id: messId },
+      include: { month: { select: { month_status: true } } },
     });
 
     if (!expense) {
       throw new NotFoundException('Expense not found');
+    }
+
+    // A closed month is already billed (member summaries, carry forward);
+    // changing it would make those numbers wrong.
+    if (expense.month.month_status !== 'ACTIVE') {
+      throw new ConflictException({
+        message: 'This month is closed. Its expenses can no longer be changed.',
+        code: ErrorCode.MONTH_ALREADY_CLOSED,
+      });
     }
 
     if (expense.type === 'BAZAAR') {
@@ -510,10 +521,20 @@ export class ExpensesService {
 
     const expense = await prisma.expenses.findFirst({
       where: { id: expenseId, mess_id: messId },
+      include: { month: { select: { month_status: true } } },
     });
 
     if (!expense) {
       throw new NotFoundException('Expense not found');
+    }
+
+    // A closed month is already billed (member summaries, carry forward);
+    // changing it would make those numbers wrong.
+    if (expense.month.month_status !== 'ACTIVE') {
+      throw new ConflictException({
+        message: 'This month is closed. Its expenses can no longer be changed.',
+        code: ErrorCode.MONTH_ALREADY_CLOSED,
+      });
     }
 
     if (expense.type === 'BAZAAR') {

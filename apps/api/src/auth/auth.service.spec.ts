@@ -122,20 +122,16 @@ describe('AuthService', () => {
       ).resolves.toBeNull();
     });
 
-    // BUG: emails are stored exactly as typed at sign-up and looked up
-    // case-sensitively, so "Rakib@Example.com" cannot sign in as
-    // "rakib@example.com". Invites and manager-created accounts lowercase
-    // emails, so they also miss mixed-case sign-ups.
-    it.failing('matches the email case-insensitively', async () => {
+    it('looks the email up in lower case', async () => {
       const hash = await bcrypt.hash('correct-horse', 4);
       prismaMock.users.findUnique.mockImplementation(
         ({ where }: { where: { email: string } }) =>
-          where.email === 'Rakib@Example.com'
-            ? dbUser({ email: 'Rakib@Example.com', password: hash })
+          where.email === 'rakib@example.com'
+            ? dbUser({ password: hash })
             : null,
       );
       await expect(
-        service.validateUser('rakib@example.com', 'correct-horse'),
+        service.validateUser('  Rakib@Example.COM ', 'correct-horse'),
       ).resolves.not.toBeNull();
     });
   });
@@ -167,6 +163,20 @@ describe('AuthService', () => {
         BadRequestException,
       );
       expect(prismaMock.users.create).not.toHaveBeenCalled();
+    });
+
+    it('stores and checks the email in lower case', async () => {
+      prismaMock.users.findUnique.mockResolvedValue(null);
+      prismaMock.users.create.mockResolvedValue(dbUser());
+
+      await service.register({ ...signup, email: ' Rakib@Example.COM ' });
+
+      expect(prismaMock.users.findUnique).toHaveBeenCalledWith({
+        where: { email: 'rakib@example.com' },
+      });
+      expect(prismaMock.users.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ email: 'rakib@example.com' }),
+      });
     });
 
     it('stores a bcrypt hash, never the plain password', async () => {

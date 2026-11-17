@@ -1,6 +1,7 @@
 import { ErrorCode } from '@repo/shared';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -300,10 +301,20 @@ export class DepositsService {
 
     const existing = await prisma.deposits.findFirst({
       where: { id: depositId, mess_id: messId, deleted_at: null },
+      include: { month: { select: { month_status: true } } },
     });
 
     if (!existing) {
       throw new NotFoundException('Deposit not found');
+    }
+
+    // A closed month is already billed (member summaries, carry forward);
+    // changing it would make those numbers wrong.
+    if (existing.month.month_status !== 'ACTIVE') {
+      throw new ConflictException({
+        message: 'This month is closed. Its deposits can no longer be changed.',
+        code: ErrorCode.MONTH_ALREADY_CLOSED,
+      });
     }
 
     if (data.member_id && data.member_id !== existing.member_id) {
@@ -351,26 +362,38 @@ export class DepositsService {
 
     const existing = await prisma.deposits.findFirst({
       where: { id: depositId, mess_id: messId, deleted_at: null },
+      include: { month: { select: { month_status: true } } },
     });
 
     if (!existing) {
       throw new NotFoundException('Deposit not found');
     }
 
-    await prisma.deposits.update({
-      where: { id: depositId },
-      data: { deleted_at: new Date() },
-    });
+    // A closed month is already billed (member summaries, carry forward);
+    // changing it would make those numbers wrong.
+    if (existing.month.month_status !== 'ACTIVE') {
+      throw new ConflictException({
+        message: 'This month is closed. Its deposits can no longer be changed.',
+        code: ErrorCode.MONTH_ALREADY_CLOSED,
+      });
+    }
 
-    await prisma.activity_logs.create({
-      data: {
-        mess_id: messId,
-        month_id: existing.month_id,
-        actor_id: actorId,
-        action: 'DEPOSIT_DELETED',
-        entity_type: 'deposits',
-        entity_id: depositId,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.deposits.update({
+        where: { id: depositId },
+        data: { deleted_at: new Date() },
+      });
+
+      await tx.activity_logs.create({
+        data: {
+          mess_id: messId,
+          month_id: existing.month_id,
+          actor_id: actorId,
+          action: 'DEPOSIT_DELETED',
+          entity_type: 'deposits',
+          entity_id: depositId,
+        },
+      });
     });
 
     this.logger.log(`🗑 Deposit deleted: ${depositId}`);

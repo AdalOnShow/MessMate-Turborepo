@@ -41,7 +41,8 @@ type ActivityLabel =
   | "bazaarSubmitted"
   | "bazaarUpdated"
   | "bazaarApproved"
-  | "bazaarRejected";
+  | "bazaarRejected"
+  | "bazaarDeleted";
 
 const ACTION_META: Record<
   ActivityLogInfo["action"],
@@ -81,6 +82,10 @@ const ACTION_META: Record<
   },
   BAZAAR_REJECTED: {
     label: "bazaarRejected",
+    icon: <ShoppingCart size={14} />,
+  },
+  BAZAAR_DELETED: {
+    label: "bazaarDeleted",
     icon: <ShoppingCart size={14} />,
   },
 };

@@ -70,6 +70,7 @@ enum activity_action {
   BAZAAR_UPDATED
   BAZAAR_APPROVED
   BAZAAR_REJECTED
+  BAZAAR_DELETED
 }
 
 // ============================================

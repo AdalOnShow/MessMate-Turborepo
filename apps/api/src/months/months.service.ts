@@ -173,6 +173,38 @@ export class MonthsService {
       });
     }
 
+    // Bazaar still waiting for approval can't be billed any more: reject it
+    // with the month, so it can never add an expense to a closed month.
+    const pendingBazaar = await tx.bazaar_submissions.findMany({
+      where: { month_id: monthId, status: 'PENDING', deleted_at: null },
+      select: { id: true },
+    });
+    if (pendingBazaar.length > 0) {
+      await tx.bazaar_submissions.updateMany({
+        where: {
+          id: { in: pendingBazaar.map((b) => b.id) },
+          status: 'PENDING',
+        },
+        data: {
+          status: 'REJECTED',
+          approved_by: actorId,
+          approved_at: closedAt,
+          updated_at: closedAt,
+        },
+      });
+      await tx.activity_logs.createMany({
+        data: pendingBazaar.map((b) => ({
+          mess_id: messId,
+          month_id: monthId,
+          actor_id: actorId,
+          action: 'BAZAAR_REJECTED' as const,
+          entity_type: 'bazaar_submissions',
+          entity_id: b.id,
+          created_at: closedAt,
+        })),
+      });
+    }
+
     const activeMembers = await tx.mess_members.findMany({
       where: { mess_id: messId, removed_at: null, deleted_at: null },
       select: { id: true },

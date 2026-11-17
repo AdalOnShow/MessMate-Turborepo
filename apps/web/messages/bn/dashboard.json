@@ -23,7 +23,8 @@
     "bazaarSubmitted": "বাজার জমা দেওয়া হয়েছে",
     "bazaarUpdated": "বাজার আপডেট হয়েছে",
     "bazaarApproved": "বাজার অনুমোদিত",
-    "bazaarRejected": "বাজার বাতিল"
+    "bazaarRejected": "বাজার বাতিল",
+    "bazaarDeleted": "বাজার মুছে ফেলা হয়েছে"
   },
   "home": {
     "goodMorning": "শুভ সকাল",

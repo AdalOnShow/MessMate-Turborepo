@@ -23,7 +23,8 @@
     "bazaarSubmitted": "Bazaar submitted",
     "bazaarUpdated": "Bazaar updated",
     "bazaarApproved": "Bazaar approved",
-    "bazaarRejected": "Bazaar rejected"
+    "bazaarRejected": "Bazaar rejected",
+    "bazaarDeleted": "Bazaar deleted"
   },
   "home": {
     "goodMorning": "Good morning",

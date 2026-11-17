@@ -21,7 +21,8 @@ export interface ActivityLog {
     | "BAZAAR_SUBMITTED"
     | "BAZAAR_UPDATED"
     | "BAZAAR_APPROVED"
-    | "BAZAAR_REJECTED";
+    | "BAZAAR_REJECTED"
+    | "BAZAAR_DELETED";
   created_at: string;
   actor: {
     id: string;

@@ -333,10 +333,12 @@ export class MealsService {
     monthId: string,
     date: string,
   ): Promise<DailyMealReport> {
+    // Entries are stored at UTC midnight, so the day window must be in UTC
+    // too; local-time math shifted it on servers not running in UTC.
     const targetDate = new Date(date);
-    targetDate.setHours(0, 0, 0, 0);
+    targetDate.setUTCHours(0, 0, 0, 0);
     const nextDay = new Date(targetDate);
-    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
 
     const entries = await prisma.meal_entries.findMany({
       where: {

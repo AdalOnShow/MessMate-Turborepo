@@ -20,6 +20,12 @@ type PendingInvite = {
 
 type InviteTarget = { userId?: string; email?: string };
 
+/** Invites older than this can no longer be accepted. */
+export const INVITE_TTL_DAYS = 7;
+
+const inviteCutoff = () =>
+  new Date(Date.now() - INVITE_TTL_DAYS * 24 * 60 * 60 * 1000);
+
 @Injectable()
 export class InvitesService {
   async inviteUserForActor(
@@ -110,12 +116,18 @@ export class InvitesService {
     userId: string,
   ): Promise<{ success: true }> {
     const invite = await prisma.join_requests.findFirst({
-      where: { id: inviteId, user_id: userId, status: 'PENDING' },
-      include: { mess: true },
+      where: {
+        id: inviteId,
+        user_id: userId,
+        status: 'PENDING',
+        created_at: { gte: inviteCutoff() },
+      },
     });
 
     if (!invite) {
-      throw new BadRequestException('Invite not found or already processed');
+      throw new BadRequestException(
+        'Invite not found, expired or already processed',
+      );
     }
 
     const existingMembership = await prisma.mess_members.findFirst({
@@ -133,18 +145,45 @@ export class InvitesService {
       });
     }
 
+    // ADR-003: one active mess per user.
+    const otherMess = await prisma.mess_members.findFirst({
+      where: { user_id: userId, removed_at: null, deleted_at: null },
+      select: { id: true },
+    });
+
+    if (otherMess) {
+      throw new ConflictException({
+        message:
+          'You are already in another mess. Leave it before joining a new one.',
+        code: ErrorCode.ALREADY_IN_MESS,
+      });
+    }
+
     await prisma.$transaction(async (tx) => {
+      // Claim the invite first: a second accept (double click, two tabs)
+      // or an invite that expired meanwhile matches nothing.
+      const claimed = await tx.join_requests.updateMany({
+        where: {
+          id: inviteId,
+          user_id: userId,
+          status: 'PENDING',
+          created_at: { gte: inviteCutoff() },
+        },
+        data: { status: 'ACCEPTED', verified_at: new Date() },
+      });
+
+      if (claimed.count === 0) {
+        throw new BadRequestException(
+          'Invite not found, expired or already processed',
+        );
+      }
+
       const member = await tx.mess_members.create({
         data: {
           mess_id: invite.mess_id,
           user_id: userId,
           mess_role: 'MEMBER',
         },
-      });
-
-      await tx.join_requests.update({
-        where: { id: inviteId },
-        data: { status: 'ACCEPTED', verified_at: new Date() },
       });
 
       await tx.activity_logs.create({
@@ -182,14 +221,11 @@ export class InvitesService {
   }
 
   async getPendingInvites(userId: string): Promise<PendingInvite[]> {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
     await prisma.join_requests.updateMany({
       where: {
         user_id: userId,
         status: 'PENDING',
-        created_at: { lt: sevenDaysAgo },
+        created_at: { lt: inviteCutoff() },
       },
       data: { status: 'EXPIRED' },
     });

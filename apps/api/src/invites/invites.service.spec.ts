@@ -221,27 +221,54 @@ describe('InvitesService', () => {
       requested_by: MANAGER,
       status: 'PENDING',
       created_at: daysAgo(1),
-      mess: { id: MESS },
       ...over,
     });
 
-    it("only finds the caller's own pending invite", async () => {
+    /** Membership lookups: [this mess, any active mess]. */
+    function memberships(thisMess: unknown, anyMess: unknown) {
+      prismaMock.mess_members.findFirst
+        .mockResolvedValueOnce(thisMess)
+        .mockResolvedValueOnce(anyMess);
+    }
+
+    function cutoffDays(where: { created_at: { gte: Date } }) {
+      return (Date.now() - where.created_at.gte.getTime()) / 86_400_000;
+    }
+
+    it("only finds the caller's own, pending, unexpired invite", async () => {
       prismaMock.join_requests.findFirst.mockResolvedValue(null);
       await rejectsWith(
         service.acceptInvite('inv-1', 'someone-else'),
         BadRequestException,
       );
-      expect(prismaMock.join_requests.findFirst).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 'inv-1', user_id: 'someone-else', status: 'PENDING' },
-        }),
+      const { where } = prismaMock.join_requests.findFirst.mock.calls[0][0];
+      expect(where).toMatchObject({
+        id: 'inv-1',
+        user_id: 'someone-else',
+        status: 'PENDING',
+      });
+      expect(cutoffDays(where)).toBeCloseTo(7, 1);
+      expect(prismaMock.mess_members.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects an invite older than 7 days', async () => {
+      // The DB filter excludes it, so nothing is found.
+      prismaMock.join_requests.findFirst.mockImplementation(
+        ({ where }: { where: { created_at: { gte: Date } } }) => {
+          const invite = pending({ created_at: daysAgo(30) });
+          return invite.created_at >= where.created_at.gte ? invite : null;
+        },
+      );
+      await rejectsWith(
+        service.acceptInvite('inv-1', TARGET),
+        BadRequestException,
       );
       expect(prismaMock.mess_members.create).not.toHaveBeenCalled();
     });
 
     it('rejects when the user is already in this mess', async () => {
       prismaMock.join_requests.findFirst.mockResolvedValue(pending());
-      prismaMock.mess_members.findFirst.mockResolvedValue({ id: 'm1' });
+      memberships({ id: 'm1' }, { id: 'm1' });
       await rejectsWith(
         service.acceptInvite('inv-1', TARGET),
         ConflictException,
@@ -249,9 +276,39 @@ describe('InvitesService', () => {
       );
     });
 
-    it('adds the user as a MEMBER and marks the invite accepted, in one transaction', async () => {
+    it('rejects with a clear error when the user is in another mess (ADR-003)', async () => {
       prismaMock.join_requests.findFirst.mockResolvedValue(pending());
-      prismaMock.mess_members.findFirst.mockResolvedValue(null);
+      memberships(null, { id: 'other' });
+
+      await rejectsWith(
+        service.acceptInvite('inv-1', TARGET),
+        ConflictException,
+        ErrorCode.ALREADY_IN_MESS,
+      );
+      expect(prismaMock.mess_members.findFirst).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          where: { user_id: TARGET, removed_at: null, deleted_at: null },
+        }),
+      );
+      expect(prismaMock.mess_members.create).not.toHaveBeenCalled();
+    });
+
+    it('a second accept (double click) loses the claim and adds nothing', async () => {
+      prismaMock.join_requests.findFirst.mockResolvedValue(pending());
+      memberships(null, null);
+      prismaMock.join_requests.updateMany.mockResolvedValue({ count: 0 });
+
+      await rejectsWith(
+        service.acceptInvite('inv-1', TARGET),
+        BadRequestException,
+      );
+      expect(prismaMock.mess_members.create).not.toHaveBeenCalled();
+    });
+
+    it('claims the invite, then adds the user as a MEMBER, in one transaction', async () => {
+      prismaMock.join_requests.findFirst.mockResolvedValue(pending());
+      memberships(null, null);
+      prismaMock.join_requests.updateMany.mockResolvedValue({ count: 1 });
       prismaMock.mess_members.create.mockResolvedValue({ id: 'new-member' });
 
       await expect(service.acceptInvite('inv-1', TARGET)).resolves.toEqual({
@@ -259,12 +316,24 @@ describe('InvitesService', () => {
       });
 
       expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+      const claim = prismaMock.join_requests.updateMany.mock.calls[0][0];
+      expect(claim.where).toMatchObject({
+        id: 'inv-1',
+        user_id: TARGET,
+        status: 'PENDING',
+      });
+      expect(cutoffDays(claim.where)).toBeCloseTo(7, 1);
+      expect(claim.data).toEqual({
+        status: 'ACCEPTED',
+        verified_at: expect.any(Date),
+      });
+      expect(
+        prismaMock.join_requests.updateMany.mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        prismaMock.mess_members.create.mock.invocationCallOrder[0],
+      );
       expect(prismaMock.mess_members.create).toHaveBeenCalledWith({
         data: { mess_id: MESS, user_id: TARGET, mess_role: 'MEMBER' },
-      });
-      expect(prismaMock.join_requests.update).toHaveBeenCalledWith({
-        where: { id: 'inv-1' },
-        data: { status: 'ACCEPTED', verified_at: expect.any(Date) },
       });
       expect(prismaMock.activity_logs.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -273,48 +342,6 @@ describe('InvitesService', () => {
         }),
       });
     });
-
-    // BUG: invites expire after 7 days, but only when the invitee loads
-    // their pending list (getPendingInvites). acceptInvite never checks the
-    // age, so an old invite id can still be accepted.
-    it.failing('rejects an invite older than 7 days', async () => {
-      prismaMock.join_requests.findFirst.mockImplementation(
-        ({ where }: { where: { created_at?: unknown } }) =>
-          where.created_at ? null : pending({ created_at: daysAgo(30) }),
-      );
-      prismaMock.mess_members.findFirst.mockResolvedValue(null);
-      prismaMock.mess_members.create.mockResolvedValue({ id: 'm' });
-
-      await rejectsWith(
-        service.acceptInvite('inv-1', TARGET),
-        BadRequestException,
-      );
-    });
-
-    // BUG (ADR-003, one active mess per user): accepting while already in
-    // another mess is only stopped by the DB unique index, which surfaces
-    // as a generic 409 "already exists" instead of a clear message.
-    it.failing(
-      'rejects with a clear error when the user is in another mess',
-      async () => {
-        prismaMock.join_requests.findFirst.mockResolvedValue(pending());
-        prismaMock.mess_members.findFirst.mockImplementation(
-          ({ where }: { where: { mess_id?: string } }) =>
-            where.mess_id === MESS ? null : { id: 'other', mess_id: 'mess-2' },
-        );
-        prismaMock.mess_members.create.mockRejectedValue(
-          Object.assign(new Error('Unique constraint failed'), {
-            name: 'PrismaClientKnownRequestError',
-            code: 'P2002',
-          }),
-        );
-
-        await rejectsWith(
-          service.acceptInvite('inv-1', TARGET),
-          ConflictException,
-        );
-      },
-    );
   });
 
   describe('rejectInvite', () => {

@@ -46,13 +46,26 @@ export class MessesService {
     const name = data.name.trim();
     const description = data.description?.trim();
 
-    let slug = `${name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')}`;
-    if (!slug) {
-      slug = `mess-${Date.now().toString(36)}`;
+    // ADR-003: one active mess per user. Checked up front so the user gets
+    // a clear error instead of a unique-index failure.
+    const activeMembership = await prisma.mess_members.findFirst({
+      where: { user_id: userId, removed_at: null, deleted_at: null },
+      select: { id: true },
+    });
+    if (activeMembership) {
+      throw new ConflictException({
+        message:
+          'You are already in a mess. Leave it before creating a new one.',
+        code: ErrorCode.ALREADY_IN_MESS,
+      });
     }
+
+    const baseSlug =
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || `mess-${Date.now().toString(36)}`;
+    const slug = await this.uniqueSlug(baseSlug);
 
     this.logger.log(`📝 Creating mess '${name}' for user ${userId}`);
 
@@ -110,13 +123,36 @@ export class MessesService {
     } catch (error: any) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new BadRequestException(
-            'A mess with this name already exists. Please choose a different name.',
-          );
+          // Lost a race with a concurrent create (same slug, or the user
+          // joined/created another mess in the meantime).
+          throw new ConflictException({
+            message:
+              'Could not create the mess. You may already be in a mess, or the name was just taken. Please try again.',
+            code: ErrorCode.DUPLICATE_RESOURCE,
+          });
         }
       }
       throw error;
     }
+  }
+
+  /**
+   * Slugs are unique across all messes, but two messes may share a name:
+   * "green-villa", "green-villa-2", ...
+   */
+  private async uniqueSlug(base: string): Promise<string> {
+    const taken = new Set(
+      (
+        await prisma.messes.findMany({
+          where: { slug: { startsWith: base } },
+          select: { slug: true },
+        })
+      ).map((m) => m.slug),
+    );
+    if (!taken.has(base)) return base;
+    let n = 2;
+    while (taken.has(`${base}-${n}`)) n += 1;
+    return `${base}-${n}`;
   }
 
   async getMyMess(userId: string): Promise<MessWithMembership | null> {
@@ -392,63 +428,6 @@ export class MessesService {
     }));
   }
 
-  async addMember(
-    messId: string,
-    actorId: string,
-    userId: string,
-  ): Promise<MessMemberWithUser> {
-    const existing = await prisma.mess_members.findFirst({
-      where: { mess_id: messId, user_id: userId, deleted_at: null },
-    });
-
-    if (existing) {
-      throw new ConflictException({
-        message: 'User is already a member of this mess',
-        code: ErrorCode.ALREADY_MEMBER,
-      });
-    }
-
-    const member = await prisma.mess_members.create({
-      data: {
-        mess_id: messId,
-        user_id: userId,
-        mess_role: 'MEMBER',
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-          },
-        },
-      },
-    });
-
-    await prisma.activity_logs.create({
-      data: {
-        mess_id: messId,
-        actor_id: actorId,
-        action: 'MEMBER_ADDED',
-        entity_type: 'mess_members',
-        entity_id: member.id,
-      },
-    });
-
-    this.logger.log(`✅ Member added: ${userId} to mess ${messId}`);
-
-    return {
-      id: member.id,
-      mess_id: member.mess_id,
-      user_id: member.user_id,
-      mess_role: member.mess_role as 'MANAGER' | 'MEMBER',
-      joined_at: member.joined_at.toISOString(),
-      removed_at: null,
-      user: member.user,
-    };
-  }
-
   async removeMember(
     messId: string,
     actorId: string,
@@ -529,8 +508,25 @@ export class MessesService {
       throw new NotFoundException('Member not found');
     }
 
-    if (newRole === 'MANAGER') {
-      const managerCount = await prisma.mess_members.count({
+    // Role change and its activity log succeed or fail together, so a
+    // logging failure can no longer report an error for a change that stuck.
+    const updated = await prisma.$transaction(async (tx) => {
+      const include = {
+        user: {
+          select: { id: true, name: true, email: true, avatar: true },
+        },
+      } as const;
+
+      // Already in that role: nothing to change (promoting an existing
+      // manager used to trip the 2-manager limit).
+      if (member.mess_role === newRole) {
+        return tx.mess_members.findUniqueOrThrow({
+          where: { id: member.id },
+          include,
+        });
+      }
+
+      const managerCount = await tx.mess_members.count({
         where: {
           mess_id: messId,
           mess_role: 'MANAGER',
@@ -539,27 +535,19 @@ export class MessesService {
         },
       });
 
-      if (managerCount >= 2) {
+      if (newRole === 'MANAGER' && managerCount >= 2) {
         throw new BadRequestException('Maximum 2 managers allowed per mess');
       }
-    }
 
-    // Role change and its activity log succeed or fail together, so a
-    // logging failure can no longer report an error for a change that stuck.
-    const updated = await prisma.$transaction(async (tx) => {
+      // A mess must always keep a manager (same rule as removeMember).
+      if (newRole === 'MEMBER' && managerCount <= 1) {
+        throw new BadRequestException('Cannot demote the last manager');
+      }
+
       const row = await tx.mess_members.update({
         where: { id: member.id },
         data: { mess_role: newRole },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              avatar: true,
-            },
-          },
-        },
+        include,
       });
 
       await tx.activity_logs.create({
