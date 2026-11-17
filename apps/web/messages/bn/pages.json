@@ -288,7 +288,8 @@
     "loadMore": "আরও দেখুন",
     "showingOf": "{total}টির মধ্যে {shown}টি দেখানো হচ্ছে",
     "noExpensesOfType": "এই মাসে এই ধরনের কোনো খরচ নেই।",
-    "monthTotal": "মাসের মোট"
+    "monthTotal": "মাসের মোট",
+    "noActiveMonthStart": "কোনো চলমান মাস নেই। রিপোর্ট দেখতে ড্যাশবোর্ড থেকে একটি মাস শুরু করুন।"
   },
   "settings": {
     "messName": "মেসের নাম",

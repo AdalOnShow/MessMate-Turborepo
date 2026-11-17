@@ -1,23 +1,17 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  Calendar,
   ChevronDown,
   Loader2,
   ReceiptText,
-  User,
   Utensils,
   WalletCards,
+  type LucideIcon,
 } from "lucide-react";
 import { useGetMyMess } from "../../hooks/use-messes";
-import {
-  useGetActiveMonth,
-  useGetMonthHistory,
-  useGetMonthSummary,
-  type MonthInfo,
-} from "../../hooks/use-months";
+import { useGetActiveMonth } from "../../hooks/use-months";
 import {
   useGetMealEntries,
   useGetMonthMealSummary,
@@ -25,7 +19,6 @@ import {
 import { useExpenseSummary, useGetExpenses } from "../../hooks/use-expenses";
 import type { ExpenseInfo } from "../../actions/expenses";
 import { useDepositSummary } from "../../hooks/use-deposits";
-import { useMemberCalculations } from "../../hooks/use-members";
 import { formatMoney } from "../../lib/format";
 import { Button } from "../../components/ui/button";
 import {
@@ -34,21 +27,7 @@ import {
   failedQueries,
 } from "../../components/feedback/QueryErrorState";
 
-type Tab = "meals" | "expenses" | "deposits" | "members";
-
-interface MemberRow {
-  member_id: string;
-  user: { id: string; name: string; email: string; avatar: string | null };
-  total_meals: number;
-  meal_cost: number;
-  shared_cost: number;
-  individual_cost: number;
-  deposit_amount: number;
-  final_bill: number;
-  final_balance: number;
-  previous_balance?: number;
-  current_balance?: number;
-}
+type Tab = "meals" | "expenses" | "deposits";
 
 function LoadingBlock() {
   return (
@@ -89,40 +68,6 @@ function StatCard({
       </p>
     </div>
   );
-}
-
-function BalanceBadge({ value }: { value: number }) {
-  const color =
-    value > 0
-      ? "text-success"
-      : value < 0
-        ? "text-destructive"
-        : "text-foreground";
-  return (
-    <span className={`font-semibold ${color}`}>
-      {value > 0 ? "+" : ""}
-      {formatMoney(value)}
-    </span>
-  );
-}
-
-// Older data can contain several months with the same title; add the date
-// range to those so each option is distinguishable.
-function monthOptionLabel(month: MonthInfo, all: MonthInfo[]): string {
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  const duplicated = all.some(
-    (other) => other.id !== month.id && other.title === month.title,
-  );
-  const range = duplicated
-    ? ` · ${fmt(month.started_at)} – ${month.ended_at ? fmt(month.ended_at) : "now"}`
-    : "";
-  return `${month.title}${range}${month.month_status === "ACTIVE" ? " (Active)" : ""}`;
 }
 
 function UserCell({ name, email }: { name: string; email: string }) {
@@ -676,245 +621,85 @@ function DepositsSummaryView({
   );
 }
 
-function MembersSummaryView({
-  messId,
-  month,
-}: {
-  messId: string;
-  month: MonthInfo;
-}) {
-  const t = useTranslations("pages.reports");
-  const isActive = month.month_status === "ACTIVE";
-  const calcQuery = useMemberCalculations(messId);
-  const summaryQuery = useGetMonthSummary(
-    messId,
-    isActive ? undefined : month.id,
-  );
-  const { data: calc, isLoading: calcLoading } = calcQuery;
-  const { data: summary, isLoading: summaryLoading } = summaryQuery;
-
-  if (isActive ? calcLoading : summaryLoading) return <LoadingBlock />;
-  const relevantQuery = isActive ? calcQuery : summaryQuery;
-  if (relevantQuery.isError && relevantQuery.data === undefined) {
-    return (
-      <QueryErrorState
-        error={relevantQuery.error}
-        onRetry={relevantQuery.refetch}
-        isRetrying={relevantQuery.isFetching}
-        resource="member report"
-      />
-    );
-  }
-
-  const rows: MemberRow[] = isActive
-    ? (calc?.items ?? [])
-    : (summary?.member_summaries ?? []);
-
-  if (rows.length === 0) {
-    return (
-      <EmptyBlock
-        message={
-          isActive ? t("noMemberDataAvailable") : t("noSummaryAvailableMonth")
-        }
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-foreground-muted">
-        {isActive
-          ? t("liveCalculationsCurrentActive")
-          : t("calculationsFromArchivedMonth")}
-      </p>
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="table-sticky-first w-full text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <ThLeft label={t("member")} />
-              <Th label={t("meals")} />
-              <Th label={t("mealCost")} />
-              <Th label={t("shared")} />
-              <Th label={t("individual")} />
-              <Th label={t("deposit")} />
-              <Th label={t("bill")} />
-              <Th label={t("balance")} />
-              {isActive && <Th label={t("carried")} />}
-              {isActive && <Th label={t("current")} />}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr
-                key={row.member_id}
-                className="border-b border-border last:border-0"
-              >
-                <td className="px-4 py-3">
-                  <UserCell name={row.user.name} email={row.user.email} />
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {row.total_meals}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {formatMoney(row.meal_cost)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {formatMoney(row.shared_cost)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {formatMoney(row.individual_cost)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {formatMoney(row.deposit_amount)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-foreground">
-                  {formatMoney(row.final_bill)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right">
-                  <BalanceBadge value={row.final_balance} />
-                </td>
-                {isActive && (
-                  <td className="whitespace-nowrap px-4 py-3 text-right">
-                    <BalanceBadge value={row.previous_balance ?? 0} />
-                  </td>
-                )}
-                {isActive && (
-                  <td className="whitespace-nowrap px-4 py-3 text-right">
-                    <BalanceBadge value={row.current_balance ?? 0} />
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
 export default function ReportsPage() {
   const t = useTranslations("pages.reports");
   const messQuery = useGetMyMess();
   const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
-  const { data: activeMonth } = useGetActiveMonth(messId);
-  const monthsQuery = useGetMonthHistory(messId);
-  const { data: months, isLoading: monthsLoading } = monthsQuery;
-
-  const [selectedMonthId, setSelectedMonthId] = useState<string | undefined>(
-    undefined,
-  );
+  const monthQuery = useGetActiveMonth(messId);
+  const { data: activeMonth, isLoading: monthLoading } = monthQuery;
   const [activeTab, setActiveTab] = useState<Tab>("meals");
 
-  useEffect(() => {
-    if (!selectedMonthId && activeMonth?.id) {
-      setSelectedMonthId(activeMonth.id);
-    }
-  }, [selectedMonthId, activeMonth?.id]);
-
-  const selectedMonth = useMemo<MonthInfo | undefined>(
-    () => months?.find((m) => m.id === selectedMonthId),
-    [months, selectedMonthId],
-  );
-
-  const tabs: { key: Tab; label: string; icon: typeof Calendar }[] = [
+  const tabs: { key: Tab; label: string; icon: LucideIcon }[] = [
     { key: "meals", label: "Meals", icon: Utensils },
     { key: "expenses", label: "Expenses", icon: ReceiptText },
     { key: "deposits", label: "Deposits", icon: WalletCards },
-    { key: "members", label: "Members", icon: User },
   ];
 
-  if (messLoading || monthsLoading) return <LoadingBlock />;
+  if (messLoading || monthLoading) return <LoadingBlock />;
 
-  if (failedQueries(messQuery, monthsQuery).length > 0) {
+  // Check failures before the "no active month" branch, or a network blip
+  // would look like there is no month.
+  if (failedQueries(messQuery, monthQuery).length > 0) {
     return (
       <>
         <PageHeader />
         <QueriesErrorState
-          queries={[messQuery, monthsQuery]}
+          queries={[messQuery, monthQuery]}
           resource="reports"
         />
       </>
     );
   }
 
-  if (!months || months.length === 0) {
+  if (!messId || !activeMonth) {
     return (
       <>
         <PageHeader />
-        <EmptyBlock message={t("noMonthsFoundStart")} />
+        <EmptyBlock message={t("noActiveMonthStart")} />
       </>
     );
   }
 
   return (
     <>
-      <PageHeader />
+      <PageHeader monthTitle={activeMonth.title} />
 
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="no-scrollbar flex w-full snap-x gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1 sm:w-auto sm:flex-1">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex shrink-0 snap-start items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 sm:rounded-md sm:px-3 sm:py-2 ${
-                  activeTab === tab.key
-                    ? "bg-primary text-white"
-                    : "text-foreground-muted hover:bg-surface-raised"
-                }`}
-              >
-                <Icon size={14} />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <select
-          value={selectedMonthId ?? ""}
-          onChange={(e) => setSelectedMonthId(e.target.value)}
-          className="h-11 w-full rounded-xl sm:h-auto sm:w-auto sm:rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-        >
-          {months.map((m) => (
-            <option key={m.id} value={m.id}>
-              {monthOptionLabel(m, months)}
-            </option>
-          ))}
-        </select>
+      <div className="no-scrollbar mb-6 flex snap-x gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex flex-1 shrink-0 snap-start items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors sm:rounded-md sm:px-3 sm:py-2 ${
+                activeTab === tab.key
+                  ? "bg-primary text-white"
+                  : "text-foreground-muted hover:bg-surface-raised"
+              }`}
+            >
+              <Icon size={14} />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
-      {selectedMonth && messId && (
-        <div>
-          {activeTab === "meals" && (
-            <MealsSummaryView
-              key={selectedMonth.id}
-              messId={messId}
-              monthId={selectedMonth.id}
-            />
-          )}
-          {activeTab === "expenses" && (
-            <ExpensesSummaryView
-              key={selectedMonth.id}
-              messId={messId}
-              monthId={selectedMonth.id}
-            />
-          )}
-          {activeTab === "deposits" && (
-            <DepositsSummaryView messId={messId} monthId={selectedMonth.id} />
-          )}
-          {activeTab === "members" && (
-            <MembersSummaryView messId={messId} month={selectedMonth} />
-          )}
-        </div>
+      {activeTab === "meals" && (
+        <MealsSummaryView messId={messId} monthId={activeMonth.id} />
+      )}
+      {activeTab === "expenses" && (
+        <ExpensesSummaryView messId={messId} monthId={activeMonth.id} />
+      )}
+      {activeTab === "deposits" && (
+        <DepositsSummaryView messId={messId} monthId={activeMonth.id} />
       )}
     </>
   );
 }
 
-function PageHeader() {
+function PageHeader({ monthTitle }: { monthTitle?: string | null }) {
   const t = useTranslations("pages.reports");
   return (
     <div className="mb-8">
@@ -922,6 +707,9 @@ function PageHeader() {
       <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
         {t("reports")}
       </h1>
+      {monthTitle && (
+        <p className="mt-1 text-sm text-foreground-muted">{monthTitle}</p>
+      )}
     </div>
   );
 }

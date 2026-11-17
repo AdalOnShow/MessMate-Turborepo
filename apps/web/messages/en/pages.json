@@ -288,7 +288,8 @@
     "loadMore": "Load more",
     "showingOf": "Showing {shown} of {total}",
     "noExpensesOfType": "No expenses of this type this month.",
-    "monthTotal": "Month total"
+    "monthTotal": "Month total",
+    "noActiveMonthStart": "No active month. Start a month from the dashboard to view reports."
   },
   "settings": {
     "messName": "Mess Name",
