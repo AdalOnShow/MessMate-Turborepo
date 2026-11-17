@@ -1,15 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
-import {
-  CalendarDays,
-  CalendarOff,
-  History,
-  Loader2,
-  Plus,
-} from "lucide-react";
+import { CalendarDays, CalendarOff, Loader2, Plus } from "lucide-react";
 import { useCreateMonth, useGetActiveMonth } from "../../hooks/use-months";
 import { QueryErrorState } from "../feedback/QueryErrorState";
 import { Sheet, SheetActions } from "../ui/sheet";
@@ -18,7 +11,7 @@ import { Skeleton } from "../ui/skeleton";
 const defaultTitle = () =>
   new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
 
-/** Settings card that opens the first month or closes the active one and opens the next. */
+/** Months-page card that opens the first month or closes the active one and opens the next. */
 export function MonthSettings({ messId }: { messId: string }) {
   const t = useTranslations("pages.settings");
   const monthQuery = useGetActiveMonth(messId);
@@ -61,7 +54,7 @@ export function MonthSettings({ messId }: { messId: string }) {
     <section
       ref={ref}
       id="month"
-      className="scroll-mt-20 rounded-xl border border-border bg-surface p-6 lg:col-span-2"
+      className="scroll-mt-20 rounded-xl border border-border bg-surface p-6"
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
@@ -70,13 +63,6 @@ export function MonthSettings({ messId }: { messId: string }) {
           </h2>
           <p className="mt-1 text-xs text-foreground-muted">{t("monthDesc")}</p>
         </div>
-        <Link
-          href="/dashboard/months"
-          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised hover:text-foreground"
-        >
-          <History size={14} aria-hidden="true" />
-          {t("viewHistory")}
-        </Link>
       </div>
 
       {monthQuery.isPending ? (

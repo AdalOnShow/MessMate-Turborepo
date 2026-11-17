@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../store";
 import { useGetMyMess, useUpdateMess } from "../../hooks/use-messes";
 import { Check, Loader2, Pencil, Settings, X } from "lucide-react";
-import { MonthSettings } from "../../components/dashboard/MonthSettings";
 import { QueryErrorState } from "../../components/feedback/QueryErrorState";
 
 function EditableMessInfo() {
@@ -289,12 +288,8 @@ function SettingsContent() {
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <MonthSettings messId={myMess.id} />
-
-        <div className="rounded-xl border border-border bg-surface p-6">
-          <EditableMessInfo />
-        </div>
+      <div className="max-w-2xl rounded-xl border border-border bg-surface p-6">
+        <EditableMessInfo />
       </div>
     </>
   );

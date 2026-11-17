@@ -67,9 +67,9 @@
     "sharedCost": "Shared cost",
     "individualCost": "Individual cost",
     "totalBill": "Total bill",
-    "noMonthManager": "Start a month in Settings to begin tracking meals, deposits and expenses.",
+    "noMonthManager": "Start a month on the Months page to begin tracking meals, deposits and expenses.",
     "noMonthMember": "Your manager hasn't started a month yet. Your meals and balance will show up here once they do.",
-    "startInSettings": "Start in Settings",
+    "startInSettings": "Start a month",
     "recentActivity": "Recent activity"
   }
 }

@@ -30,10 +30,29 @@ export interface MemberMonthSummaryInfo {
   deposit_amount: number;
   final_bill: number;
   final_balance: number;
+  carried_in: number;
+  removed: boolean;
+}
+
+export interface MonthSummaryTotalsInfo {
+  member_count: number;
+  total_meals: number;
+  meal_rate: number;
+  bazaar_cost: number;
+  shared_cost: number;
+  individual_cost: number;
+  total_expense: number;
+  total_deposits: number;
+  carried_in_balance: number;
+  carried_in_due: number;
+  total_due: number;
+  total_credit: number;
+  closed_by: { id: string; name: string } | null;
 }
 
 export interface MonthSummaryInfo {
   month: MonthInfo;
+  totals: MonthSummaryTotalsInfo;
   member_summaries: MemberMonthSummaryInfo[];
 }
 

@@ -35,6 +35,8 @@ export function useCreateMonth(messId: string | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["active-month", messId] });
       queryClient.invalidateQueries({ queryKey: ["month-history", messId] });
+      // The month that just closed now has its summary.
+      queryClient.invalidateQueries({ queryKey: ["month-summary", messId] });
       // Dashboard numbers belong to the month that just changed.
       queryClient.invalidateQueries({ queryKey: ["mess-dashboard", messId] });
       queryClient.invalidateQueries({ queryKey: ["member-dashboard", messId] });

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { type Prisma, prisma } from '@repo/database';
 import type { MonthResponse, MonthSummaryResponse } from '@repo/shared';
-import { computeMemberSummaries } from './month-summary';
+import { computeMemberSummaries, roundMoney } from './month-summary';
 
 type CarryForwardSource = { member_id: string; final_balance: number };
 
@@ -312,27 +312,67 @@ export class MonthsService {
       throw new NotFoundException('Month not found');
     }
 
-    const summaries = await prisma.member_month_summaries.findMany({
-      where: { month_id: monthId },
-      include: {
-        member: {
+    const [summaries, mealAgg, expenseGroups, depositAgg, carries, closeLog] =
+      await Promise.all([
+        prisma.member_month_summaries.findMany({
+          where: { month_id: monthId },
           include: {
-            user: {
+            member: {
               select: {
-                id: true,
-                name: true,
-                email: true,
-                avatar: true,
+                removed_at: true,
+                deleted_at: true,
+                user: {
+                  select: { id: true, name: true, email: true, avatar: true },
+                },
               },
             },
           },
-        },
-      },
-    });
+        }),
+        prisma.meal_entries.aggregate({
+          where: { month_id: monthId, deleted_at: null },
+          _sum: { total_meal: true },
+        }),
+        prisma.expenses.groupBy({
+          by: ['type'],
+          where: { month_id: monthId, mess_id: messId },
+          _sum: { amount: true },
+        }),
+        prisma.deposits.aggregate({
+          where: { month_id: monthId, mess_id: messId, deleted_at: null },
+          _sum: { amount: true },
+        }),
+        prisma.carry_forward_balances.findMany({
+          where: { target_month_id: monthId },
+          select: { member_id: true, amount: true, carry_forward_type: true },
+        }),
+        prisma.activity_logs.findFirst({
+          where: { month_id: monthId, action: 'MONTH_CLOSED' },
+          orderBy: { created_at: 'desc' },
+          select: { actor: { select: { id: true, name: true } } },
+        }),
+      ]);
 
-    return {
-      month: this.mapMonthResponse(month),
-      member_summaries: summaries.map((s) => ({
+    const expenseByType = (type: string) =>
+      Number(expenseGroups.find((g) => g.type === type)?._sum.amount ?? 0);
+    const bazaarCost = expenseByType('BAZAAR');
+    const sharedCost = expenseByType('SHARED');
+    const individualCost = expenseByType('INDIVIDUAL');
+    const totalMeals = Number(mealAgg._sum.total_meal ?? 0);
+
+    const carriedIn = new Map<string, number>();
+    let carriedInBalance = 0;
+    let carriedInDue = 0;
+    for (const c of carries) {
+      const amount = Number(c.amount);
+      const signed =
+        c.carry_forward_type === 'PREVIOUS_BALANCE' ? amount : -amount;
+      if (signed > 0) carriedInBalance += amount;
+      else carriedInDue += amount;
+      carriedIn.set(c.member_id, (carriedIn.get(c.member_id) ?? 0) + signed);
+    }
+
+    const memberSummaries = summaries
+      .map((s) => ({
         id: s.id,
         member_id: s.member_id,
         user: s.member.user,
@@ -343,7 +383,36 @@ export class MonthsService {
         deposit_amount: Number(s.deposit_amount),
         final_bill: Number(s.final_bill),
         final_balance: Number(s.final_balance),
-      })),
+        carried_in: roundMoney(carriedIn.get(s.member_id) ?? 0),
+        removed: s.member.removed_at !== null || s.member.deleted_at !== null,
+      }))
+      .sort((a, b) => a.user.name.localeCompare(b.user.name));
+
+    let totalDue = 0;
+    let totalCredit = 0;
+    for (const m of memberSummaries) {
+      if (m.final_balance < 0) totalDue += -m.final_balance;
+      else totalCredit += m.final_balance;
+    }
+
+    return {
+      month: this.mapMonthResponse(month),
+      totals: {
+        member_count: memberSummaries.length,
+        total_meals: totalMeals,
+        meal_rate: roundMoney(totalMeals > 0 ? bazaarCost / totalMeals : 0),
+        bazaar_cost: roundMoney(bazaarCost),
+        shared_cost: roundMoney(sharedCost),
+        individual_cost: roundMoney(individualCost),
+        total_expense: roundMoney(bazaarCost + sharedCost + individualCost),
+        total_deposits: roundMoney(Number(depositAgg._sum.amount ?? 0)),
+        carried_in_balance: roundMoney(carriedInBalance),
+        carried_in_due: roundMoney(carriedInDue),
+        total_due: roundMoney(totalDue),
+        total_credit: roundMoney(totalCredit),
+        closed_by: closeLog?.actor ?? null,
+      },
+      member_summaries: memberSummaries,
     };
   }
 
