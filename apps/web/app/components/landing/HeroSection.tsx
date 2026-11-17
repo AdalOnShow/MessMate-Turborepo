@@ -12,11 +12,6 @@ export async function HeroSection() {
   const t = await getTranslations("landing.hero");
   return (
     <section className="relative overflow-hidden bg-background pt-32 pb-24 lg:pt-40 lg:pb-32">
-      <div
-        className="bg-grid pointer-events-none absolute inset-0 opacity-60"
-        aria-hidden
-      />
-
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-12">
           <div className="max-w-xl">

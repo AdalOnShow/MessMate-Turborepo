@@ -124,7 +124,6 @@ export function InstallGuide() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px] bg-[radial-gradient(60%_60%_at_50%_0%,rgba(50,145,255,0.18),transparent)]" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pt-12 pb-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:pt-20">
           <div className="animate-pop-in">
             <span className="label-mono text-primary">{t("eyebrow")}</span>

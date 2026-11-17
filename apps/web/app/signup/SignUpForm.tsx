@@ -100,10 +100,6 @@ export default function SignUpForm() {
 
   return (
     <div className="relative min-h-dvh flex items-center justify-center bg-background px-4 py-6 sm:py-8">
-      <div
-        className="bg-grid pointer-events-none absolute inset-0 opacity-50"
-        aria-hidden
-      />
       <div className="relative w-full max-w-sm">
         {/* Logo */}
         <Link
@@ -146,8 +142,8 @@ export default function SignUpForm() {
           </p>
 
           <div className="space-y-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="space-y-1">
                 <label
                   htmlFor="name"
                   className="label-mono text-[10px] text-foreground-muted"
@@ -172,7 +168,7 @@ export default function SignUpForm() {
                 <FieldError id="name-error" message={fieldErrors.name} />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label
                   htmlFor="email"
                   className="label-mono text-[10px] text-foreground-muted"
@@ -207,7 +203,7 @@ export default function SignUpForm() {
                 )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label
                   htmlFor="password"
                   className="label-mono text-[10px] text-foreground-muted"

@@ -18,15 +18,6 @@ type Stat = { label: string; value: string; href?: string };
 function HeroShell({ children }: { children: React.ReactNode }) {
   return (
     <section className="relative overflow-hidden rounded-3xl border border-border bg-surface p-5 sm:p-6">
-      {/* Soft brand glow in the corner. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-24 -right-20 size-64 rounded-full opacity-60 blur-3xl"
-        style={{
-          background:
-            "radial-gradient(circle, color-mix(in srgb, var(--color-primary) 22%, transparent), transparent 70%)",
-        }}
-      />
       <div className="relative">{children}</div>
     </section>
   );
