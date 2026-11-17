@@ -280,7 +280,15 @@
     "noSummaryAvailableMonth": "এই মাসের এখনো কোনো সারাংশ নেই।",
     "liveCalculationsCurrentActive": "চলতি মাসের লাইভ হিসাব।",
     "calculationsFromArchivedMonth": "আর্কাইভ করা মাসের সারাংশ থেকে হিসাব।",
-    "monthSummary": "মাসের সারাংশ"
+    "monthSummary": "মাসের সারাংশ",
+    "date": "তারিখ",
+    "name": "নাম",
+    "type": "ধরন",
+    "all": "সব",
+    "loadMore": "আরও দেখুন",
+    "showingOf": "{total}টির মধ্যে {shown}টি দেখানো হচ্ছে",
+    "noExpensesOfType": "এই মাসে এই ধরনের কোনো খরচ নেই।",
+    "boughtBy": "বাজার করেছেন"
   },
   "settings": {
     "messName": "মেসের নাম",

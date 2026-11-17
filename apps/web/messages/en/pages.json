@@ -280,7 +280,15 @@
     "noSummaryAvailableMonth": "No summary available for this month yet.",
     "liveCalculationsCurrentActive": "Live calculations for the current active month.",
     "calculationsFromArchivedMonth": "Calculations from the archived month summary.",
-    "monthSummary": "Month Summary"
+    "monthSummary": "Month Summary",
+    "date": "Date",
+    "name": "Name",
+    "type": "Type",
+    "all": "All",
+    "loadMore": "Load more",
+    "showingOf": "Showing {shown} of {total}",
+    "noExpensesOfType": "No expenses of this type this month.",
+    "boughtBy": "Bought by"
   },
   "settings": {
     "messName": "Mess Name",

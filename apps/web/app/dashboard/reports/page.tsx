@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import {
-  BarChart3,
   Calendar,
+  ChevronDown,
   Loader2,
   ReceiptText,
   User,
@@ -19,17 +19,21 @@ import {
   type MonthInfo,
 } from "../../hooks/use-months";
 import { useGetMonthMealSummary } from "../../hooks/use-meals";
-import { useExpenseSummary } from "../../hooks/use-expenses";
+import { useExpenseSummary, useGetExpenses } from "../../hooks/use-expenses";
+import type { ExpenseInfo } from "../../actions/expenses";
+import type { BazaarSubmissionInfo } from "../../actions/bazaar";
+import { useGetBazaarHistory } from "../../hooks/use-bazaar";
 import { useDepositSummary } from "../../hooks/use-deposits";
 import { useMemberCalculations } from "../../hooks/use-members";
 import { formatMoney } from "../../lib/format";
+import { Button } from "../../components/ui/button";
 import {
   QueriesErrorState,
   QueryErrorState,
   failedQueries,
 } from "../../components/feedback/QueryErrorState";
 
-type Tab = "month" | "meals" | "expenses" | "deposits" | "members";
+type Tab = "meals" | "expenses" | "deposits" | "members";
 
 interface MemberRow {
   member_id: string;
@@ -147,89 +151,6 @@ function ThLeft({ label }: { label: string }) {
   );
 }
 
-function MonthSummaryView({
-  messId,
-  monthId,
-}: {
-  messId: string;
-  monthId: string;
-}) {
-  const t = useTranslations("pages.reports");
-  const query = useGetMonthSummary(messId, monthId);
-  const { data, isLoading } = query;
-
-  if (isLoading) return <LoadingBlock />;
-  if (query.isError && !data) {
-    return (
-      <QueryErrorState
-        error={query.error}
-        onRetry={query.refetch}
-        isRetrying={query.isFetching}
-        resource="this report"
-      />
-    );
-  }
-
-  if (!data || data.member_summaries.length === 0) {
-    return <EmptyBlock message={t("noSummaryDataAvailable")} />;
-  }
-
-  return (
-    <div className="space-y-4">
-      <StatCard
-        label={t("members")}
-        value={String(data.member_summaries.length)}
-      />
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="table-sticky-first w-full text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <ThLeft label={t("member")} />
-              <Th label={t("meals")} />
-              <Th label={t("mealCost")} />
-              <Th label={t("shared")} />
-              <Th label={t("individual")} />
-              <Th label={t("bill")} />
-              <Th label={t("deposit")} />
-              <Th label={t("balance")} />
-            </tr>
-          </thead>
-          <tbody>
-            {data.member_summaries.map((s) => (
-              <tr key={s.id} className="border-b border-border last:border-0">
-                <td className="px-4 py-3">
-                  <UserCell name={s.user.name} email={s.user.email} />
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {s.total_meals}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {formatMoney(s.meal_cost)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {formatMoney(s.shared_cost)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {formatMoney(s.individual_cost)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-foreground">
-                  {formatMoney(s.final_bill)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {formatMoney(s.deposit_amount)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right">
-                  <BalanceBadge value={s.final_balance} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
 function MealsSummaryView({
   messId,
   monthId,
@@ -326,7 +247,7 @@ function ExpensesSummaryView({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
           label={t("total")}
           value={formatMoney(data.total)}
@@ -338,41 +259,236 @@ function ExpensesSummaryView({
           value={formatMoney(data.individual_total)}
         />
         <StatCard label={t("bazaar")} value={formatMoney(data.bazaar_total)} />
-        <StatCard label={t("count")} value={String(data.count)} />
       </div>
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="table-sticky-first w-full text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <ThLeft label={t("member")} />
-              <Th label={t("sharedCost")} />
-              <Th label={t("individual")} />
-              <Th label={t("total")} />
-            </tr>
-          </thead>
-          <tbody>
-            {data.per_member.map((m) => (
-              <tr
-                key={m.member_id}
-                className="border-b border-border last:border-0"
-              >
-                <td className="px-4 py-3">
-                  <UserCell name={m.user.name} email={m.user.email} />
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {formatMoney(m.shared_cost)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {formatMoney(m.individual_cost)}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-foreground">
-                  {formatMoney(m.total_cost)}
-                </td>
+      <ExpenseList messId={messId} monthId={monthId} />
+    </div>
+  );
+}
+
+const EXPENSE_PAGE_SIZE = 10;
+
+type ExpenseType = ExpenseInfo["type"];
+type ExpenseFilter = "ALL" | ExpenseType;
+
+const EXPENSE_TYPE_STYLES: Record<ExpenseType, string> = {
+  SHARED: "border-primary/25 bg-primary/10 text-primary",
+  INDIVIDUAL: "border-accent-warm/25 bg-accent-warm/10 text-accent-warm",
+  BAZAAR: "border-success/25 bg-success/10 text-success",
+};
+
+interface ExpenseRow {
+  id: string;
+  date: string;
+  createdAt: string;
+  name: string;
+  type: ExpenseType;
+  amount: number;
+  /** Who did the shopping; only known for bazaar rows. */
+  boughtBy?: string;
+}
+
+function newestFirst(a: ExpenseRow, b: ExpenseRow) {
+  return (
+    new Date(b.date).getTime() - new Date(a.date).getTime() ||
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+/** "Rice, Oil +3" — a short name for a bazaar built from its items. */
+function bazaarName(submission: BazaarSubmissionInfo) {
+  const names = submission.items.map((item) => item.name);
+  const head = names.slice(0, 2).join(", ");
+  return names.length > 2 ? `${head} +${names.length - 2}` : head;
+}
+
+function ExpenseDateCell({ iso }: { iso: string }) {
+  const date = new Date(iso);
+  return (
+    <div className="whitespace-nowrap leading-tight">
+      <p className="font-medium text-foreground">
+        {date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+      </p>
+      <p className="mt-0.5 text-xs text-foreground-muted">
+        {date.toLocaleDateString("en-US", { weekday: "short" })}
+      </p>
+    </div>
+  );
+}
+
+/** Every expense of the month, newest first, filterable by type and revealed 10 at a time. */
+function ExpenseList({ messId, monthId }: { messId: string; monthId: string }) {
+  const t = useTranslations("pages.reports");
+  const [filter, setFilter] = useState<ExpenseFilter>("ALL");
+  const [visible, setVisible] = useState(EXPENSE_PAGE_SIZE);
+  const isBazaar = filter === "BAZAAR";
+
+  const expensesQuery = useGetExpenses(messId, monthId);
+  // A bazaar expense row records the approving manager, not the shopper, so the
+  // Bazaar filter lists the approved submissions (one per bazaar expense) instead.
+  const bazaarQuery = useGetBazaarHistory(
+    messId,
+    isBazaar ? monthId : undefined,
+  );
+  const query = isBazaar ? bazaarQuery : expensesQuery;
+
+  const typeLabel = (type: ExpenseType) =>
+    type === "SHARED"
+      ? t("shared")
+      : type === "INDIVIDUAL"
+        ? t("individual")
+        : t("bazaar");
+
+  const expenseRows = useMemo<ExpenseRow[]>(
+    () =>
+      (expensesQuery.data?.items ?? [])
+        .map((e) => ({
+          id: e.id,
+          date: e.expense_date,
+          createdAt: e.created_at,
+          name: e.title,
+          type: e.type,
+          amount: e.amount,
+        }))
+        .sort(newestFirst),
+    [expensesQuery.data],
+  );
+
+  const bazaarRows = useMemo<ExpenseRow[]>(
+    () =>
+      (bazaarQuery.data?.approved ?? [])
+        .map((b) => ({
+          id: b.id,
+          date: b.expense_date,
+          createdAt: b.created_at,
+          name: bazaarName(b),
+          type: "BAZAAR" as const,
+          amount: b.total_amount,
+          boughtBy: b.submitter?.name,
+        }))
+        .sort(newestFirst),
+    [bazaarQuery.data],
+  );
+
+  if (expensesQuery.isLoading || query.isLoading) return <LoadingBlock />;
+  if (query.isError && !query.data) {
+    return (
+      <QueryErrorState
+        compact
+        error={query.error}
+        onRetry={query.refetch}
+        isRetrying={query.isFetching}
+        resource={isBazaar ? "bazaars" : "expenses"}
+      />
+    );
+  }
+
+  const filtered = isBazaar
+    ? bazaarRows
+    : filter === "ALL"
+      ? expenseRows
+      : expenseRows.filter((row) => row.type === filter);
+  const shown = filtered.slice(0, visible);
+
+  const filters: { key: ExpenseFilter; label: string; count: number }[] = [
+    { key: "ALL", label: t("all"), count: expenseRows.length },
+    ...(["SHARED", "INDIVIDUAL", "BAZAAR"] as const).map((type) => ({
+      key: type,
+      label: typeLabel(type),
+      count: expenseRows.filter((row) => row.type === type).length,
+    })),
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
+        {filters.map((f) => {
+          const selected = filter === f.key;
+          return (
+            <button
+              key={f.key}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => {
+                setFilter(f.key);
+                setVisible(EXPENSE_PAGE_SIZE);
+              }}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                selected
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-surface text-foreground-muted hover:border-border-strong hover:text-foreground"
+              }`}
+            >
+              {f.label}
+              <span className="tabular-nums opacity-70">{f.count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {shown.length === 0 ? (
+        <EmptyBlock message={t("noExpensesOfType")} />
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+          <table className="table-sticky-first w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <ThLeft label={t("date")} />
+                <ThLeft label={t("name")} />
+                <ThLeft label={isBazaar ? t("boughtBy") : t("type")} />
+                <Th label={t("amount")} />
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {shown.map((row) => (
+                <tr
+                  key={row.id}
+                  className="border-b border-border last:border-0"
+                >
+                  <td className="px-4 py-3 align-top">
+                    <ExpenseDateCell iso={row.date} />
+                  </td>
+                  <td className="min-w-[9rem] px-4 py-3 align-top font-medium break-words text-foreground">
+                    {row.name}
+                  </td>
+                  <td className="px-4 py-3 align-top">
+                    {isBazaar ? (
+                      <span className="whitespace-nowrap text-foreground">
+                        {row.boughtBy ?? "—"}
+                      </span>
+                    ) : (
+                      <span
+                        className={`inline-block whitespace-nowrap rounded-[5px] border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] ${EXPENSE_TYPE_STYLES[row.type]}`}
+                      >
+                        {typeLabel(row.type)}
+                      </span>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right align-top font-semibold tabular-nums text-foreground">
+                    {formatMoney(row.amount)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {filtered.length > shown.length && (
+        <div className="flex flex-col items-center gap-2 pt-1">
+          <p className="text-xs text-foreground-muted">
+            {t("showingOf", { shown: shown.length, total: filtered.length })}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setVisible((v) => v + EXPENSE_PAGE_SIZE)}
+            className="w-full sm:w-auto"
+          >
+            <ChevronDown />
+            {t("loadMore")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -406,13 +522,12 @@ function DepositsSummaryView({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3">
         <StatCard
           label={t("totalDeposits")}
           value={formatMoney(data.total)}
           highlight
         />
-        <StatCard label={t("transactions")} value={String(data.count)} />
         <StatCard
           label={t("depositors")}
           value={String(data.per_member.length)}
@@ -579,7 +694,7 @@ export default function ReportsPage() {
   const [selectedMonthId, setSelectedMonthId] = useState<string | undefined>(
     undefined,
   );
-  const [activeTab, setActiveTab] = useState<Tab>("month");
+  const [activeTab, setActiveTab] = useState<Tab>("meals");
 
   useEffect(() => {
     if (!selectedMonthId && activeMonth?.id) {
@@ -593,7 +708,6 @@ export default function ReportsPage() {
   );
 
   const tabs: { key: Tab; label: string; icon: typeof Calendar }[] = [
-    { key: "month", label: t("monthSummary"), icon: BarChart3 },
     { key: "meals", label: "Meals", icon: Utensils },
     { key: "expenses", label: "Expenses", icon: ReceiptText },
     { key: "deposits", label: "Deposits", icon: WalletCards },
@@ -664,14 +778,15 @@ export default function ReportsPage() {
 
       {selectedMonth && messId && (
         <div>
-          {activeTab === "month" && (
-            <MonthSummaryView messId={messId} monthId={selectedMonth.id} />
-          )}
           {activeTab === "meals" && (
             <MealsSummaryView messId={messId} monthId={selectedMonth.id} />
           )}
           {activeTab === "expenses" && (
-            <ExpensesSummaryView messId={messId} monthId={selectedMonth.id} />
+            <ExpensesSummaryView
+              key={selectedMonth.id}
+              messId={messId}
+              monthId={selectedMonth.id}
+            />
           )}
           {activeTab === "deposits" && (
             <DepositsSummaryView messId={messId} monthId={selectedMonth.id} />
