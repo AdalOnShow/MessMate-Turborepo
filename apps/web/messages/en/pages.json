@@ -143,7 +143,8 @@
     "saveTodaysMeals": "Save today's meals",
     "everyone": "Everyone",
     "addForEveryone": "Add half a {meal} for everyone",
-    "removeForEveryone": "Remove half a {meal} for everyone"
+    "removeForEveryone": "Remove half a {meal} for everyone",
+    "save": "Save"
   },
   "mealsReports": {
     "date": "Date:",

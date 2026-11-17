@@ -410,7 +410,7 @@ export default function MealsPage() {
               }`}
             >
               {hasChanges && (
-                <span className="flex-1 text-sm text-foreground md:hidden">
+                <span className="min-w-0 flex-1 text-sm leading-tight text-foreground md:hidden">
                   {t("unsavedChanges")}
                 </span>
               )}
@@ -420,7 +420,7 @@ export default function MealsPage() {
                 disabled={
                   !hasChanges || saveMutation.isPending || refreshing || !online
                 }
-                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60 md:h-auto md:rounded-lg md:px-4 md:py-2"
+                className="flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60 md:h-auto md:rounded-lg md:px-4 md:py-2"
               >
                 {saveMutation.isPending ? (
                   <>
@@ -430,7 +430,11 @@ export default function MealsPage() {
                 ) : (
                   <>
                     <Save size={14} />
-                    {t("saveTodaysMeals")}
+                    {/* Short label on phones so the bar stays on one line. */}
+                    <span className="md:hidden">{t("save")}</span>
+                    <span className="hidden md:inline">
+                      {t("saveTodaysMeals")}
+                    </span>
                   </>
                 )}
               </button>
@@ -444,7 +448,7 @@ export default function MealsPage() {
           )}
 
           {/* Phones: one card per member with large steppers */}
-          <div className={`space-y-3 md:hidden ${hasChanges ? "pb-20" : ""}`}>
+          <div className="space-y-3 md:hidden">
             {entriesLoading ? (
               <div className="flex justify-center rounded-2xl border border-border bg-surface py-10">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -654,6 +658,13 @@ export default function MealsPage() {
 
       {isManager && messId && (
         <MealTypeManager messId={messId} mealTypes={mealTypes ?? []} />
+      )}
+
+      {/* Phones: room at the very end of the page for the floating save bar,
+          so the last section (meal type settings) can scroll out from under
+          it. */}
+      {isManager && hasChanges && (
+        <div aria-hidden className="h-24 md:hidden" />
       )}
     </>
   );

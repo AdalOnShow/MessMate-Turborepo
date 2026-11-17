@@ -143,7 +143,8 @@
     "saveTodaysMeals": "আজকের মিল সেভ করুন",
     "everyone": "সবাই",
     "addForEveryone": "সবার {meal} আধা বাড়ান",
-    "removeForEveryone": "সবার {meal} আধা কমান"
+    "removeForEveryone": "সবার {meal} আধা কমান",
+    "save": "সেভ করুন"
   },
   "mealsReports": {
     "date": "তারিখ:",
