@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useMessages, useTranslations } from "next-intl";
 import {
   ArrowDown,
   ArrowRight,
@@ -105,15 +105,15 @@ function guideFor(env: DeviceEnv | null): GuideId {
 
 export function InstallGuide() {
   const t = useTranslations("install");
+  const messages = useMessages();
   const env = useDeviceEnv();
   const detected = guideFor(env);
   const [picked, setPicked] = useState<GuideId | null>(null);
   const guideId = picked ?? detected;
   const guide = GUIDES[guideId];
-  const steps = Object.values(t.raw("guides")[guideId]) as {
-    title: string;
-    body: string;
-  }[];
+  const steps: { title: string; body: string }[] = Object.values(
+    messages.install.guides[guideId],
+  );
 
   const pickOs = (os: Os) => {
     if (os === guide.os) return;
