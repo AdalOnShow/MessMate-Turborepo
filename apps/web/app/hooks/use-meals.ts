@@ -1,19 +1,12 @@
 "use client";
 
-import {
-  getDailyMealReport,
-  getMealEntries,
-  getMemberMealReport,
-  getMonthMealSummary,
-} from "../lib/reads";
+import { getMealEntries, getMonthMealSummary } from "../lib/reads";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   bulkSaveMealEntries,
   deleteMealEntry,
   type MealEntryInfo,
   type BulkMealEntriesPayload,
-  type DailyMealReport,
-  type MemberMealReport,
   type MonthMealSummary,
 } from "../actions/meals";
 import { unwrap } from "../lib/action-result";
@@ -76,36 +69,6 @@ export function useDeleteMealEntry(messId: string | undefined) {
 
 export type { MealEntryInfo, BulkMealEntriesPayload };
 
-export function useGetDailyMealReport(
-  messId: string | undefined,
-  monthId: string | undefined,
-  date: string,
-) {
-  return useQuery({
-    queryKey: ["meal-daily-report", messId, monthId, date],
-    queryFn: async () => {
-      if (!messId || !monthId || !date) return null;
-      return unwrap(getDailyMealReport(messId, monthId, date));
-    },
-    enabled: !!messId && !!monthId && !!date,
-  });
-}
-
-export function useGetMemberMealReport(
-  messId: string | undefined,
-  monthId: string | undefined,
-  memberId: string | undefined,
-) {
-  return useQuery({
-    queryKey: ["meal-member-report", messId, monthId, memberId],
-    queryFn: async () => {
-      if (!messId || !monthId || !memberId) return null;
-      return unwrap(getMemberMealReport(messId, monthId, memberId));
-    },
-    enabled: !!messId && !!monthId && !!memberId,
-  });
-}
-
 export function useGetMonthMealSummary(
   messId: string | undefined,
   monthId: string | undefined,
@@ -120,4 +83,4 @@ export function useGetMonthMealSummary(
   });
 }
 
-export type { DailyMealReport, MemberMealReport, MonthMealSummary };
+export type { MonthMealSummary };

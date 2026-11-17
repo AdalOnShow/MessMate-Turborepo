@@ -22,7 +22,7 @@ export function MealsByMember({
     <Card>
       <CardTitle
         title={t("mealsByMember")}
-        href="/dashboard/meals/reports"
+        href="/dashboard/reports"
         linkLabel={t("reports")}
       />
       {query.isPending ? (

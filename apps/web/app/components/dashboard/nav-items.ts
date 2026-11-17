@@ -26,7 +26,6 @@ export type NavLabel =
   | "profile"
   | "settings"
   | "messSettings"
-  | "mealReports"
   | "createAccount"
   | "createMess";
 
@@ -49,6 +48,26 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
   { href: "/dashboard/profile", label: "profile", icon: User },
 ];
+
+/**
+ * Desktop sidebar order. Separate from NAV_ITEMS so the mobile "More" sheet
+ * (built from NAV_ITEMS) keeps its own order.
+ */
+const SIDEBAR_ORDER = [
+  "/dashboard",
+  "/dashboard/members",
+  "/dashboard/meals",
+  "/dashboard/bazaar",
+  "/dashboard/expenses",
+  "/dashboard/deposits",
+  "/dashboard/months",
+  "/dashboard/reports",
+  "/dashboard/profile",
+];
+
+export const SIDEBAR_ITEMS: NavItem[] = SIDEBAR_ORDER.map(
+  (href) => NAV_ITEMS.find((item) => item.href === href)!,
+);
 
 export const MANAGER_NAV_ITEMS: NavItem[] = [
   {
@@ -82,11 +101,6 @@ export function isActivePath(pathname: string, href: string) {
 
 /** Sub-pages that should show a back button + their own title on mobile. */
 const NESTED_PAGES: { href: string; label: NavLabel; parent: string }[] = [
-  {
-    href: "/dashboard/meals/reports",
-    label: "mealReports",
-    parent: "/dashboard/meals",
-  },
   {
     href: "/dashboard/members/create-account",
     label: "createAccount",

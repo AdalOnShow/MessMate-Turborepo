@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl";
 import { LanguageToggle } from "../LanguageToggle";
 import { UserAvatar } from "./UserAvatar";
 import { LinkPendingDot } from "../ui/link-pending";
-import { MANAGER_NAV_ITEMS, NAV_ITEMS, isActivePath } from "./nav-items";
+import { MANAGER_NAV_ITEMS, SIDEBAR_ITEMS, isActivePath } from "./nav-items";
 
 export function Sidebar() {
   const t = useTranslations("nav");
@@ -47,7 +47,7 @@ export function Sidebar() {
         <p className="label-mono mb-2 px-3 text-[10px] text-foreground-muted">
           {t("workspace")}
         </p>
-        {NAV_ITEMS.map((item) => {
+        {SIDEBAR_ITEMS.map((item) => {
           const Icon = item.icon;
           const active = isActivePath(pathname, item.href);
 

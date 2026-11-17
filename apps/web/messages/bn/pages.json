@@ -131,35 +131,6 @@
     "removeForEveryone": "সবার {meal} আধা কমান",
     "save": "সেভ করুন"
   },
-  "mealsReports": {
-    "date": "তারিখ:",
-    "editMeals": "মিল এডিট করুন",
-    "cancel": "বাতিল",
-    "noMealsRecordedDate": "এই তারিখে কোনো মিল লেখা হয়নি।",
-    "members": "সদস্য",
-    "totalMeals": "মোট মিল",
-    "member": "সদস্য",
-    "total": "মোট",
-    "noMembersMessYet": "এই মেসে এখনো কোনো সদস্য নেই।",
-    "noActiveMealTypes": "কোনো সক্রিয় মিলের ধরন নেই। মূল মিল পেজ থেকে মিলের ধরন যোগ করুন।",
-    "member2": "সদস্য:",
-    "selectMember": "একজন সদস্য বাছাই করুন",
-    "selectMemberViewTheir": "মিলের রিপোর্ট দেখতে একজন সদস্য বাছাই করুন।",
-    "noMealsRecordedMember": "এই মাসে এই সদস্যের কোনো মিল লেখা হয়নি।",
-    "daysMeals": "মিলসহ দিন",
-    "avgDay": "দৈনিক গড়",
-    "date2": "তারিখ",
-    "noMealDataAvailable": "এই মাসের কোনো মিলের তথ্য নেই।",
-    "activeDays": "সক্রিয় দিন",
-    "totalEntries": "মোট এন্ট্রি",
-    "days": "দিন",
-    "mealReports": "মিল রিপোর্ট",
-    "noActiveMonthStart": "চলমান কোনো মাস নেই। রিপোর্ট দেখতে ড্যাশবোর্ড থেকে মাস শুরু করুন।",
-    "saveChanges": "পরিবর্তন সেভ করুন",
-    "monthlySummary": "মাসিক সারাংশ",
-    "dailyReport": "দৈনিক রিপোর্ট",
-    "memberReport": "সদস্য রিপোর্ট"
-  },
   "membersCreateAccount_createAccountForm": {
     "members": "সদস্য",
     "createMemberAccount": "সদস্যের অ্যাকাউন্ট তৈরি করুন",
@@ -346,6 +317,8 @@
     "carrySummary": "{total}টি ব্যালেন্সের মধ্যে {carried}টি নতুন মাসে যাবে।",
     "settledCount": "{count} জন সদস্যের হিসাব আগেই মিটে গেছে।",
     "summaryKept": "যেটাই বেছে নিন, প্রত্যেকের আসল চূড়ান্ত ব্যালেন্স এই মাসের সারাংশে থেকে যাবে।",
-    "pendingBazaarWarning": "{count}টি বাজার এখনো অনুমোদনের অপেক্ষায় আছে। মাস ক্লোজ করলে এগুলো বাতিল হয়ে যাবে; হিসাবে ধরতে চাইলে আগে অনুমোদন দিন।"
+    "pendingBazaarWarning": "{count}টি বাজার এখনো অনুমোদনের অপেক্ষায় আছে। মাস ক্লোজ করলে এগুলো বাতিল হয়ে যাবে; হিসাবে ধরতে চাইলে আগে অনুমোদন দিন।",
+    "lockReminderTitle": "গুরুত্বপূর্ণ:",
+    "lockReminder": "ক্লোজ করার পর {title}-এর কিছুই আর বদলানো বা মোছা যাবে না: মিল, জমা, খরচ, বাজার সব লক হয়ে যাবে। আগে সব ঠিক আছে কিনা দেখে নিন।"
   }
 }

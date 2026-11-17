@@ -35,7 +35,7 @@ const MANAGER_ACTIONS: Action[] = [
 const MEMBER_ACTIONS: Action[] = [
   { href: "/dashboard/meals", icon: ChefHat, label: "actionMeals" },
   { href: "/dashboard/bazaar", icon: ShoppingCart, label: "actionBazaar" },
-  { href: "/dashboard/meals/reports", icon: BarChart3, label: "actionReports" },
+  { href: "/dashboard/reports", icon: BarChart3, label: "actionReports" },
   { href: "/dashboard/members", icon: Users, label: "actionMembers" },
 ];
 

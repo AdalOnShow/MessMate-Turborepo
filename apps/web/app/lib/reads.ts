@@ -14,12 +14,7 @@ import type {
   ExpenseSummaryResponseInfo,
 } from "../actions/expenses";
 import type { PendingInvite } from "../actions/invites";
-import type {
-  DailyMealReport,
-  MealEntryInfo,
-  MemberMealReport,
-  MonthMealSummary,
-} from "../actions/meals";
+import type { MealEntryInfo, MonthMealSummary } from "../actions/meals";
 import type {
   ActivityLogInfo,
   MemberCalculationListInfo,
@@ -75,26 +70,6 @@ export function getMealEntries(
 ) {
   return apiGet<MealEntryInfo[]>(
     `/meals/${messId}/${monthId}?startDate=${startDate}&endDate=${endDate}`,
-  );
-}
-
-export function getDailyMealReport(
-  messId: string,
-  monthId: string,
-  date: string,
-) {
-  return apiGet<DailyMealReport>(
-    `/meals/${messId}/${monthId}/daily?date=${date}`,
-  );
-}
-
-export function getMemberMealReport(
-  messId: string,
-  monthId: string,
-  memberId: string,
-) {
-  return apiGet<MemberMealReport>(
-    `/meals/${messId}/${monthId}/member/${memberId}`,
   );
 }
 

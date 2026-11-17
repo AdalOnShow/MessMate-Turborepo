@@ -131,35 +131,6 @@
     "removeForEveryone": "Remove half a {meal} for everyone",
     "save": "Save"
   },
-  "mealsReports": {
-    "date": "Date:",
-    "editMeals": "Edit Meals",
-    "cancel": "Cancel",
-    "noMealsRecordedDate": "No meals recorded for this date.",
-    "members": "Members",
-    "totalMeals": "Total Meals",
-    "member": "Member",
-    "total": "Total",
-    "noMembersMessYet": "No members in this mess yet.",
-    "noActiveMealTypes": "No active meal types. Add meal types from the main meals page.",
-    "member2": "Member:",
-    "selectMember": "Select a member",
-    "selectMemberViewTheir": "Select a member to view their meal report.",
-    "noMealsRecordedMember": "No meals recorded for this member in this month.",
-    "daysMeals": "Days with Meals",
-    "avgDay": "Avg/Day",
-    "date2": "Date",
-    "noMealDataAvailable": "No meal data available for this month.",
-    "activeDays": "Active Days",
-    "totalEntries": "Total Entries",
-    "days": "Days",
-    "mealReports": "Meal Reports",
-    "noActiveMonthStart": "No active month. Start a month from the dashboard to view reports.",
-    "saveChanges": "Save Changes",
-    "monthlySummary": "Monthly Summary",
-    "dailyReport": "Daily Report",
-    "memberReport": "Member Report"
-  },
   "membersCreateAccount_createAccountForm": {
     "members": "Members",
     "createMemberAccount": "Create Member Account",
@@ -346,6 +317,8 @@
     "carrySummary": "{carried} of {total} balances will carry.",
     "settledCount": "{count, plural, one {# member is} other {# members are}} already settled.",
     "summaryKept": "Everyone's real final balance stays in this month's summary either way.",
-    "pendingBazaarWarning": "{count, plural, one {# bazaar entry is} other {# bazaar entries are}} still waiting for approval. Closing the month rejects {count, plural, one {it} other {them}}; approve first if they should count."
+    "pendingBazaarWarning": "{count, plural, one {# bazaar entry is} other {# bazaar entries are}} still waiting for approval. Closing the month rejects {count, plural, one {it} other {them}}; approve first if they should count.",
+    "lockReminderTitle": "Important:",
+    "lockReminder": "After closing, nothing in {title} can be edited or deleted: meals, deposits, expenses and bazaar are all locked. Check everything first."
   }
 }

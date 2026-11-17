@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { CalendarDays, CalendarOff, Loader2, Plus } from "lucide-react";
+import { CalendarDays, CalendarOff, Loader2, Lock, Plus } from "lucide-react";
 import {
   useCreateMonth,
   useGetActiveMonth,
@@ -194,6 +194,25 @@ export function MonthSettings({ messId }: { messId: string }) {
                 />
               )}
             </div>
+          )}
+
+          {month && (
+            <p
+              role="note"
+              className="mt-5 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-foreground"
+            >
+              <Lock
+                size={16}
+                className="mt-0.5 shrink-0 text-destructive"
+                aria-hidden="true"
+              />
+              <span>
+                <span className="font-semibold text-destructive">
+                  {t("lockReminderTitle")}
+                </span>{" "}
+                {t("lockReminder", { title: month.title })}
+              </span>
+            </p>
           )}
 
           <SheetActions>
