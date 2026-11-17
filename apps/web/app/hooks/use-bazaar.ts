@@ -24,7 +24,7 @@ import {
 import { unwrap } from "../lib/action-result";
 
 /**
- * Cursor-paginated submissions for one status tab. Loads one page (10 rows)
+ * Cursor-paginated submissions for one status tab. Loads one page (4 rows)
  * at a time; call `fetchNextPage()` to load more. Mutations invalidate the
  * ["bazaar-history", messId, monthId] prefix, which refreshes every tab.
  *
@@ -39,8 +39,20 @@ export function useBazaarSubmissions(
 ) {
   const query = useInfiniteQuery({
     queryKey: ["bazaar-history", messId, monthId, status],
-    queryFn: ({ pageParam }) =>
-      unwrap(getBazaarPage(messId!, monthId!, status, pageParam)),
+    queryFn: async ({ pageParam }) => {
+      const page = await unwrap(
+        getBazaarPage(messId!, monthId!, status, pageParam),
+      );
+      // An API that predates pagination returns { pending, approved,
+      // rejected } instead. Fail loudly (shows the retry state and is never
+      // persisted) rather than caching a page the list can't render.
+      if (!page || !Array.isArray(page.items)) {
+        throw new Error(
+          "The server sent an unexpected response. Please try again.",
+        );
+      }
+      return page;
+    },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage: BazaarPageInfo) =>
       lastPage.next_cursor ?? undefined,
@@ -51,7 +63,8 @@ export function useBazaarSubmissions(
   const pages = query.data?.pages;
   return {
     ...query,
-    items: pages?.flatMap((page) => page.items) ?? [],
+    // Skip malformed pages (e.g. restored from an older offline cache).
+    items: pages?.flatMap((page) => page?.items ?? []) ?? [],
     counts: pages?.[0]?.counts ?? null,
   };
 }

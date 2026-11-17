@@ -40,7 +40,7 @@ export const updateBazaarSchema = z.object({
 export type CreateBazaarDto = z.infer<typeof createBazaarSchema>;
 export type UpdateBazaarDto = z.infer<typeof updateBazaarSchema>;
 
-export const BAZAAR_PAGE_SIZE = 10;
+export const BAZAAR_PAGE_SIZE = 4;
 
 /**
  * Query for one page of bazaar submissions in a single status tab.

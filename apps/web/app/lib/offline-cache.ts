@@ -12,7 +12,13 @@ import type { ProfileUser } from "../actions/auth";
 
 const VERSION = "v1";
 const USER_KEY = `messmate:user:${VERSION}`;
-const cacheKey = (userId: string) => `messmate:cache:${VERSION}:${userId}`;
+// Bump CACHE_VERSION whenever an API response shape changes, so data saved
+// in the old shape is dropped instead of restored into the new code.
+// v2: bazaar history became cursor-paginated pages.
+const CACHE_VERSION = "v2";
+const OLD_CACHE_VERSIONS = ["v1"];
+const cacheKey = (userId: string, version = CACHE_VERSION) =>
+  `messmate:cache:${version}:${userId}`;
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const SAVE_DELAY_MS = 1000;
 
@@ -36,6 +42,9 @@ export function saveCachedUser(user: ProfileUser) {
 /** Loads the saved queries for this user into the client. */
 export function restoreQueries(client: QueryClient, userId: string) {
   try {
+    for (const version of OLD_CACHE_VERSIONS) {
+      localStorage.removeItem(cacheKey(userId, version));
+    }
     const raw = localStorage.getItem(cacheKey(userId));
     if (!raw) return;
     const saved = JSON.parse(raw) as { savedAt: number; state: unknown };
