@@ -149,12 +149,8 @@ export async function Footer() {
         <div className="h-px w-full bg-surface-raised" />
 
         <div className="flex flex-col items-center justify-between gap-3 pt-6 sm:flex-row">
-          <p className="text-xs text-foreground-muted">
-            {t("footer.rights")}
-          </p>
-          <p className="text-xs text-foreground-muted">
-            {t("footer.madeFor")}
-          </p>
+          <p className="text-xs text-foreground-muted">{t("footer.rights")}</p>
+          <p className="text-xs text-foreground-muted">{t("footer.madeFor")}</p>
         </div>
       </div>
     </footer>

@@ -236,11 +236,13 @@ export async function DashboardPreview() {
           ৳68.50
         </p>
         <div className="mt-2.5 space-y-1.5">
-          {([
-            { label: "lunch", pct: "82%" },
-            { label: "dinner", pct: "64%" },
-            { label: "sehri", pct: "28%" },
-          ] as const).map((row) => (
+          {(
+            [
+              { label: "lunch", pct: "82%" },
+              { label: "dinner", pct: "64%" },
+              { label: "sehri", pct: "28%" },
+            ] as const
+          ).map((row) => (
             <div key={row.label}>
               <div className="flex justify-between text-[10px] text-foreground-muted">
                 <span>{t(row.label)}</span>
@@ -273,7 +275,9 @@ export async function DashboardPreview() {
             />
           ))}
         </div>
-        <p className="mt-1.5 text-[10px] text-foreground-muted">{t("thisMonth")}</p>
+        <p className="mt-1.5 text-[10px] text-foreground-muted">
+          {t("thisMonth")}
+        </p>
       </div>
     </div>
   );

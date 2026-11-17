@@ -35,7 +35,9 @@ export function ThemeToggle() {
       className="relative inline-flex items-center justify-center h-10 w-10 rounded-lg bg-surface hover:bg-surface transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 cursor-pointer"
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
-      <span className="sr-only">{isDark ? "Light" : "Dark"}{" "}{t("mode")}</span>
+      <span className="sr-only">
+        {isDark ? "Light" : "Dark"} {t("mode")}
+      </span>
       <Sun
         className={`absolute h-5 w-5 transition-all duration-300 ${
           isDark

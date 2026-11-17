@@ -56,12 +56,14 @@ async function DashboardMock() {
         </span>
       </div>
       <div className="mt-3.5 grid grid-cols-4 gap-2">
-        {([
-          { l: "meals", v: "324" },
-          { l: "expense", v: "৳22k" },
-          { l: "deposits", v: "৳28.5k" },
-          { l: "balance", v: "৳2.3k" },
-        ] as const).map((s) => (
+        {(
+          [
+            { l: "meals", v: "324" },
+            { l: "expense", v: "৳22k" },
+            { l: "deposits", v: "৳28.5k" },
+            { l: "balance", v: "৳2.3k" },
+          ] as const
+        ).map((s) => (
           <div
             key={t(`stats.${s.l}`)}
             className="rounded-lg bg-surface-raised/70 p-2 text-center"
@@ -145,16 +147,20 @@ async function ExpensesMock() {
         </p>
         <span className="text-[11px] font-bold text-foreground">
           ৳22,180{" "}
-          <span className="font-normal text-foreground-muted">{t("total")}</span>
+          <span className="font-normal text-foreground-muted">
+            {t("total")}
+          </span>
         </span>
       </div>
       <div className="space-y-1.5">
-        {([
-          { l: "bazaar", by: "Adal", a: "৳4,250", c: "bazaar" },
-          { l: "internet", by: "Rahim", a: "৳1,200", c: "utility" },
-          { l: "gas", by: "Fahad", a: "৳950", c: "utility" },
-          { l: "cleaning", by: "Karim", a: "৳480", c: "other" },
-        ] as const).map((e) => (
+        {(
+          [
+            { l: "bazaar", by: "Adal", a: "৳4,250", c: "bazaar" },
+            { l: "internet", by: "Rahim", a: "৳1,200", c: "utility" },
+            { l: "gas", by: "Fahad", a: "৳950", c: "utility" },
+            { l: "cleaning", by: "Karim", a: "৳480", c: "other" },
+          ] as const
+        ).map((e) => (
           <div
             key={t(`expenseRows.${e.l}`)}
             className="flex items-center justify-between rounded-lg bg-surface-raised/70 px-2.5 py-1.5"
@@ -193,11 +199,13 @@ async function ReportMock() {
         </span>
       </div>
       <div className="mt-2.5 grid grid-cols-3 gap-2">
-        {([
-          { l: "mealRate", v: "৳68.50", c: "text-primary" },
-          { l: "totalMeals", v: "324", c: "text-foreground" },
-          { l: "netBalance", v: "+৳814", c: "text-success" },
-        ] as const).map((s) => (
+        {(
+          [
+            { l: "mealRate", v: "৳68.50", c: "text-primary" },
+            { l: "totalMeals", v: "324", c: "text-foreground" },
+            { l: "netBalance", v: "+৳814", c: "text-success" },
+          ] as const
+        ).map((s) => (
           <div
             key={t(`stats.${s.l}`)}
             className="rounded-lg bg-surface-raised/70 p-2.5 text-center"

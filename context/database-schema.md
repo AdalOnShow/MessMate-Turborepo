@@ -239,16 +239,16 @@ Business constraints:
 Configurable per-mess meal types with economy values. Active `name` keys for a
 mess define the `meals` JSONB keys on `meal_entries`.
 
-| Field      | Type          | Nullable | Default           | Notes                         |
-| ---------- | ------------- | -------- | ----------------- | ----------------------------- |
-| id         | UUID          | false    | gen_random_uuid() | Primary key                   |
-| mess_id    | UUID          | false    | -                 | FK to `messes.id`             |
-| name       | TEXT          | false    | -                 | ex. BREAKFAST                 |
+| Field      | Type          | Nullable | Default           | Notes                                                    |
+| ---------- | ------------- | -------- | ----------------- | -------------------------------------------------------- |
+| id         | UUID          | false    | gen_random_uuid() | Primary key                                              |
+| mess_id    | UUID          | false    | -                 | FK to `messes.id`                                        |
+| name       | TEXT          | false    | -                 | ex. BREAKFAST                                            |
 | value      | DECIMAL(5, 2) | false    | -                 | Default daily count; prefills the meal grid (ex. 1, 0.5) |
-| is_active  | BOOLEAN       | false    | true              | Enable or disable             |
-| created_at | TIMESTAMPTZ   | false    | now()             | -                             |
-| updated_at | TIMESTAMPTZ   | false    | now()             | -                             |
-| deleted_at | TIMESTAMPTZ   | true     | null              | Soft delete                   |
+| is_active  | BOOLEAN       | false    | true              | Enable or disable                                        |
+| created_at | TIMESTAMPTZ   | false    | now()             | -                                                        |
+| updated_at | TIMESTAMPTZ   | false    | now()             | -                                                        |
+| deleted_at | TIMESTAMPTZ   | true     | null              | Soft delete                                              |
 
 Indexes:
 

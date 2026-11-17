@@ -15,19 +15,19 @@ import role from "./role.json";
 import status from "./status.json";
 
 const messages = {
-  "auth": auth,
-  "common": common,
-  "dashboard": dashboard,
-  "expenseType": expenseType,
-  "feedback": feedback,
-  "landing": landing,
-  "members": members,
-  "metadata": metadata,
-  "misc": misc,
-  "nav": nav,
-  "pages": pages,
-  "role": role,
-  "status": status,
+  auth: auth,
+  common: common,
+  dashboard: dashboard,
+  expenseType: expenseType,
+  feedback: feedback,
+  landing: landing,
+  members: members,
+  metadata: metadata,
+  misc: misc,
+  nav: nav,
+  pages: pages,
+  role: role,
+  status: status,
 };
 
 export default messages;

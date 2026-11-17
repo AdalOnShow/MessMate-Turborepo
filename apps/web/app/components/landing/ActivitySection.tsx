@@ -47,10 +47,7 @@ export async function ActivitySection() {
               <div className="absolute inset-y-8 left-9 w-px bg-surface-overlay" />
               <div className="space-y-6">
                 {EVENTS.map((ev, i) => (
-                  <div
-                    key={ev.key}
-                    className="relative flex gap-4 pl-0"
-                  >
+                  <div key={ev.key} className="relative flex gap-4 pl-0">
                     <div className="z-10 mt-0.5 flex flex-col items-center">
                       <span
                         className={`flex size-9 items-center justify-center rounded-full ring-1 ring-foreground-muted/15 ${ev.color}`}

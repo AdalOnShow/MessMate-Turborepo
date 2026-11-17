@@ -78,15 +78,15 @@ export function Navbar() {
 
         <div className="flex items-center gap-2 lg:hidden">
           <LanguageToggle />
-        <button
-          type="button"
-          aria-label={tc("toggleMenu")}
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-          className="flex size-10 items-center justify-center rounded-xl border border-border bg-surface-raised text-foreground lg:hidden"
-        >
-          {open ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
+          <button
+            type="button"
+            aria-label={tc("toggleMenu")}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="flex size-10 items-center justify-center rounded-xl border border-border bg-surface-raised text-foreground lg:hidden"
+          >
+            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
         </div>
       </nav>
 
@@ -110,15 +110,15 @@ export function Navbar() {
               onClick={() => setOpen(false)}
               className="rounded-[9px] border border-border-strong px-5 py-2.5 text-center text-sm font-semibold text-foreground"
             >
-            {tc("signIn")}
-          </a>
+              {tc("signIn")}
+            </a>
             <a
               href="/signup"
               onClick={() => setOpen(false)}
               className="bg-cta rounded-[9px] px-5 py-2.5 text-center text-sm font-bold"
             >
-            {tc("getStarted")}
-          </a>
+              {tc("getStarted")}
+            </a>
           </div>
         </div>
       )}

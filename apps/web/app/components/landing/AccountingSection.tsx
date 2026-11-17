@@ -70,33 +70,33 @@ export async function AccountingSection() {
 
             <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5">
               <p className="text-xs font-mono font-medium uppercase tracking-[0.12em] text-primary">
-  {t("formula")}
-</p>
+                {t("formula")}
+              </p>
               <div className="mt-3 flex flex-wrap items-center gap-2 font-heading">
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-  {t("mealRate")}
-</span>
+                  {t("mealRate")}
+                </span>
                 <span className="text-foreground-muted">=</span>
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-  {t("totalMealCost")}
-</span>
+                  {t("totalMealCost")}
+                </span>
                 <span className="text-foreground-muted">÷</span>
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-  {t("totalMeals")}
-</span>
+                  {t("totalMeals")}
+                </span>
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2 font-heading">
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-  {t("finalBalance")}
-</span>
+                  {t("finalBalance")}
+                </span>
                 <span className="text-foreground-muted">=</span>
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-  {t("depositsPaid")}
-</span>
+                  {t("depositsPaid")}
+                </span>
                 <span className="text-foreground-muted">−</span>
                 <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-  {t("mealShare")}
-</span>
+                  {t("mealShare")}
+                </span>
               </div>
             </div>
           </div>
@@ -108,36 +108,36 @@ export async function AccountingSection() {
                   <div className="flex items-center gap-2">
                     <Calculator className="size-4 text-primary" />
                     <span className="text-sm font-bold text-foreground font-heading">
-  {t("settlement")}
-</span>
+                      {t("settlement")}
+                    </span>
                   </div>
                   <span className="rounded-lg bg-primary/10 px-2.5 py-1 text-[11px] font-bold text-primary">
-  {t("month")}
-</span>
+                    {t("month")}
+                  </span>
                 </div>
 
                 <div className="p-4">
                   <div className="grid grid-cols-3 gap-2.5">
                     <div className="rounded-xl bg-surface-raised/70 p-3 text-center">
                       <p className="text-[10px] uppercase tracking-wider text-foreground-muted">
-  {t("expenses")}
-</p>
+                        {t("expenses")}
+                      </p>
                       <p className="mt-0.5 text-sm font-bold text-foreground">
                         ৳22,180
                       </p>
                     </div>
                     <div className="rounded-xl bg-surface-raised/70 p-3 text-center">
                       <p className="text-[10px] uppercase tracking-wider text-foreground-muted">
-  {t("meals")}
-</p>
+                        {t("meals")}
+                      </p>
                       <p className="mt-0.5 text-sm font-bold text-foreground">
                         324
                       </p>
                     </div>
                     <div className="rounded-xl bg-primary/10 p-3 text-center ring-1 ring-primary/30">
                       <p className="text-[10px] uppercase tracking-wider text-primary">
-  {t("mealRate")}
-</p>
+                        {t("mealRate")}
+                      </p>
                       <p className="mt-0.5 text-sm font-bold text-primary">
                         ৳68.50
                       </p>
@@ -147,9 +147,7 @@ export async function AccountingSection() {
                   <div className="mt-4 overflow-hidden rounded-xl border border-border">
                     <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-1 border-b border-border bg-surface-raised/70 px-3 py-2 text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
                       <span>{t("member")}</span>
-                      <span className="text-right">
-  {t("meals")}
-</span>
+                      <span className="text-right">{t("meals")}</span>
                       <span className="text-right">{t("paid")}</span>
                       <span className="text-right">{t("balance")}</span>
                     </div>
@@ -180,8 +178,8 @@ export async function AccountingSection() {
 
                   <div className="mt-3 flex items-center justify-between rounded-xl border border-border bg-surface-raised/70 px-3.5 py-2.5">
                     <span className="text-[11px] text-foreground-muted">
-  {t("rollNote")}
-</span>
+                      {t("rollNote")}
+                    </span>
                     <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
                       {t("carryForward")} <ArrowRight className="size-3.5" />
                     </span>

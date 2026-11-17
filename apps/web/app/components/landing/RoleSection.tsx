@@ -66,9 +66,7 @@ async function RoleCard({
       <h3 className="mt-5 text-xl font-bold text-foreground font-heading">
         {t("title")}
       </h3>
-      <p className="mt-1.5 text-sm text-foreground-muted">
-        {t("tagline")}
-      </p>
+      <p className="mt-1.5 text-sm text-foreground-muted">{t("tagline")}</p>
       <ul className="mt-6 space-y-3.5">
         {features.map((f) => (
           <li key={f.key} className="flex items-start gap-3">

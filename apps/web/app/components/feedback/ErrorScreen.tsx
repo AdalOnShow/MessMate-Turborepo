@@ -70,7 +70,7 @@ export function ErrorScreen({
 
         {reference && (
           <p className="mt-8 font-mono text-[11px] text-foreground-muted/70">
-            {t("reference")}{" "}{reference}
+            {t("reference")} {reference}
           </p>
         )}
       </div>

@@ -10,7 +10,11 @@ import { useTranslations } from "next-intl";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { formatZodError, signUpSchema } from "@repo/shared";
 
-const OAUTH_ERRORS = ["ACCOUNT_EXISTS", "NO_EMAIL", "EMAIL_NOT_VERIFIED"] as const;
+const OAUTH_ERRORS = [
+  "ACCOUNT_EXISTS",
+  "NO_EMAIL",
+  "EMAIL_NOT_VERIFIED",
+] as const;
 
 function oauthErrorKey(error: string) {
   return (OAUTH_ERRORS as readonly string[]).includes(error)

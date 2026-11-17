@@ -30,7 +30,9 @@ export function UserSessionDisplay() {
 
       {isAuthenticated && user ? (
         <div className="space-y-3">
-          <p className="text-lg text-foreground">{t("welcome")}{" "}{user.name}!</p>
+          <p className="text-lg text-foreground">
+            {t("welcome")} {user.name}!
+          </p>
           <div className="text-sm text-foreground-muted bg-background/50 p-3 rounded-lg">
             <p>
               <strong>{t("id")}</strong> {user.id}
@@ -48,7 +50,9 @@ export function UserSessionDisplay() {
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-lg text-foreground-muted">{t("noUserSessionFound")}</p>
+          <p className="text-lg text-foreground-muted">
+            {t("noUserSessionFound")}
+          </p>
           <button
             onClick={handleCreateUser}
             className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer"
@@ -63,7 +67,7 @@ export function UserSessionDisplay() {
           {t("currentZustandStoreDevtools")}
         </p>
         <code className="text-xs text-foreground/70">
-          {t("state")}{" "}{JSON.stringify(user, null, 2)}
+          {t("state")} {JSON.stringify(user, null, 2)}
         </code>
       </div>
     </div>
