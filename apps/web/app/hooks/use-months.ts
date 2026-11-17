@@ -1,6 +1,11 @@
 "use client";
 
-import { getActiveMonth, getMonthHistory, getMonthSummary } from "../lib/reads";
+import {
+  getActiveMonth,
+  getMonthClosePreview,
+  getMonthHistory,
+  getMonthSummary,
+} from "../lib/reads";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createMonth,
@@ -19,6 +24,25 @@ export function useGetActiveMonth(messId: string | undefined) {
       return result;
     },
     enabled: !!messId,
+  });
+}
+
+/**
+ * What closing the active month would produce, for the manager's review.
+ * Always refetched when the review opens: balances change all month.
+ */
+export function useMonthClosePreview(
+  messId: string | undefined,
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: ["month-close-preview", messId],
+    queryFn: () => unwrap(getMonthClosePreview(messId!)),
+    enabled: !!messId && enabled,
+    staleTime: 0,
+    gcTime: 0,
+    // Shown in place inside the review sheet.
+    meta: { errorToast: false },
   });
 }
 

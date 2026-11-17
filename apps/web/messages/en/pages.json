@@ -329,11 +329,23 @@
     "startNewMonthTitle": "Start a new month?",
     "startMonthTitle": "Start a month",
     "closes": "This closes",
-    "closesRest": ": its bills are finalized, balances carry forward, and no more meals, expenses or deposits can be added to it. This cannot be undone.",
+    "closesRest": ": its bills are finalized and no more meals, expenses or deposits can be added to it. This cannot be undone.",
     "newMonthName": "New month name",
     "monthName": "Month name",
     "starting": "Starting...",
     "closingMonth": "Closing month...",
-    "closeStartNew": "Close & Start New"
+    "closeStartNew": "Close & Start New",
+    "reviewBalances": "Review final balances",
+    "carryTitle": "Carry balances to the new month",
+    "carryDesc": "Ticked members start the new month with their advance as a deposit, or their due as an expense. Untick anyone who settled in cash.",
+    "carryOffDesc": "Off: everyone starts the new month at ৳0. Nothing is carried.",
+    "carryMember": "Carry {name}'s balance",
+    "advance": "advance",
+    "due": "due",
+    "nothingToCarry": "Everyone is settled at ৳0. Nothing to carry.",
+    "carrySummary": "{carried} of {total} balances will carry.",
+    "settledCount": "{count, plural, one {# member is} other {# members are}} already settled.",
+    "summaryKept": "Everyone's real final balance stays in this month's summary either way.",
+    "pendingBazaarWarning": "{count, plural, one {# bazaar entry is} other {# bazaar entries are}} still waiting for approval. Closing the month rejects {count, plural, one {it} other {them}}; approve first if they should count."
   }
 }

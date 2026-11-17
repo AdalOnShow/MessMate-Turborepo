@@ -3,7 +3,11 @@ jest.mock(
   () => jest.requireActual('../../test/prisma-mock').databaseModule,
 );
 
-import { ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ErrorCode } from '@repo/shared';
 import { prismaMock, resetPrismaMock } from '../../test/prisma-mock';
 import { rejectsWith, daysAgo } from '../../test/helpers';
@@ -121,6 +125,132 @@ describe('MonthsService', () => {
         ErrorCode.MONTH_ALREADY_ACTIVE,
       );
       expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('carry forward choices', () => {
+    // Alice has +200 (advance), Bob owes 300, Cara is exactly settled.
+    function stubBalances() {
+      stubClose();
+      prismaMock.mess_members.findMany.mockResolvedValue([
+        { id: 'alice' },
+        { id: 'bob' },
+        { id: 'cara' },
+      ]);
+      prismaMock.deposits.findMany.mockResolvedValue([
+        { member_id: 'alice', amount: 200 },
+        { member_id: 'cara', amount: 100 },
+      ]);
+      prismaMock.expenses.findMany.mockResolvedValue([
+        {
+          type: 'INDIVIDUAL',
+          amount: 300,
+          members: [{ member_id: 'bob', allocated_amount: 300 }],
+        },
+        {
+          type: 'INDIVIDUAL',
+          amount: 100,
+          members: [{ member_id: 'cara', allocated_amount: 100 }],
+        },
+      ]);
+    }
+    const carried = () =>
+      (
+        prismaMock.carry_forward_balances.createMany.mock.calls[0]?.[0] as
+          | {
+              data: {
+                member_id: string;
+                amount: number;
+                carry_forward_type: string;
+              }[];
+            }
+          | undefined
+      )?.data.map((r) => [r.member_id, r.amount, r.carry_forward_type]) ?? [];
+
+    it('carries every non-zero balance by default', async () => {
+      stubBalances();
+      await service.createMonth(MESS, MANAGER, 'November 2026');
+      expect(carried()).toEqual([
+        ['alice', 200, 'PREVIOUS_BALANCE'],
+        ['bob', 300, 'PREVIOUS_DUE'],
+      ]);
+    });
+
+    it('skips the members the manager unticked', async () => {
+      stubBalances();
+      await service.createMonth(MESS, MANAGER, 'November 2026', {
+        enabled: true,
+        excludeMemberIds: ['bob'],
+      });
+      expect(carried()).toEqual([['alice', 200, 'PREVIOUS_BALANCE']]);
+    });
+
+    it('carries nothing when switched off, but still saves the real summaries', async () => {
+      stubBalances();
+      await service.createMonth(MESS, MANAGER, 'November 2026', {
+        enabled: false,
+        excludeMemberIds: [],
+      });
+      expect(
+        prismaMock.carry_forward_balances.createMany,
+      ).not.toHaveBeenCalled();
+      const { data: summaries } = prismaMock.member_month_summaries.createMany
+        .mock.calls[0][0] as {
+        data: { member_id: string; final_balance: number }[];
+      };
+      expect(summaries.map((r) => [r.member_id, r.final_balance])).toEqual([
+        ['alice', 200],
+        ['bob', -300],
+        ['cara', 0],
+      ]);
+    });
+  });
+
+  describe('getClosePreview', () => {
+    it('lists active members with their final balance, saving nothing', async () => {
+      prismaMock.months.findFirst.mockResolvedValue(
+        monthRow({ id: OCT, title: 'October 2026' }),
+      );
+      prismaMock.mess_members.findMany
+        .mockResolvedValueOnce([{ id: 'bob' }, { id: 'alice' }])
+        .mockResolvedValueOnce([
+          { id: 'bob', user: { id: 'u-bob', name: 'Bob', avatar: null } },
+          { id: 'alice', user: { id: 'u-alice', name: 'Alice', avatar: null } },
+        ]);
+      prismaMock.meal_entries.findMany.mockResolvedValue([]);
+      prismaMock.expenses.findMany.mockResolvedValue([]);
+      prismaMock.deposits.findMany.mockResolvedValue([
+        { member_id: 'alice', amount: 500 },
+      ]);
+      prismaMock.carry_forward_balances.findMany.mockResolvedValue([
+        { member_id: 'bob', amount: 50, carry_forward_type: 'PREVIOUS_DUE' },
+      ]);
+
+      prismaMock.bazaar_submissions.count.mockResolvedValue(2);
+
+      const preview = await service.getClosePreview(MESS);
+
+      expect(preview.title).toBe('October 2026');
+      expect(preview.pending_bazaar_count).toBe(2);
+      expect(
+        preview.members.map((m) => [m.user.name, m.final_balance]),
+      ).toEqual([
+        ['Alice', 500],
+        ['Bob', -50],
+      ]);
+      expect(prismaMock.months.updateMany).not.toHaveBeenCalled();
+      expect(
+        prismaMock.member_month_summaries.createMany,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('404 NO_ACTIVE_MONTH when no month is open', async () => {
+      prismaMock.months.findFirst.mockResolvedValue(null);
+      await rejectsWith(
+        service.getClosePreview(MESS),
+        NotFoundException,
+        ErrorCode.NO_ACTIVE_MONTH,
+      );
     });
   });
 

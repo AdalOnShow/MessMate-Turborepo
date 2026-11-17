@@ -3,7 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { CalendarDays, CalendarOff, Loader2, Plus } from "lucide-react";
-import { useCreateMonth, useGetActiveMonth } from "../../hooks/use-months";
+import {
+  useCreateMonth,
+  useGetActiveMonth,
+  useMonthClosePreview,
+} from "../../hooks/use-months";
+import { MonthCloseReview, type CarryChoice } from "./MonthCloseReview";
 import { QueryErrorState } from "../feedback/QueryErrorState";
 import { Sheet, SheetActions } from "../ui/sheet";
 import { Skeleton } from "../ui/skeleton";
@@ -20,6 +25,14 @@ export function MonthSettings({ messId }: { messId: string }) {
   const creating = createMonth.isPending;
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [carry, setCarry] = useState<CarryChoice>({
+    enabled: true,
+    excluded: new Set(),
+  });
+  // Closing a month: load every member's final balance for review.
+  const preview = useMonthClosePreview(messId, open && !!month);
+  // Never close a month the manager could not review.
+  const reviewReady = !month || !!preview.data;
   const ref = useRef<HTMLElement>(null);
 
   // Arriving from the dashboard's "Start in Settings" link.
@@ -32,12 +45,19 @@ export function MonthSettings({ messId }: { messId: string }) {
   const openSheet = () => {
     createMonth.reset();
     setTitle(defaultTitle());
+    setCarry({ enabled: true, excluded: new Set() });
     setOpen(true);
   };
 
   const submit = () => {
+    if (!reviewReady) return;
     createMonth.mutate(
-      { title: title.trim() || defaultTitle() },
+      {
+        title: title.trim() || defaultTitle(),
+        carryForward: month
+          ? { enabled: carry.enabled, excludeMemberIds: [...carry.excluded] }
+          : undefined,
+      },
       { onSuccess: () => setOpen(false) },
     );
   };
@@ -119,6 +139,7 @@ export function MonthSettings({ messId }: { messId: string }) {
           onClose={() => setOpen(false)}
           title={month ? t("startNewMonthTitle") : t("startMonthTitle")}
           dismissible={!creating}
+          size={month ? "lg" : "md"}
         >
           {month ? (
             <p className="mb-4 text-sm text-foreground-muted">
@@ -146,6 +167,35 @@ export function MonthSettings({ messId }: { messId: string }) {
             className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2.5 text-base text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none sm:text-sm"
           />
 
+          {month && (
+            <div className="mt-5">
+              <h3 className="mb-2 text-sm font-semibold text-foreground">
+                {t("reviewBalances")}
+              </h3>
+              {preview.isPending ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-14 rounded-xl" />
+                  <Skeleton className="h-32 rounded-xl" />
+                </div>
+              ) : preview.isError || !preview.data ? (
+                <QueryErrorState
+                  compact
+                  error={preview.error}
+                  onRetry={preview.refetch}
+                  isRetrying={preview.isFetching}
+                  resource="the month's balances"
+                />
+              ) : (
+                <MonthCloseReview
+                  preview={preview.data}
+                  choice={carry}
+                  onChange={setCarry}
+                  disabled={creating}
+                />
+              )}
+            </div>
+          )}
+
           <SheetActions>
             <button
               type="button"
@@ -158,7 +208,7 @@ export function MonthSettings({ messId }: { messId: string }) {
             <button
               type="button"
               onClick={submit}
-              disabled={creating}
+              disabled={creating || !reviewReady}
               className={
                 month
                   ? "inline-flex items-center justify-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-destructive/90 disabled:opacity-60"

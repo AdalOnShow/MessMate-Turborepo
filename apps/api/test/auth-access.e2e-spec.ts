@@ -20,6 +20,7 @@ import type { App } from 'supertest/types';
 import { ErrorCode } from '@repo/shared';
 import { prismaMock, resetPrismaMock } from './prisma-mock';
 import { AuthModule } from '../src/auth/auth.module';
+import { MonthsModule } from '../src/months/months.module';
 import { InvitesModule } from '../src/invites/invites.module';
 import { MessesModule } from '../src/messes/messes.module';
 import { UsersModule } from '../src/users/users.module';
@@ -114,6 +115,7 @@ describe('Authentication & authorization (HTTP)', () => {
         UsersModule,
         MessesModule,
         InvitesModule,
+        MonthsModule,
       ],
     }).compile();
 
@@ -249,6 +251,24 @@ describe('Authentication & authorization (HTTP)', () => {
         .send({ role: 'MANAGER' })
         .expect(403);
       expect(prismaMock.mess_members.update).not.toHaveBeenCalled();
+    });
+
+    it('403 for a plain member previewing the month close', async () => {
+      await http()
+        .get(`/months/${MESS_A}/close-preview`)
+        .set(as(BOB))
+        .expect(403);
+      expect(prismaMock.months.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('400 for a carry-forward choice with a bad member id', async () => {
+      const res = await http()
+        .post(`/months/${MESS_A}`)
+        .set(as(ALICE))
+        .send({ carryForward: { enabled: true, excludeMemberIds: ['nope'] } })
+        .expect(400);
+      expect(res.body.code).toBe(ErrorCode.VALIDATION_FAILED);
+      expect(prismaMock.months.create).not.toHaveBeenCalled();
     });
 
     it("403 for a manager acting on another mess's members", async () => {

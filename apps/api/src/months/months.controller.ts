@@ -11,9 +11,15 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
-import { createMonthSchema, formatZodError } from '@repo/shared';
+import {
+  createMonthSchema,
+  formatZodError,
+  type MonthClosePreviewResponse,
+} from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
 import { MembershipGuard } from '../auth/guards/membership.guard';
+import { Roles } from '../auth/guards/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { MonthsService } from './months.service';
 
 type AuthenticatedRequest = Request & {
@@ -92,11 +98,38 @@ export class MonthsController {
       messId,
       actorId,
       parsed.data.title,
+      parsed.data.carryForward,
     );
 
     return {
       success: true,
       message: 'Month created successfully',
+      data,
+    };
+  }
+
+  /** Each member's final balance if the active month closed now. */
+  @Get(':messId/close-preview')
+  @UseGuards(RolesGuard)
+  @Roles('MANAGER')
+  async getClosePreview(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: MonthClosePreviewResponse;
+  }> {
+    validateUuid(messId, 'messId');
+    this.logger.log(
+      `📮 GET /months/${messId}/close-preview - user: ${req.user!.id}`,
+    );
+
+    const data = await this.monthsService.getClosePreview(messId);
+
+    return {
+      success: true,
+      message: 'Request completed successfully',
       data,
     };
   }

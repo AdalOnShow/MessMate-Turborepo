@@ -1,5 +1,6 @@
 "use server";
 
+import type { CarryForwardOptions } from "@repo/shared";
 import { api } from "../lib/api-client";
 
 export interface MonthInfo {
@@ -58,6 +59,8 @@ export interface MonthSummaryInfo {
 
 export interface CreateMonthPayload {
   title?: string;
+  /** Left out: every balance carries (ADR-008). */
+  carryForward?: CarryForwardOptions;
 }
 
 export async function createMonth(messId: string, data: CreateMonthPayload) {

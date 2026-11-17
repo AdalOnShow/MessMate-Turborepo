@@ -7,8 +7,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { type Prisma, prisma } from '@repo/database';
-import type { MonthResponse, MonthSummaryResponse } from '@repo/shared';
-import { computeMemberSummaries, roundMoney } from './month-summary';
+import type {
+  CarryForwardOptions,
+  MonthClosePreviewResponse,
+  MonthResponse,
+  MonthSummaryResponse,
+} from '@repo/shared';
+import {
+  computeMemberSummaries,
+  roundMoney,
+  type SummaryInputs,
+} from './month-summary';
 
 type CarryForwardSource = { member_id: string; final_balance: number };
 
@@ -34,6 +43,7 @@ export class MonthsService {
     messId: string,
     actorId: string,
     title?: string,
+    carryForward?: CarryForwardOptions,
   ): Promise<MonthResponse> {
     const membership = await prisma.mess_members.findFirst({
       where: {
@@ -112,7 +122,7 @@ export class MonthsService {
             tx,
             activeMonth.id,
             created.id,
-            carryRows,
+            this.selectCarryRows(carryRows, carryForward),
           );
         }
 
@@ -205,41 +215,9 @@ export class MonthsService {
       });
     }
 
-    const activeMembers = await tx.mess_members.findMany({
-      where: { mess_id: messId, removed_at: null, deleted_at: null },
-      select: { id: true },
-    });
-    const mealEntries = await tx.meal_entries.findMany({
-      where: { month_id: monthId, deleted_at: null },
-      select: { member_id: true, total_meal: true },
-    });
-    const expenses = await tx.expenses.findMany({
-      where: { month_id: monthId, mess_id: messId },
-      select: {
-        type: true,
-        amount: true,
-        members: { select: { member_id: true, allocated_amount: true } },
-      },
-    });
-    // Soft-deleted deposits must not be credited to anyone.
-    const deposits = await tx.deposits.findMany({
-      where: { month_id: monthId, mess_id: messId, deleted_at: null },
-      select: { member_id: true, amount: true },
-    });
-
-    const carries = await tx.carry_forward_balances.findMany({
-      where: { target_month_id: monthId },
-      select: { member_id: true, amount: true, carry_forward_type: true },
-    });
-
-    const activeMemberIds = activeMembers.map((m) => m.id);
-    const { rows } = computeMemberSummaries(monthId, {
-      activeMemberIds,
-      mealEntries,
-      expenses,
-      deposits,
-      carries,
-    });
+    const inputs = await this.loadSummaryInputs(tx, messId, monthId);
+    const activeMemberIds = inputs.activeMemberIds;
+    const { rows } = computeMemberSummaries(monthId, inputs);
 
     if (rows.length > 0) {
       await tx.member_month_summaries.createMany({ data: rows });
@@ -264,6 +242,117 @@ export class MonthsService {
     return rows
       .filter((r) => stillActive.has(r.member_id))
       .map((r) => ({ member_id: r.member_id, final_balance: r.final_balance }));
+  }
+
+  /**
+   * Everything the month-close maths needs. Used by the real close (inside
+   * its transaction) and by the preview, so both always agree.
+   */
+  private async loadSummaryInputs(
+    db: Prisma.TransactionClient,
+    messId: string,
+    monthId: string,
+  ): Promise<SummaryInputs & { activeMemberIds: string[] }> {
+    // Sequential on purpose: inside an interactive transaction the queries
+    // share one connection anyway.
+    const activeMembers = await db.mess_members.findMany({
+      where: { mess_id: messId, removed_at: null, deleted_at: null },
+      select: { id: true },
+    });
+    const mealEntries = await db.meal_entries.findMany({
+      where: { month_id: monthId, deleted_at: null },
+      select: { member_id: true, total_meal: true },
+    });
+    const expenses = await db.expenses.findMany({
+      where: { month_id: monthId, mess_id: messId },
+      select: {
+        type: true,
+        amount: true,
+        members: { select: { member_id: true, allocated_amount: true } },
+      },
+    });
+    // Soft-deleted deposits must not be credited to anyone.
+    const deposits = await db.deposits.findMany({
+      where: { month_id: monthId, mess_id: messId, deleted_at: null },
+      select: { member_id: true, amount: true },
+    });
+    const carries = await db.carry_forward_balances.findMany({
+      where: { target_month_id: monthId },
+      select: { member_id: true, amount: true, carry_forward_type: true },
+    });
+
+    return {
+      activeMemberIds: activeMembers.map((m) => m.id),
+      mealEntries,
+      expenses,
+      deposits,
+      carries,
+    };
+  }
+
+  /**
+   * Shows managers each member's final balance before they close the month,
+   * so they can choose what to carry. Nothing is saved. Pending bazaar is not
+   * counted: closing rejects it.
+   */
+  async getClosePreview(messId: string): Promise<MonthClosePreviewResponse> {
+    const month = await prisma.months.findFirst({
+      where: { mess_id: messId, month_status: 'ACTIVE', deleted_at: null },
+      select: { id: true, title: true },
+    });
+    if (!month) {
+      throw new NotFoundException({
+        message: 'No active month to close',
+        code: ErrorCode.NO_ACTIVE_MONTH,
+      });
+    }
+
+    const inputs = await this.loadSummaryInputs(prisma, messId, month.id);
+    const pendingBazaarCount = await prisma.bazaar_submissions.count({
+      where: { month_id: month.id, status: 'PENDING', deleted_at: null },
+    });
+    const { mealRate, rows } = computeMemberSummaries(month.id, inputs);
+    const active = new Set(inputs.activeMemberIds);
+
+    const members = await prisma.mess_members.findMany({
+      where: { id: { in: [...active] } },
+      select: {
+        id: true,
+        user: { select: { id: true, name: true, avatar: true } },
+      },
+    });
+    const userByMember = new Map(members.map((m) => [m.id, m.user]));
+
+    return {
+      month_id: month.id,
+      title: month.title,
+      meal_rate: roundMoney(mealRate),
+      pending_bazaar_count: pendingBazaarCount,
+      members: rows
+        .filter((r) => active.has(r.member_id) && userByMember.has(r.member_id))
+        .map((r) => ({
+          member_id: r.member_id,
+          user: userByMember.get(r.member_id)!,
+          final_bill: r.final_bill,
+          deposit_amount: r.deposit_amount,
+          final_balance: r.final_balance,
+        }))
+        .sort((a, b) => a.user.name.localeCompare(b.user.name)),
+    };
+  }
+
+  /**
+   * Applies the manager's carry choices. The month summary always keeps the
+   * real final balance; this only decides what moves into the new month.
+   */
+  private selectCarryRows(
+    rows: CarryForwardSource[],
+    options?: CarryForwardOptions,
+  ): CarryForwardSource[] {
+    if (!options) return rows;
+    if (!options.enabled) return [];
+    const excluded = new Set(options.excludeMemberIds);
+    return rows.filter((r) => !excluded.has(r.member_id));
   }
 
   private async generateCarryForward(

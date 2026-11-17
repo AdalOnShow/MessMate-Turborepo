@@ -62,3 +62,24 @@ export interface MemberMonthSummary {
   /** True if the member has left the mess since. */
   removed: boolean;
 }
+
+/** One member's result if the active month closed now. */
+export interface MonthClosePreviewMember {
+  member_id: string;
+  user: { id: string; name: string; avatar: string | null };
+  final_bill: number;
+  deposit_amount: number;
+  /** Positive: advance carried as a deposit. Negative: due carried as an expense. */
+  final_balance: number;
+}
+
+/** Read-only preview of closing the active month (nothing is saved). */
+export interface MonthClosePreviewResponse {
+  month_id: string;
+  title: string;
+  meal_rate: number;
+  /** Bazaar still waiting for approval: closing the month rejects it. */
+  pending_bazaar_count: number;
+  /** Members still in the mess: the ones whose balance can be carried. */
+  members: MonthClosePreviewMember[];
+}

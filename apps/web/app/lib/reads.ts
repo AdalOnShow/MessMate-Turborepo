@@ -2,6 +2,7 @@
 // app/api/[...path]/route.ts) so they load in parallel; server actions
 // would queue them one after another. Writes stay in app/actions.
 
+import type { MonthClosePreviewResponse } from "@repo/shared";
 import { apiGet } from "./api-read";
 import type { BazaarPageInfo, BazaarStatus } from "../actions/bazaar";
 import type {
@@ -150,6 +151,11 @@ export function getMealTypes(messId: string) {
 
 export function getActiveMonth(messId: string) {
   return apiGet<MonthInfo | null>(`/months/${messId}/active`);
+}
+
+/** Manager-only: each member's final balance if the month closed now. */
+export function getMonthClosePreview(messId: string) {
+  return apiGet<MonthClosePreviewResponse>(`/months/${messId}/close-preview`);
 }
 
 export function getMonthHistory(messId: string) {
