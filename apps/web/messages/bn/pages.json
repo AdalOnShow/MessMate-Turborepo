@@ -287,8 +287,7 @@
     "all": "সব",
     "loadMore": "আরও দেখুন",
     "showingOf": "{total}টির মধ্যে {shown}টি দেখানো হচ্ছে",
-    "noExpensesOfType": "এই মাসে এই ধরনের কোনো খরচ নেই।",
-    "boughtBy": "বাজার করেছেন"
+    "noExpensesOfType": "এই মাসে এই ধরনের কোনো খরচ নেই।"
   },
   "settings": {
     "messName": "মেসের নাম",

@@ -18,11 +18,12 @@ import {
   useGetMonthSummary,
   type MonthInfo,
 } from "../../hooks/use-months";
-import { useGetMonthMealSummary } from "../../hooks/use-meals";
+import {
+  useGetMealEntries,
+  useGetMonthMealSummary,
+} from "../../hooks/use-meals";
 import { useExpenseSummary, useGetExpenses } from "../../hooks/use-expenses";
 import type { ExpenseInfo } from "../../actions/expenses";
-import type { BazaarSubmissionInfo } from "../../actions/bazaar";
-import { useGetBazaarHistory } from "../../hooks/use-bazaar";
 import { useDepositSummary } from "../../hooks/use-deposits";
 import { useMemberCalculations } from "../../hooks/use-members";
 import { formatMoney } from "../../lib/format";
@@ -185,35 +186,7 @@ function MealsSummaryView({
         <StatCard label={t("activeDays")} value={String(data.active_days)} />
         <StatCard label={t("entries")} value={String(data.total_entries)} />
       </div>
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="table-sticky-first w-full text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <ThLeft label={t("member")} />
-              <Th label={t("meals")} />
-              <Th label={t("entries")} />
-            </tr>
-          </thead>
-          <tbody>
-            {data.member_summaries.map((s) => (
-              <tr
-                key={s.member_id}
-                className="border-b border-border last:border-0"
-              >
-                <td className="px-4 py-3">
-                  <UserCell name={s.user.name} email={s.user.email} />
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-foreground">
-                  {s.total_meals}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-foreground">
-                  {s.entry_count}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <MealList messId={messId} monthId={monthId} />
     </div>
   );
 }
@@ -265,7 +238,7 @@ function ExpensesSummaryView({
   );
 }
 
-const EXPENSE_PAGE_SIZE = 10;
+const PAGE_SIZE = 10;
 
 type ExpenseType = ExpenseInfo["type"];
 type ExpenseFilter = "ALL" | ExpenseType;
@@ -276,32 +249,18 @@ const EXPENSE_TYPE_STYLES: Record<ExpenseType, string> = {
   BAZAAR: "border-success/25 bg-success/10 text-success",
 };
 
-interface ExpenseRow {
-  id: string;
-  date: string;
-  createdAt: string;
-  name: string;
-  type: ExpenseType;
-  amount: number;
-  /** Who did the shopping; only known for bazaar rows. */
-  boughtBy?: string;
-}
-
-function newestFirst(a: ExpenseRow, b: ExpenseRow) {
+function byNewest(
+  a: { date: string; created_at: string },
+  b: { date: string; created_at: string },
+) {
   return (
     new Date(b.date).getTime() - new Date(a.date).getTime() ||
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 }
 
-/** "Rice, Oil +3" — a short name for a bazaar built from its items. */
-function bazaarName(submission: BazaarSubmissionInfo) {
-  const names = submission.items.map((item) => item.name);
-  const head = names.slice(0, 2).join(", ");
-  return names.length > 2 ? `${head} +${names.length - 2}` : head;
-}
-
-function ExpenseDateCell({ iso }: { iso: string }) {
+/** "Nov 17" on top, "Mon" underneath. */
+function DayDateCell({ iso }: { iso: string }) {
   const date = new Date(iso);
   return (
     <div className="whitespace-nowrap leading-tight">
@@ -315,21 +274,75 @@ function ExpenseDateCell({ iso }: { iso: string }) {
   );
 }
 
+function FilterChips<K extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { key: K; label: string; count: number }[];
+  value: K;
+  onChange: (key: K) => void;
+}) {
+  return (
+    <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
+      {options.map((option) => {
+        const selected = value === option.key;
+        return (
+          <button
+            key={option.key}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onChange(option.key)}
+            className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              selected
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border bg-surface text-foreground-muted hover:border-border-strong hover:text-foreground"
+            }`}
+          >
+            {option.label}
+            <span className="tabular-nums opacity-70">{option.count}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function LoadMore({
+  shown,
+  total,
+  onClick,
+}: {
+  shown: number;
+  total: number;
+  onClick: () => void;
+}) {
+  const t = useTranslations("pages.reports");
+  if (shown >= total) return null;
+  return (
+    <div className="flex flex-col items-center gap-2 pt-1">
+      <p className="text-xs text-foreground-muted">
+        {t("showingOf", { shown, total })}
+      </p>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onClick}
+        className="w-full sm:w-auto"
+      >
+        <ChevronDown />
+        {t("loadMore")}
+      </Button>
+    </div>
+  );
+}
+
 /** Every expense of the month, newest first, filterable by type and revealed 10 at a time. */
 function ExpenseList({ messId, monthId }: { messId: string; monthId: string }) {
   const t = useTranslations("pages.reports");
+  const query = useGetExpenses(messId, monthId);
   const [filter, setFilter] = useState<ExpenseFilter>("ALL");
-  const [visible, setVisible] = useState(EXPENSE_PAGE_SIZE);
-  const isBazaar = filter === "BAZAAR";
-
-  const expensesQuery = useGetExpenses(messId, monthId);
-  // A bazaar expense row records the approving manager, not the shopper, so the
-  // Bazaar filter lists the approved submissions (one per bazaar expense) instead.
-  const bazaarQuery = useGetBazaarHistory(
-    messId,
-    isBazaar ? monthId : undefined,
-  );
-  const query = isBazaar ? bazaarQuery : expensesQuery;
+  const [visible, setVisible] = useState(PAGE_SIZE);
 
   const typeLabel = (type: ExpenseType) =>
     type === "SHARED"
@@ -338,38 +351,18 @@ function ExpenseList({ messId, monthId }: { messId: string; monthId: string }) {
         ? t("individual")
         : t("bazaar");
 
-  const expenseRows = useMemo<ExpenseRow[]>(
+  const sorted = useMemo(
     () =>
-      (expensesQuery.data?.items ?? [])
-        .map((e) => ({
-          id: e.id,
-          date: e.expense_date,
-          createdAt: e.created_at,
-          name: e.title,
-          type: e.type,
-          amount: e.amount,
-        }))
-        .sort(newestFirst),
-    [expensesQuery.data],
+      [...(query.data?.items ?? [])].sort((a, b) =>
+        byNewest(
+          { date: a.expense_date, created_at: a.created_at },
+          { date: b.expense_date, created_at: b.created_at },
+        ),
+      ),
+    [query.data],
   );
 
-  const bazaarRows = useMemo<ExpenseRow[]>(
-    () =>
-      (bazaarQuery.data?.approved ?? [])
-        .map((b) => ({
-          id: b.id,
-          date: b.expense_date,
-          createdAt: b.created_at,
-          name: bazaarName(b),
-          type: "BAZAAR" as const,
-          amount: b.total_amount,
-          boughtBy: b.submitter?.name,
-        }))
-        .sort(newestFirst),
-    [bazaarQuery.data],
-  );
-
-  if (expensesQuery.isLoading || query.isLoading) return <LoadingBlock />;
+  if (query.isLoading) return <LoadingBlock />;
   if (query.isError && !query.data) {
     return (
       <QueryErrorState
@@ -377,53 +370,32 @@ function ExpenseList({ messId, monthId }: { messId: string; monthId: string }) {
         error={query.error}
         onRetry={query.refetch}
         isRetrying={query.isFetching}
-        resource={isBazaar ? "bazaars" : "expenses"}
+        resource="expenses"
       />
     );
   }
 
-  const filtered = isBazaar
-    ? bazaarRows
-    : filter === "ALL"
-      ? expenseRows
-      : expenseRows.filter((row) => row.type === filter);
+  const filtered =
+    filter === "ALL" ? sorted : sorted.filter((e) => e.type === filter);
   const shown = filtered.slice(0, visible);
-
-  const filters: { key: ExpenseFilter; label: string; count: number }[] = [
-    { key: "ALL", label: t("all"), count: expenseRows.length },
-    ...(["SHARED", "INDIVIDUAL", "BAZAAR"] as const).map((type) => ({
-      key: type,
-      label: typeLabel(type),
-      count: expenseRows.filter((row) => row.type === type).length,
-    })),
-  ];
 
   return (
     <div className="space-y-3">
-      <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
-        {filters.map((f) => {
-          const selected = filter === f.key;
-          return (
-            <button
-              key={f.key}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => {
-                setFilter(f.key);
-                setVisible(EXPENSE_PAGE_SIZE);
-              }}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                selected
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-surface text-foreground-muted hover:border-border-strong hover:text-foreground"
-              }`}
-            >
-              {f.label}
-              <span className="tabular-nums opacity-70">{f.count}</span>
-            </button>
-          );
-        })}
-      </div>
+      <FilterChips
+        value={filter}
+        onChange={(key) => {
+          setFilter(key);
+          setVisible(PAGE_SIZE);
+        }}
+        options={[
+          { key: "ALL" as const, label: t("all"), count: sorted.length },
+          ...(["SHARED", "INDIVIDUAL", "BAZAAR"] as const).map((type) => ({
+            key: type,
+            label: typeLabel(type),
+            count: sorted.filter((e) => e.type === type).length,
+          })),
+        ]}
+      />
 
       {shown.length === 0 ? (
         <EmptyBlock message={t("noExpensesOfType")} />
@@ -434,37 +406,31 @@ function ExpenseList({ messId, monthId }: { messId: string; monthId: string }) {
               <tr className="border-b border-border">
                 <ThLeft label={t("date")} />
                 <ThLeft label={t("name")} />
-                <ThLeft label={isBazaar ? t("boughtBy") : t("type")} />
+                <ThLeft label={t("type")} />
                 <Th label={t("amount")} />
               </tr>
             </thead>
             <tbody>
-              {shown.map((row) => (
+              {shown.map((expense) => (
                 <tr
-                  key={row.id}
+                  key={expense.id}
                   className="border-b border-border last:border-0"
                 >
                   <td className="px-4 py-3 align-top">
-                    <ExpenseDateCell iso={row.date} />
+                    <DayDateCell iso={expense.expense_date} />
                   </td>
                   <td className="min-w-[9rem] px-4 py-3 align-top font-medium break-words text-foreground">
-                    {row.name}
+                    {expense.title}
                   </td>
                   <td className="px-4 py-3 align-top">
-                    {isBazaar ? (
-                      <span className="whitespace-nowrap text-foreground">
-                        {row.boughtBy ?? "—"}
-                      </span>
-                    ) : (
-                      <span
-                        className={`inline-block whitespace-nowrap rounded-[5px] border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] ${EXPENSE_TYPE_STYLES[row.type]}`}
-                      >
-                        {typeLabel(row.type)}
-                      </span>
-                    )}
+                    <span
+                      className={`inline-block whitespace-nowrap rounded-[5px] border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] ${EXPENSE_TYPE_STYLES[expense.type]}`}
+                    >
+                      {typeLabel(expense.type)}
+                    </span>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right align-top font-semibold tabular-nums text-foreground">
-                    {formatMoney(row.amount)}
+                    {formatMoney(expense.amount)}
                   </td>
                 </tr>
               ))}
@@ -473,22 +439,128 @@ function ExpenseList({ messId, monthId }: { messId: string; monthId: string }) {
         </div>
       )}
 
-      {filtered.length > shown.length && (
-        <div className="flex flex-col items-center gap-2 pt-1">
-          <p className="text-xs text-foreground-muted">
-            {t("showingOf", { shown: shown.length, total: filtered.length })}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setVisible((v) => v + EXPENSE_PAGE_SIZE)}
-            className="w-full sm:w-auto"
-          >
-            <ChevronDown />
-            {t("loadMore")}
-          </Button>
+      <LoadMore
+        shown={shown.length}
+        total={filtered.length}
+        onClick={() => setVisible((v) => v + PAGE_SIZE)}
+      />
+    </div>
+  );
+}
+
+// The entries endpoint requires a date range; the month id already scopes it.
+const ALL_DATES = { start: "2000-01-01", end: "2999-12-31" };
+
+/** Day-by-day meal counts per member, newest day first, revealed 10 rows at a time. */
+function MealList({ messId, monthId }: { messId: string; monthId: string }) {
+  const t = useTranslations("pages.reports");
+  const query = useGetMealEntries(
+    messId,
+    monthId,
+    ALL_DATES.start,
+    ALL_DATES.end,
+  );
+  const [member, setMember] = useState<string>("ALL");
+  const [visible, setVisible] = useState(PAGE_SIZE);
+
+  // Days where a member ate nothing are left out to keep the list readable.
+  const sorted = useMemo(
+    () =>
+      (query.data ?? [])
+        .filter((entry) => entry.total_meal > 0)
+        .sort(
+          (a, b) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime() ||
+            a.member.user.name.localeCompare(b.member.user.name),
+        ),
+    [query.data],
+  );
+
+  const members = useMemo(() => {
+    const totals = new Map<string, { name: string; meals: number }>();
+    for (const entry of sorted) {
+      const current = totals.get(entry.member_id);
+      totals.set(entry.member_id, {
+        name: entry.member.user.name,
+        meals: (current?.meals ?? 0) + entry.total_meal,
+      });
+    }
+    return [...totals.entries()]
+      .map(([id, v]) => ({ id, ...v }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [sorted]);
+
+  if (query.isLoading) return <LoadingBlock />;
+  if (query.isError && !query.data) {
+    return (
+      <QueryErrorState
+        compact
+        error={query.error}
+        onRetry={query.refetch}
+        isRetrying={query.isFetching}
+        resource="meal entries"
+      />
+    );
+  }
+
+  const filtered =
+    member === "ALL" ? sorted : sorted.filter((e) => e.member_id === member);
+  const shown = filtered.slice(0, visible);
+  const allMeals = sorted.reduce((sum, e) => sum + e.total_meal, 0);
+
+  return (
+    <div className="space-y-3">
+      <FilterChips
+        value={member}
+        onChange={(key) => {
+          setMember(key);
+          setVisible(PAGE_SIZE);
+        }}
+        options={[
+          { key: "ALL", label: t("all"), count: allMeals },
+          ...members.map((m) => ({ key: m.id, label: m.name, count: m.meals })),
+        ]}
+      />
+
+      {shown.length === 0 ? (
+        <EmptyBlock message={t("noMealEntriesRecorded")} />
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+          <table className="table-sticky-first w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <ThLeft label={t("date")} />
+                <ThLeft label={t("name")} />
+                <Th label={t("meals")} />
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((entry) => (
+                <tr
+                  key={entry.id}
+                  className="border-b border-border last:border-0"
+                >
+                  <td className="px-4 py-3 align-top">
+                    <DayDateCell iso={entry.date} />
+                  </td>
+                  <td className="min-w-[9rem] px-4 py-3 align-top font-medium break-words text-foreground">
+                    {entry.member.user.name}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right align-top font-semibold tabular-nums text-foreground">
+                    {entry.total_meal}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
+
+      <LoadMore
+        shown={shown.length}
+        total={filtered.length}
+        onClick={() => setVisible((v) => v + PAGE_SIZE)}
+      />
     </div>
   );
 }
@@ -779,7 +851,11 @@ export default function ReportsPage() {
       {selectedMonth && messId && (
         <div>
           {activeTab === "meals" && (
-            <MealsSummaryView messId={messId} monthId={selectedMonth.id} />
+            <MealsSummaryView
+              key={selectedMonth.id}
+              messId={messId}
+              monthId={selectedMonth.id}
+            />
           )}
           {activeTab === "expenses" && (
             <ExpensesSummaryView
