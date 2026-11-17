@@ -41,6 +41,26 @@ function validateUuid(value: string, fieldName: string): string {
   return value;
 }
 
+// YYYY-MM-DD, optionally followed by an ISO time. Anything else would become
+// an Invalid Date and fail inside Prisma as a 500.
+const dateParamRegex = /^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:\d{2})?)?$/;
+
+function validateDateParam(
+  value: string | undefined,
+  fieldName: string,
+): asserts value is string {
+  if (
+    !value ||
+    !dateParamRegex.test(value) ||
+    Number.isNaN(new Date(value).getTime())
+  ) {
+    throw new BadRequestException({
+      message: 'Validation failed',
+      details: { [fieldName]: `Invalid ${fieldName}, expected YYYY-MM-DD` },
+    });
+  }
+}
+
 @Controller('meals')
 @UseGuards(AuthGuard('jwt'))
 export class MealsController {
@@ -104,9 +124,8 @@ export class MealsController {
     validateUuid(messId, 'messId');
     validateUuid(monthId, 'monthId');
 
-    if (!startDate || !endDate) {
-      throw new BadRequestException('startDate and endDate are required');
-    }
+    validateDateParam(startDate, 'startDate');
+    validateDateParam(endDate, 'endDate');
 
     const userId = req.user!.id;
     this.logger.log(
@@ -167,9 +186,7 @@ export class MealsController {
     validateUuid(messId, 'messId');
     validateUuid(monthId, 'monthId');
 
-    if (!date) {
-      throw new BadRequestException('date query parameter is required');
-    }
+    validateDateParam(date, 'date');
 
     const userId = req.user!.id;
     this.logger.log(

@@ -73,9 +73,11 @@ function MealCell({
 
 function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
   const t = useTranslations("pages.mealsReports");
+  // Local calendar date: toISOString() gives the UTC date, which is still
+  // "yesterday" until 06:00 in Asia/Dhaka.
   const [date, setDate] = useState(() => {
     const d = new Date();
-    return d.toISOString().split("T")[0] ?? "";
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   });
   const [isEditing, setIsEditing] = useState(false);
   const [localGrid, setLocalGrid] = useState<
@@ -134,18 +136,22 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
   const updateValue = useCallback(
     (memberId: string, mealTypeId: string, delta: number) => {
       setLocalGrid((prev) => {
-        const current = prev[memberId]?.[mealTypeId] ?? 0;
+        // Start from the member's saved row: the API replaces the whole
+        // `meals` object, so a partial row would wipe the other meal types,
+        // and starting from 0 would make "+" on a saved 2 give 0.5.
+        const row = prev[memberId] ?? { ...(entryMap[memberId] ?? {}) };
+        const current = row[mealTypeId] ?? 0;
         const newVal = Math.max(0, Math.min(10, current + delta));
         return {
           ...prev,
           [memberId]: {
-            ...prev[memberId],
+            ...row,
             [mealTypeId]: newVal,
           },
         };
       });
     },
-    [],
+    [entryMap],
   );
 
   const hasChanges = Object.keys(localGrid).length > 0;
@@ -154,7 +160,7 @@ function DailyReport({ messId, monthId }: { messId: string; monthId: string }) {
     const payload = Object.entries(localGrid).map(([memberId, meals]) => ({
       memberId,
       date: new Date(date).toISOString(),
-      meals,
+      meals: { ...(entryMap[memberId] ?? {}), ...meals },
     }));
 
     if (payload.length === 0) return;
@@ -388,9 +394,6 @@ function EditDailyGrid({
                 className="px-3 py-3 text-center text-xs font-semibold text-foreground-muted sm:px-4"
               >
                 {mt.name}
-                <span className="block text-[10px] text-foreground-muted/60">
-                  ×{mt.value}
-                </span>
               </th>
             ))}
             <th className="px-3 py-3 text-center text-xs font-semibold text-foreground-muted sm:px-4">
@@ -419,11 +422,9 @@ function EditDailyGrid({
                       <div className="flex justify-center">
                         <MealCell
                           value={val}
-                          onIncrement={() =>
-                            updateValue(member.id, mt.id, mt.value || 1)
-                          }
+                          onIncrement={() => updateValue(member.id, mt.id, 0.5)}
                           onDecrement={() =>
-                            updateValue(member.id, mt.id, -(mt.value || 1))
+                            updateValue(member.id, mt.id, -0.5)
                           }
                         />
                       </div>

@@ -244,7 +244,7 @@ mess define the `meals` JSONB keys on `meal_entries`.
 | id         | UUID          | false    | gen_random_uuid() | Primary key                   |
 | mess_id    | UUID          | false    | -                 | FK to `messes.id`             |
 | name       | TEXT          | false    | -                 | ex. BREAKFAST                 |
-| value      | DECIMAL(5, 2) | false    | -                 | Economy weight (ex. 0.5, 1.0) |
+| value      | DECIMAL(5, 2) | false    | -                 | Default daily count; prefills the meal grid (ex. 1, 0.5) |
 | is_active  | BOOLEAN       | false    | true              | Enable or disable             |
 | created_at | TIMESTAMPTZ   | false    | now()             | -                             |
 | updated_at | TIMESTAMPTZ   | false    | now()             | -                             |
@@ -278,7 +278,7 @@ column and the precomputed total meal value.
 | member_id  | UUID           | false    | -                 | FK to `mess_members.id`                         |
 | date       | DATE           | false    | -                 | Meal date                                       |
 | meals      | JSONB          | false    | -                 | Map of active meal type keys to selected values |
-| total_meal | DECIMAL(10, 2) | false    | 0                 | Sum of selected meal values for the date        |
+| total_meal | DECIMAL(10, 2) | false    | 0                 | Sum of meal counts for the date (each meal = 1) |
 | created_by | UUID           | false    | -                 | FK to `users.id`                                |
 | created_at | TIMESTAMPTZ    | false    | now()             | -                                               |
 | updated_at | TIMESTAMPTZ    | false    | now()             | -                                               |

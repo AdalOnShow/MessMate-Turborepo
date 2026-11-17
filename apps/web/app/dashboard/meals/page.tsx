@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { OfflineHint } from "../../components/ui/offline-hint";
 import { useOnline } from "../../hooks/use-online";
-import Link from "next/link";
 import { useState, useMemo, useCallback } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetActiveMonth } from "../../hooks/use-months";
@@ -20,8 +19,6 @@ import {
   useBulkSaveMealEntries,
 } from "../../hooks/use-meals";
 import {
-  BarChart3,
-  Calendar,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -31,9 +28,11 @@ import {
   Plus,
   Save,
   Settings,
+  Users,
   Trash2,
   X,
 } from "lucide-react";
+import { DatePicker } from "../../components/ui/date-picker";
 import {
   QueriesErrorState,
   QueryErrorState,
@@ -49,10 +48,18 @@ function formatDate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+function parseDate(ymd: string): Date {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(y!, m! - 1, d!);
+}
+
 function shiftDate(ymd: string, days: number): string {
   const [y, m, d] = ymd.split("-").map(Number);
   return formatDate(new Date(y!, m! - 1, d! + days));
 }
+
+// Every +/− press changes a meal count by half a meal.
+const MEAL_STEP = 0.5;
 
 function formatMealValue(n: number) {
   return n % 1 === 0 ? String(n) : n.toFixed(1);
@@ -63,19 +70,28 @@ function MealCell({
   onIncrement,
   onDecrement,
   disabled,
+  canIncrement = value !== null && value < 10,
+  canDecrement = value !== null && value > 0,
+  decrementLabel = "−",
+  incrementLabel = "+",
 }: {
-  value: number;
+  /** null = members have different values (shown as "–"). */
+  value: number | null;
   onIncrement: () => void;
   onDecrement: () => void;
   disabled?: boolean;
+  canIncrement?: boolean;
+  canDecrement?: boolean;
+  decrementLabel?: string;
+  incrementLabel?: string;
 }) {
   return (
     <div className="flex items-center gap-1">
       <button
         type="button"
         onClick={onDecrement}
-        disabled={disabled || value <= 0}
-        aria-label="−"
+        disabled={disabled || !canDecrement}
+        aria-label={decrementLabel}
         className="flex size-11 items-center justify-center rounded-xl border border-border-strong text-foreground transition-colors hover:bg-surface-raised active:scale-95 active:bg-surface-raised disabled:opacity-30 md:size-7 md:rounded md:text-foreground-muted"
       >
         <Minus size={14} />
@@ -84,13 +100,13 @@ function MealCell({
         aria-live="polite"
         className="w-10 text-center text-base font-semibold tabular-nums text-foreground md:w-8 md:text-sm"
       >
-        {formatMealValue(value)}
+        {value === null ? "–" : formatMealValue(value)}
       </span>
       <button
         type="button"
         onClick={onIncrement}
-        disabled={disabled || value >= 10}
-        aria-label="+"
+        disabled={disabled || !canIncrement}
+        aria-label={incrementLabel}
         className="flex size-11 items-center justify-center rounded-xl border border-border-strong text-foreground transition-colors hover:bg-surface-raised active:scale-95 active:bg-surface-raised disabled:opacity-30 md:size-7 md:rounded md:text-foreground-muted"
       >
         <Plus size={14} />
@@ -145,23 +161,49 @@ export default function MealsPage() {
     return map;
   }, [entries]);
 
+  // Members with nothing saved for this day start from the meal types'
+  // default counts (their `value`). These rows are only a suggestion: they
+  // count as unsaved changes until the manager presses Save. Only managers
+  // see them, and only once the day's entries have loaded, so a slow or
+  // failed load never shows defaults over real data.
+  const defaultRows = useMemo(() => {
+    const map: Record<string, Record<string, number>> = {};
+    if (!isManager || !entries) return map;
+    const row: Record<string, number> = {};
+    for (const mt of activeMealTypes) {
+      if (mt.value > 0) row[mt.id] = Math.min(10, mt.value);
+    }
+    if (Object.keys(row).length === 0) return map;
+    for (const member of activeMembers ?? []) {
+      if (!entryMap[member.id]) map[member.id] = row;
+    }
+    return map;
+  }, [isManager, entries, activeMealTypes, activeMembers, entryMap]);
+
+  // What the grid starts from for a member: their saved row, else defaults.
+  const baseRow = useCallback(
+    (memberId: string): Record<string, number> =>
+      entryMap[memberId] ?? defaultRows[memberId] ?? {},
+    [entryMap, defaultRows],
+  );
+
   const getValue = useCallback(
     (memberId: string, mealTypeId: string): number => {
       if (localGrid[memberId]?.[mealTypeId] !== undefined) {
         return localGrid[memberId][mealTypeId];
       }
-      return entryMap[memberId]?.[mealTypeId] ?? 0;
+      return baseRow(memberId)[mealTypeId] ?? 0;
     },
-    [localGrid, entryMap],
+    [localGrid, baseRow],
   );
 
   const updateValue = useCallback(
     (memberId: string, mealTypeId: string, delta: number) => {
       setLocalGrid((prev) => {
-        // Start from the member's saved row the first time it is touched.
+        // Start from the member's base row the first time it is touched.
         // The API replaces the whole `meals` object on save, so the edited
         // row must carry every meal type, not only the one that changed.
-        const row = prev[memberId] ?? { ...(entryMap[memberId] ?? {}) };
+        const row = prev[memberId] ?? { ...baseRow(memberId) };
         const current = row[mealTypeId] ?? 0;
         const newVal = Math.max(0, Math.min(10, current + delta));
         return {
@@ -173,31 +215,95 @@ export default function MealsPage() {
         };
       });
     },
-    [entryMap],
+    [baseRow],
   );
 
-  const hasChanges = useMemo(() => {
-    return Object.keys(localGrid).length > 0;
-  }, [localGrid]);
+  // Apply one change to a meal type for every active member. Only members
+  // whose value actually changes are added to the edit grid, so a bulk "−"
+  // on people already at 0 doesn't create empty entries for them on save.
+  const updateAll = useCallback(
+    (mealTypeId: string, compute: (current: number) => number) => {
+      setLocalGrid((prev) => {
+        const next = { ...prev };
+        for (const member of activeMembers ?? []) {
+          const row = prev[member.id] ?? { ...baseRow(member.id) };
+          const current = row[mealTypeId] ?? 0;
+          const newVal = Math.max(0, Math.min(10, compute(current)));
+          if (newVal === current) continue;
+          next[member.id] = { ...row, [mealTypeId]: newVal };
+        }
+        return next;
+      });
+    },
+    [activeMembers, baseRow],
+  );
+
+  // Rows to send on save: every edited member, plus every member still on
+  // untouched defaults.
+  const pendingRows = useMemo(() => {
+    const rows: Record<string, Record<string, number>> = {};
+    for (const [memberId, row] of Object.entries(defaultRows)) {
+      rows[memberId] = row;
+    }
+    for (const [memberId, row] of Object.entries(localGrid)) {
+      rows[memberId] = { ...baseRow(memberId), ...row };
+    }
+    return rows;
+  }, [defaultRows, localGrid, baseRow]);
+
+  const hasChanges = Object.keys(pendingRows).length > 0;
+  const isUnsaved = (memberId: string) => pendingRows[memberId] !== undefined;
+
+  const members = activeMembers ?? [];
+  const showBulk =
+    isManager &&
+    !entriesLoading &&
+    members.length > 0 &&
+    activeMealTypes.length > 0;
+
+  // Stepper props for the "everyone" row of a meal type. Shows the shared
+  // value when all members match, "–" when they differ.
+  const bulkProps = (mt: MealTypeInfo) => {
+    const values = members.map((m) => getValue(m.id, mt.id));
+    const first = values[0] ?? 0;
+    return {
+      value: values.every((v) => v === first) ? first : null,
+      canIncrement: values.some((v) => v < 10),
+      canDecrement: values.some((v) => v > 0),
+      onIncrement: () => updateAll(mt.id, (v) => v + MEAL_STEP),
+      onDecrement: () => updateAll(mt.id, (v) => v - MEAL_STEP),
+      incrementLabel: t("addForEveryone", { meal: mt.name }),
+      decrementLabel: t("removeForEveryone", { meal: mt.name }),
+    };
+  };
 
   const saveMutation = useBulkSaveMealEntries(messId, monthId);
   const online = useOnline();
+  // Until the saved day is re-read, the old entries would make the default
+  // rows look unsaved again for a moment, so keep Save disabled meanwhile.
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleSave = () => {
-    const entries = Object.entries(localGrid).map(([memberId, meals]) => ({
+    const payload = Object.entries(pendingRows).map(([memberId, meals]) => ({
       memberId,
+      // "YYYY-MM-DD" parses as UTC midnight, the form the API requires.
       date: new Date(selectedDate).toISOString(),
-      // Saved values first, then the edits on top, so nothing is dropped.
-      meals: { ...(entryMap[memberId] ?? {}), ...meals },
+      meals,
     }));
 
-    if (entries.length === 0) return;
+    if (payload.length === 0) return;
 
     saveMutation.mutate(
-      { entries },
+      { entries: payload },
       {
-        onSuccess: () => {
-          setLocalGrid({});
+        onSuccess: async () => {
+          setRefreshing(true);
+          try {
+            await entriesQuery.refetch();
+          } finally {
+            setLocalGrid({});
+            setRefreshing(false);
+          }
         },
       },
     );
@@ -260,22 +366,17 @@ export default function MealsPage() {
             >
               <ChevronLeft size={18} />
             </button>
-            <label className="flex min-w-0 flex-1 items-center justify-center gap-2">
-              <Calendar
-                size={16}
-                className="hidden shrink-0 text-foreground-muted sm:block"
-              />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => {
-                  if (!e.target.value) return;
-                  setSelectedDate(e.target.value);
+            <div className="min-w-0 flex-1">
+              <DatePicker
+                date={parseDate(selectedDate)}
+                onSelect={(d) => {
+                  if (!d) return;
+                  setSelectedDate(formatDate(d));
                   setLocalGrid({});
                 }}
-                className="min-w-0 bg-transparent py-2 text-center text-base text-foreground focus:outline-none sm:text-sm"
+                className="h-11 justify-center border-0 bg-transparent px-2 text-foreground hover:bg-transparent sm:h-9"
               />
-            </label>
+            </div>
             <button
               type="button"
               onClick={() => {
@@ -288,13 +389,6 @@ export default function MealsPage() {
               <ChevronRight size={18} />
             </button>
           </div>
-          <Link
-            href="/dashboard/meals/reports"
-            className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-border-strong px-3 text-xs font-semibold text-foreground-muted transition-colors hover:bg-surface-raised sm:h-auto sm:rounded-lg sm:py-2"
-          >
-            <BarChart3 size={16} />
-            {t("reports")}
-          </Link>
         </div>
       </div>
 
@@ -323,7 +417,9 @@ export default function MealsPage() {
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={!hasChanges || saveMutation.isPending || !online}
+                disabled={
+                  !hasChanges || saveMutation.isPending || refreshing || !online
+                }
                 className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60 md:h-auto md:rounded-lg md:px-4 md:py-2"
               >
                 {saveMutation.isPending ? (
@@ -362,28 +458,16 @@ export default function MealsPage() {
                 {t("noMembersMessYet")}
               </p>
             ) : (
-              (activeMembers ?? []).map((member: MemberData) => {
-                const total = activeMealTypes.reduce(
-                  (sum, mt) => sum + getValue(member.id, mt.id),
-                  0,
-                );
-                const edited = localGrid[member.id] !== undefined;
-                return (
-                  <div
-                    key={member.id}
-                    className={`rounded-2xl border bg-surface p-4 ${
-                      edited ? "border-primary/40" : "border-border"
-                    }`}
-                  >
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <p className="min-w-0 truncate font-semibold text-foreground">
-                        {member.user.name}
-                      </p>
-                      <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold tabular-nums text-primary">
-                        {t("total")} {formatMealValue(total)}
+              <>
+                {showBulk && (
+                  <div className="rounded-2xl border border-primary/30 bg-primary/[0.06] p-4">
+                    <p className="mb-3 flex items-center gap-2 font-semibold text-primary">
+                      <span className="flex size-7 items-center justify-center rounded-lg bg-primary/15">
+                        <Users size={15} />
                       </span>
-                    </div>
-                    <div className="divide-y divide-border">
+                      {t("everyone")}
+                    </p>
+                    <div className="space-y-1">
                       {activeMealTypes.map((mt) => (
                         <div
                           key={mt.id}
@@ -391,26 +475,60 @@ export default function MealsPage() {
                         >
                           <span className="min-w-0 text-sm text-foreground-body">
                             {mt.name}
-                            <span className="ml-1 text-xs text-foreground-muted">
-                              ×{mt.value}
-                            </span>
                           </span>
-                          <MealCell
-                            value={getValue(member.id, mt.id)}
-                            onIncrement={() =>
-                              updateValue(member.id, mt.id, mt.value || 1)
-                            }
-                            onDecrement={() =>
-                              updateValue(member.id, mt.id, -(mt.value || 1))
-                            }
-                            disabled={!isManager}
-                          />
+                          <MealCell {...bulkProps(mt)} />
                         </div>
                       ))}
                     </div>
                   </div>
-                );
-              })
+                )}
+                {(activeMembers ?? []).map((member: MemberData) => {
+                  const total = activeMealTypes.reduce(
+                    (sum, mt) => sum + getValue(member.id, mt.id),
+                    0,
+                  );
+                  const edited = isUnsaved(member.id);
+                  return (
+                    <div
+                      key={member.id}
+                      className={`rounded-2xl border bg-surface p-4 ${
+                        edited ? "border-primary/40" : "border-border"
+                      }`}
+                    >
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <p className="min-w-0 truncate font-semibold text-foreground">
+                          {member.user.name}
+                        </p>
+                        <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold tabular-nums text-primary">
+                          {t("total")} {formatMealValue(total)}
+                        </span>
+                      </div>
+                      <div className="divide-y divide-border">
+                        {activeMealTypes.map((mt) => (
+                          <div
+                            key={mt.id}
+                            className="flex items-center justify-between gap-3 py-1.5"
+                          >
+                            <span className="min-w-0 text-sm text-foreground-body">
+                              {mt.name}
+                            </span>
+                            <MealCell
+                              value={getValue(member.id, mt.id)}
+                              onIncrement={() =>
+                                updateValue(member.id, mt.id, MEAL_STEP)
+                              }
+                              onDecrement={() =>
+                                updateValue(member.id, mt.id, -MEAL_STEP)
+                              }
+                              disabled={!isManager}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
             )}
           </div>
 
@@ -427,15 +545,32 @@ export default function MealsPage() {
                       className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted"
                     >
                       {mt.name}
-                      <span className="ml-1 text-foreground-muted/50">
-                        ({mt.value})
-                      </span>
                     </th>
                   ))}
                   <th className="px-4 py-3 text-center text-xs font-semibold text-foreground-muted">
                     {t("total")}
                   </th>
                 </tr>
+                {showBulk && (
+                  <tr className="border-b border-primary/20 bg-primary/[0.06]">
+                    <td className="px-4 py-2.5">
+                      <span className="flex items-center gap-2 text-sm font-semibold text-primary">
+                        <span className="flex size-7 items-center justify-center rounded-lg bg-primary/15">
+                          <Users size={15} />
+                        </span>
+                        {t("everyone")}
+                      </span>
+                    </td>
+                    {activeMealTypes.map((mt) => (
+                      <td key={mt.id} className="px-4 py-2.5">
+                        <div className="flex justify-center">
+                          <MealCell {...bulkProps(mt)} />
+                        </div>
+                      </td>
+                    ))}
+                    <td />
+                  </tr>
+                )}
               </thead>
               <tbody>
                 {entriesLoading ? (
@@ -489,14 +624,10 @@ export default function MealsPage() {
                                 <MealCell
                                   value={val}
                                   onIncrement={() =>
-                                    updateValue(member.id, mt.id, mt.value || 1)
+                                    updateValue(member.id, mt.id, MEAL_STEP)
                                   }
                                   onDecrement={() =>
-                                    updateValue(
-                                      member.id,
-                                      mt.id,
-                                      -(mt.value || 1),
-                                    )
+                                    updateValue(member.id, mt.id, -MEAL_STEP)
                                   }
                                   disabled={!isManager}
                                 />
@@ -557,7 +688,7 @@ function CreateMealTypeForm({
 
     const numVal = parseFloat(value);
     if (isNaN(numVal) || numVal < 0 || numVal > 10) {
-      setError("Value must be between 0 and 10");
+      setError("Default must be between 0 and 10");
       return;
     }
 

@@ -14,6 +14,7 @@ import type {
   MemberMealReport,
   MonthMealSummary,
 } from '@repo/shared';
+import { entryKey, prepareMealEntries } from './meal-entries';
 
 @Injectable()
 export class MealsService {
@@ -61,12 +62,22 @@ export class MealsService {
     // One query each instead of one per entry, so a full day for a large
     // mess stays fast.
     const memberIds = [...new Set(data.entries.map((e) => e.memberId))];
-    const [mealTypes, members] = await Promise.all([
+    // Invalid dates are rejected by prepareMealEntries below; here they just
+    // match nothing.
+    const dates = [
+      ...new Set(
+        data.entries
+          .map((e) => new Date(e.date).getTime())
+          .filter((t) => !Number.isNaN(t)),
+      ),
+    ].map((t) => new Date(t));
+
+    const [mealTypes, members, existing] = await Promise.all([
       // Inactive types are included: a saved day can still hold counts for
-      // a type that was switched off later, and they keep their value.
+      // a type that was switched off later.
       prisma.meal_types.findMany({
         where: { mess_id: messId, deleted_at: null },
-        select: { id: true, value: true },
+        select: { id: true },
       }),
       prisma.mess_members.findMany({
         where: {
@@ -76,6 +87,15 @@ export class MealsService {
           deleted_at: null,
         },
         select: { id: true },
+      }),
+      prisma.meal_entries.findMany({
+        where: {
+          month_id: monthId,
+          deleted_at: null,
+          member_id: { in: memberIds },
+          date: { in: dates },
+        },
+        select: { id: true, member_id: true, date: true, meals: true },
       }),
     ]);
 
@@ -88,53 +108,20 @@ export class MealsService {
       });
     }
 
-    const mealTypeValues = new Map(
-      mealTypes.map((mt) => [mt.id, Number(mt.value)]),
-    );
-
-    const seen = new Set<string>();
-    const prepared = data.entries.map((entry) => {
-      const date = new Date(entry.date);
-      const key = `${entry.memberId}|${date.toISOString()}`;
-      if (seen.has(key)) {
-        throw new BadRequestException({
-          message: 'The same member and date appear more than once',
-          code: ErrorCode.VALIDATION_FAILED,
-        });
-      }
-      seen.add(key);
-
-      let totalMeal = 0;
-      for (const [mealTypeId, quantity] of Object.entries(entry.meals)) {
-        const value = mealTypeValues.get(mealTypeId);
-        // Unknown ids used to count as 1 meal each; reject them instead.
-        if (value === undefined) {
-          throw new BadRequestException({
-            message: 'Unknown meal type',
-            code: ErrorCode.VALIDATION_FAILED,
-          });
-        }
-        totalMeal += quantity * value;
-      }
-
-      return { memberId: entry.memberId, date, meals: entry.meals, totalMeal };
+    const prepared = prepareMealEntries(data.entries, {
+      liveMealTypeIds: new Set(mealTypes.map((mt) => mt.id)),
+      existingMeals: new Map(
+        existing.map((e) => [
+          entryKey(e.member_id, e.date),
+          e.meals as Record<string, number>,
+        ]),
+      ),
+      monthStartedAt: month.started_at,
+      now: new Date(),
     });
 
-    const existing = await prisma.meal_entries.findMany({
-      where: {
-        month_id: monthId,
-        deleted_at: null,
-        member_id: { in: memberIds },
-        date: {
-          in: [...new Set(prepared.map((p) => p.date.getTime()))].map(
-            (t) => new Date(t),
-          ),
-        },
-      },
-      select: { id: true, member_id: true, date: true },
-    });
     const existingId = new Map(
-      existing.map((e) => [`${e.member_id}|${e.date.toISOString()}`, e.id]),
+      existing.map((e) => [entryKey(e.member_id, e.date), e.id]),
     );
 
     // All rows and their activity logs are saved together, or none are.
@@ -144,7 +131,7 @@ export class MealsService {
         const logs: Prisma.activity_logsCreateManyInput[] = [];
 
         for (const p of prepared) {
-          const id = existingId.get(`${p.memberId}|${p.date.toISOString()}`);
+          const id = existingId.get(entryKey(p.memberId, p.date));
           if (id) {
             await tx.meal_entries.update({
               where: { id },
@@ -239,6 +226,9 @@ export class MealsService {
     const entries = await prisma.meal_entries.findMany({
       where: {
         month_id: monthId,
+        // The guard only proves membership of messId; the month must belong
+        // to that mess too, or any member could read another mess's meals.
+        month: { mess_id: messId },
         deleted_at: null,
         date: {
           gte: new Date(startDate),
@@ -301,10 +291,13 @@ export class MealsService {
       });
     }
 
+    // Scoped to this mess's active month: the manager check above is only
+    // for messId, and closed months are already billed.
     const entry = await prisma.meal_entries.findFirst({
       where: {
         id: entryId,
         deleted_at: null,
+        month: { mess_id: messId, month_status: 'ACTIVE', deleted_at: null },
       },
     });
 
@@ -348,6 +341,7 @@ export class MealsService {
     const entries = await prisma.meal_entries.findMany({
       where: {
         month_id: monthId,
+        month: { mess_id: messId },
         deleted_at: null,
         date: {
           gte: targetDate,
@@ -428,6 +422,7 @@ export class MealsService {
     const entries = await prisma.meal_entries.findMany({
       where: {
         month_id: monthId,
+        month: { mess_id: messId },
         member_id: memberId,
         deleted_at: null,
       },

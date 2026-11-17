@@ -714,13 +714,27 @@ export class MessesService {
       throw new NotFoundException('Meal type not found');
     }
 
-    const updated = await prisma.meal_types.update({
-      where: { id: mealTypeId },
-      data: {
-        ...(data.value !== undefined && { value: data.value }),
-        ...(data.is_active !== undefined && { is_active: data.is_active }),
-        updated_at: new Date(),
-      },
+    const updated = await prisma.$transaction(async (tx) => {
+      const row = await tx.meal_types.update({
+        where: { id: mealTypeId },
+        data: {
+          ...(data.value !== undefined && { value: data.value }),
+          ...(data.is_active !== undefined && { is_active: data.is_active }),
+          updated_at: new Date(),
+        },
+      });
+      // The value is the default daily count, so changing it (or switching
+      // a type on/off) changes the default meals.
+      await tx.activity_logs.create({
+        data: {
+          mess_id: messId,
+          actor_id: actorId,
+          action: 'DEFAULT_MEALS_UPDATED',
+          entity_type: 'meal_types',
+          entity_id: mealTypeId,
+        },
+      });
+      return row;
     });
 
     this.logger.log(`✅ Meal type updated: ${mealTypeId} by ${actorId}`);
@@ -770,12 +784,24 @@ export class MessesService {
     }
 
     try {
-      const created = await prisma.meal_types.create({
-        data: {
-          mess_id: messId,
-          name: data.name,
-          value: data.value,
-        },
+      const created = await prisma.$transaction(async (tx) => {
+        const row = await tx.meal_types.create({
+          data: {
+            mess_id: messId,
+            name: data.name,
+            value: data.value,
+          },
+        });
+        await tx.activity_logs.create({
+          data: {
+            mess_id: messId,
+            actor_id: actorId,
+            action: 'DEFAULT_MEALS_UPDATED',
+            entity_type: 'meal_types',
+            entity_id: row.id,
+          },
+        });
+        return row;
       });
 
       this.logger.log(
@@ -837,10 +863,21 @@ export class MessesService {
       throw new NotFoundException('Meal type not found');
     }
 
-    await prisma.meal_types.update({
-      where: { id: mealTypeId },
-      data: { deleted_at: new Date() },
-    });
+    await prisma.$transaction([
+      prisma.meal_types.update({
+        where: { id: mealTypeId },
+        data: { deleted_at: new Date() },
+      }),
+      prisma.activity_logs.create({
+        data: {
+          mess_id: messId,
+          actor_id: actorId,
+          action: 'DEFAULT_MEALS_UPDATED',
+          entity_type: 'meal_types',
+          entity_id: mealTypeId,
+        },
+      }),
+    ]);
 
     this.logger.log(`✅ Meal type deleted: ${mealTypeId} by ${actorId}`);
 
