@@ -34,7 +34,8 @@
     "statusRejected": "Rejected",
     "approvedBy": "Approved by {name}",
     "reviewedBy": "Reviewed by {name}",
-    "onDate": "on {date}"
+    "onDate": "on {date}",
+    "descriptionOptional": "Description (optional)"
   },
   "createMess": {
     "messSetup": "Mess Setup",

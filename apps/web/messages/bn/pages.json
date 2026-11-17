@@ -34,7 +34,8 @@
     "statusRejected": "বাতিল",
     "approvedBy": "{name} অনুমোদন করেছেন",
     "reviewedBy": "{name} পর্যালোচনা করেছেন",
-    "onDate": "{date} তারিখে"
+    "onDate": "{date} তারিখে",
+    "descriptionOptional": "বিবরণ (ঐচ্ছিক)"
   },
   "createMess": {
     "messSetup": "মেস সেটআপ",

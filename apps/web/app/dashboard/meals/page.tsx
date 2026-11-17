@@ -405,9 +405,8 @@ export default function MealsPage() {
         <>
           {isManager && (
             <div
-              className={`bottom-above-nav fixed inset-x-4 z-40 items-center gap-3 rounded-2xl border border-border bg-surface-raised/95 p-2 pl-4 shadow-panel backdrop-blur-xl md:static md:mb-4 md:flex md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none ${
-                hasChanges ? "animate-pop-in flex" : "hidden"
-              }`}
+              className={`bottom-above-nav fixed inset-x-4 z-40 items-center gap-3 rounded-2xl border border-border bg-surface-raised/95 p-2 pl-4 shadow-panel backdrop-blur-xl md:static md:mb-4 md:flex md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none ${hasChanges ? "animate-pop-in flex" : "hidden"
+                }`}
             >
               {hasChanges && (
                 <span className="min-w-0 flex-1 text-sm leading-tight text-foreground md:hidden">
@@ -464,7 +463,7 @@ export default function MealsPage() {
             ) : (
               <>
                 {showBulk && (
-                  <div className="rounded-2xl border border-primary/30 bg-primary/[0.06] p-4">
+                  <div className="rounded-2xl border border-primary/30 bg-primary/6 p-4">
                     <p className="mb-3 flex items-center gap-2 font-semibold text-primary">
                       <span className="flex size-7 items-center justify-center rounded-lg bg-primary/15">
                         <Users size={15} />
@@ -495,9 +494,8 @@ export default function MealsPage() {
                   return (
                     <div
                       key={member.id}
-                      className={`rounded-2xl border bg-surface p-4 ${
-                        edited ? "border-primary/40" : "border-border"
-                      }`}
+                      className={`rounded-2xl border bg-surface p-4 ${edited ? "border-primary/40" : "border-border"
+                        }`}
                     >
                       <div className="mb-3 flex items-center justify-between gap-3">
                         <p className="min-w-0 truncate font-semibold text-foreground">
@@ -556,7 +554,7 @@ export default function MealsPage() {
                   </th>
                 </tr>
                 {showBulk && (
-                  <tr className="border-b border-primary/20 bg-primary/[0.06]">
+                  <tr className="border-b border-primary/20 bg-primary/6">
                     <td className="px-4 py-2.5">
                       <span className="flex items-center gap-2 text-sm font-semibold text-primary">
                         <span className="flex size-7 items-center justify-center rounded-lg bg-primary/15">
@@ -734,11 +732,10 @@ function CreateMealTypeForm({
               setError("");
             }}
             placeholder={t("eGBreakfastLunch")}
-            className={`w-full rounded-lg border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 ${
-              error
+            className={`w-full rounded-lg border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 ${error
                 ? "border-destructive focus:ring-destructive/40"
                 : "border-border-strong focus:ring-primary/40"
-            }`}
+              }`}
             disabled={createMealType.isPending}
           />
         </div>
@@ -823,22 +820,20 @@ function MealTypeRow({
 
   return (
     <div
-      className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
-        mealType.is_active
+      className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${mealType.is_active
           ? "border-primary/30 bg-primary/5"
           : "border-border bg-surface"
-      }`}
+        }`}
     >
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={handleToggleActive}
           disabled={updateMealType.isPending}
-          className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors before:absolute before:-inset-3 before:content-[''] ${
-            mealType.is_active
+          className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors before:absolute before:-inset-3 before:content-[''] ${mealType.is_active
               ? "border-primary bg-primary text-white"
               : "border-border-strong bg-transparent"
-          }`}
+            }`}
         >
           {mealType.is_active && <Check size={12} />}
         </button>
