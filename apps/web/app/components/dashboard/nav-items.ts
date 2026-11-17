@@ -2,7 +2,6 @@ import {
   BarChart3,
   Calendar,
   Home,
-  ListChecks,
   ReceiptText,
   Settings,
   ShoppingCart,
@@ -27,7 +26,6 @@ export type NavLabel =
   | "profile"
   | "settings"
   | "messSettings"
-  | "mealTypes"
   | "mealReports"
   | "createAccount"
   | "createMess";
@@ -57,12 +55,6 @@ export const MANAGER_NAV_ITEMS: NavItem[] = [
     href: "/dashboard/settings",
     label: "messSettings",
     icon: Settings,
-    managerOnly: true,
-  },
-  {
-    href: "/dashboard/meal-types",
-    label: "mealTypes",
-    icon: ListChecks,
     managerOnly: true,
   },
 ];

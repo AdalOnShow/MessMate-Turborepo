@@ -14,7 +14,6 @@
   "workspace": "Workspace",
   "manager": "Manager",
   "userFallback": "MessMate user",
-  "mealTypes": "Meal Types",
   "mealReports": "Meal Reports",
   "createAccount": "Create Account",
   "createMess": "Create Mess",

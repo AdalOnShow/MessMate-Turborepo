@@ -5,13 +5,7 @@ import { useEffect, useState } from "react";
 import { startNavigationProgress } from "../../lib/navigation-progress";
 import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../store";
-import {
-  useGetMyMess,
-  useGetMealTypes,
-  useUpdateMess,
-  useUpdateMealType,
-} from "../../hooks/use-messes";
-import type { MealTypeInfo } from "../../hooks/use-messes";
+import { useGetMyMess, useUpdateMess } from "../../hooks/use-messes";
 import { Check, Loader2, Pencil, Settings, X } from "lucide-react";
 import { MonthSettings } from "../../components/dashboard/MonthSettings";
 import { QueryErrorState } from "../../components/feedback/QueryErrorState";
@@ -247,120 +241,6 @@ function EditableMessInfo() {
   );
 }
 
-function MealTypesConfig() {
-  const t = useTranslations("pages.settings");
-  const { data: myMess } = useGetMyMess();
-  const messId = myMess?.id;
-  const mealTypesQuery = useGetMealTypes(messId);
-  const { data: mealTypes, isLoading } = mealTypesQuery;
-  const updateMealType = useUpdateMealType(messId);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (mealTypesQuery.isError && !mealTypes) {
-    return (
-      <QueryErrorState
-        compact
-        error={mealTypesQuery.error}
-        onRetry={mealTypesQuery.refetch}
-        isRetrying={mealTypesQuery.isFetching}
-        resource="meal types"
-      />
-    );
-  }
-
-  if (!mealTypes || mealTypes.length === 0) {
-    return (
-      <p className="text-sm text-foreground-muted">
-        {t("noMealTypesConfigured")}
-      </p>
-    );
-  }
-
-  const handleToggleActive = (mt: MealTypeInfo) => {
-    updateMealType.mutate({
-      mealTypeId: mt.id,
-      data: { is_active: !mt.is_active },
-    });
-  };
-
-  const handleValueChange = (mt: MealTypeInfo, newValue: string) => {
-    const num = parseFloat(newValue);
-    if (isNaN(num)) return;
-    updateMealType.mutate({
-      mealTypeId: mt.id,
-      data: { value: num },
-    });
-  };
-
-  return (
-    <div className="space-y-3">
-      <p className="text-sm text-foreground-muted">{t("toggleMealTypesOff")}</p>
-
-      <div className="space-y-2">
-        {mealTypes.map((mt) => (
-          <div
-            key={mt.id}
-            className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
-              mt.is_active
-                ? "border-primary/30 bg-primary/5"
-                : "border-border bg-surface"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => handleToggleActive(mt)}
-                disabled={updateMealType.isPending}
-                className={`relative flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors before:absolute before:-inset-3 before:content-[''] ${
-                  mt.is_active
-                    ? "border-primary bg-primary text-white"
-                    : "border-border-strong bg-transparent"
-                }`}
-              >
-                {mt.is_active && <Check size={12} />}
-              </button>
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  {mt.name}
-                </p>
-              </div>
-            </div>
-            {mt.is_active && (
-              <div className="flex items-center gap-2">
-                <label className="text-xs text-foreground-muted">
-                  {t("value")}
-                </label>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.1"
-                  min="0"
-                  max="10"
-                  defaultValue={mt.value}
-                  onBlur={(e) => handleValueChange(mt, e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleValueChange(mt, e.currentTarget.value);
-                    }
-                  }}
-                  className="w-20 rounded-md border border-border-strong bg-surface-sunken px-2 py-1 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-                />
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function SettingsContent() {
   const t = useTranslations("pages.settings");
   const { isAuthenticated } = useSessionStore();
@@ -414,18 +294,6 @@ function SettingsContent() {
 
         <div className="rounded-xl border border-border bg-surface p-6">
           <EditableMessInfo />
-        </div>
-
-        <div className="rounded-xl border border-border bg-surface p-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-foreground">
-              {t("mealTypes")}
-            </h2>
-            <p className="mt-1 text-xs text-foreground-muted">
-              {t("toggleActiveMealTypes")}
-            </p>
-          </div>
-          <MealTypesConfig />
         </div>
       </div>
     </>
