@@ -1,3 +1,4 @@
+import { ErrorCode } from '@repo/shared';
 import {
   BadRequestException,
   Body,
@@ -425,7 +426,10 @@ export class MessesController {
     }
 
     if (Object.keys(parsed.data).length === 0) {
-      throw new BadRequestException('No fields to update');
+      throw new BadRequestException({
+        message: 'No fields to update',
+        code: ErrorCode.NO_CHANGES,
+      });
     }
 
     const actorId = req.user!.id;
@@ -470,7 +474,10 @@ export class MessesController {
     }
 
     if (Object.keys(parsed.data).length === 0) {
-      throw new BadRequestException('No fields to update');
+      throw new BadRequestException({
+        message: 'No fields to update',
+        code: ErrorCode.NO_CHANGES,
+      });
     }
 
     const actorId = req.user!.id;

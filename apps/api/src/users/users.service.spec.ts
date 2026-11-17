@@ -7,7 +7,6 @@ import {
   BadRequestException,
   ForbiddenException,
   HttpException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
@@ -189,14 +188,43 @@ describe('UsersService', () => {
   });
 
   describe('changePassword', () => {
+    it.each([
+      ['too short', 'Ab1'],
+      ['no uppercase letter', 'new-password-1'],
+      ['no lowercase letter', 'NEW-PASSWORD-1'],
+      ['no number', 'New-password'],
+    ])('rejects a weak new password (%s)', async (_label, weak) => {
+      const err: unknown = await service
+        .changePassword('u1', 'Old-password-1', weak)
+        .catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect((err as HttpException).getResponse()).toMatchObject({
+        details: { newPassword: expect.any(String) },
+      });
+      expect(prismaMock.users.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects a new password equal to the current one', async () => {
+      const err: unknown = await service
+        .changePassword('u1', 'Same-password-1', 'Same-password-1')
+        .catch((e: unknown) => e);
+      expect((err as HttpException).getResponse()).toMatchObject({
+        details: {
+          newPassword:
+            'New password must be different from your current password',
+        },
+      });
+    });
+
     it('rejects a wrong current password', async () => {
       prismaMock.users.findUnique.mockResolvedValue({
         id: 'u1',
         password: await bcrypt.hash('old-password-1', 4),
       });
       await rejectsWith(
-        service.changePassword('u1', 'not-it-at-all', 'new-password-1'),
-        UnauthorizedException,
+        service.changePassword('u1', 'not-it-at-all', 'New-password-1'),
+        BadRequestException,
+        ErrorCode.CURRENT_PASSWORD_INCORRECT,
       );
       expect(prismaMock.users.update).not.toHaveBeenCalled();
     });
@@ -210,7 +238,7 @@ describe('UsersService', () => {
       await service.changePassword(
         'u1',
         'old-password-1',
-        'new-password-1',
+        'New-password-1',
         'this-session',
       );
 

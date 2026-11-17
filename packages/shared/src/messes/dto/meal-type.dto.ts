@@ -1,15 +1,16 @@
 import { z } from "zod";
+import { ValidationMessage } from "../../validation/messages";
 
 export const createMealTypeSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(1, "Name cannot be empty")
-    .max(50, "Name must be at most 50 characters"),
+    .min(1, ValidationMessage.MEAL_TYPE_NAME_REQUIRED)
+    .max(50, ValidationMessage.MEAL_TYPE_NAME_MAX),
   value: z
     .number()
-    .min(0, "Value must be at least 0")
-    .max(10, "Value must be at most 10"),
+    .min(0, ValidationMessage.MEAL_TYPE_VALUE_MIN)
+    .max(10, ValidationMessage.MEAL_TYPE_VALUE_MAX),
 });
 
 export type CreateMealTypeDto = z.infer<typeof createMealTypeSchema>;
@@ -17,8 +18,8 @@ export type CreateMealTypeDto = z.infer<typeof createMealTypeSchema>;
 export const updateMealTypeSchema = z.object({
   value: z
     .number()
-    .min(0, "Value must be at least 0")
-    .max(10, "Value must be at most 10")
+    .min(0, ValidationMessage.MEAL_TYPE_VALUE_MIN)
+    .max(10, ValidationMessage.MEAL_TYPE_VALUE_MAX)
     .optional(),
   is_active: z.boolean().optional(),
 });

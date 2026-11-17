@@ -1,6 +1,6 @@
 import { ErrorCode } from '@repo/shared';
 import {
-  BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -201,7 +201,10 @@ export class AuthService {
     });
     if (existing) {
       this.logger.warn(`⚠️ Duplicate email registration: ${signupDto.email}`);
-      throw new BadRequestException('Email already in use');
+      throw new ConflictException({
+        message: 'Email already in use',
+        code: ErrorCode.EMAIL_IN_USE,
+      });
     }
 
     const saltRounds = Number(

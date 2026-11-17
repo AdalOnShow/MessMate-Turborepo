@@ -341,7 +341,10 @@ export class MonthsService {
     });
 
     if (!month) {
-      throw new NotFoundException('Month not found');
+      throw new NotFoundException({
+        message: 'Month not found',
+        code: ErrorCode.MONTH_NOT_FOUND,
+      });
     }
 
     const [summaries, mealAgg, expenseGroups, depositAgg, carries, closeLog] =

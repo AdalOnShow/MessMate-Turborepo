@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ValidationMessage } from "../../validation/messages";
 
 /** Invite by the id picked from search results, or by a typed email. */
 export const inviteUserSchema = z
@@ -8,11 +9,11 @@ export const inviteUserSchema = z
       .string()
       .trim()
       .toLowerCase()
-      .email("Enter a valid email address")
+      .email(ValidationMessage.EMAIL_INVALID)
       .optional(),
   })
   .refine((v) => Boolean(v.userId) !== Boolean(v.email), {
-    message: "Provide either a user or an email address",
+    message: ValidationMessage.INVITE_TARGET_REQUIRED,
     path: ["email"],
   });
 

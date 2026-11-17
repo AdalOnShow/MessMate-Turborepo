@@ -149,9 +149,11 @@ export class ExpensesService {
     });
 
     if (members.length !== uniqueIds.length) {
-      throw new BadRequestException(
-        'One or more selected members are not active members of this mess',
-      );
+      throw new BadRequestException({
+        message:
+          'One or more selected members are not active members of this mess',
+        code: ErrorCode.MEMBER_NOT_ACTIVE,
+      });
     }
 
     return members;
@@ -418,7 +420,10 @@ export class ExpensesService {
     });
 
     if (!expense) {
-      throw new NotFoundException('Expense not found');
+      throw new NotFoundException({
+        message: 'Expense not found',
+        code: ErrorCode.EXPENSE_NOT_FOUND,
+      });
     }
 
     // A closed month is already billed (member summaries, carry forward);
@@ -450,15 +455,17 @@ export class ExpensesService {
       ).map((a) => a.member_id);
 
     if (effectiveMemberIds.length === 0) {
-      throw new BadRequestException(
-        'Expense must have at least one allocated member',
-      );
+      throw new BadRequestException({
+        message: 'Expense must have at least one allocated member',
+        code: ErrorCode.EXPENSE_MEMBERS_REQUIRED,
+      });
     }
 
     if (type === 'INDIVIDUAL' && effectiveMemberIds.length !== 1) {
-      throw new BadRequestException(
-        'Individual expenses must be assigned to exactly one member',
-      );
+      throw new BadRequestException({
+        message: 'Individual expenses must be assigned to exactly one member',
+        code: ErrorCode.INDIVIDUAL_EXPENSE_ONE_MEMBER,
+      });
     }
 
     const members = await this.resolveMembers(messId, effectiveMemberIds);
@@ -525,7 +532,10 @@ export class ExpensesService {
     });
 
     if (!expense) {
-      throw new NotFoundException('Expense not found');
+      throw new NotFoundException({
+        message: 'Expense not found',
+        code: ErrorCode.EXPENSE_NOT_FOUND,
+      });
     }
 
     // A closed month is already billed (member summaries, carry forward);

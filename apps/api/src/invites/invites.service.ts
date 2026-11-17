@@ -70,9 +70,10 @@ export class InvitesService {
     });
 
     if (!user) {
-      throw new NotFoundException(
-        'User not found. Create an account for this email first.',
-      );
+      throw new NotFoundException({
+        message: 'User not found. Create an account for this email first.',
+        code: ErrorCode.USER_NOT_FOUND,
+      });
     }
 
     await this.ensureCanInvite(messId, user.id);
@@ -125,9 +126,10 @@ export class InvitesService {
     });
 
     if (!invite) {
-      throw new BadRequestException(
-        'Invite not found, expired or already processed',
-      );
+      throw new BadRequestException({
+        message: 'Invite not found, expired or already processed',
+        code: ErrorCode.INVITE_NOT_FOUND,
+      });
     }
 
     const existingMembership = await prisma.mess_members.findFirst({
@@ -173,9 +175,10 @@ export class InvitesService {
       });
 
       if (claimed.count === 0) {
-        throw new BadRequestException(
-          'Invite not found, expired or already processed',
-        );
+        throw new BadRequestException({
+          message: 'Invite not found, expired or already processed',
+          code: ErrorCode.INVITE_NOT_FOUND,
+        });
       }
 
       const member = await tx.mess_members.create({
@@ -209,7 +212,10 @@ export class InvitesService {
     });
 
     if (!invite) {
-      throw new BadRequestException('Invite not found or already processed');
+      throw new BadRequestException({
+        message: 'Invite not found or already processed',
+        code: ErrorCode.INVITE_NOT_FOUND,
+      });
     }
 
     await prisma.join_requests.update({

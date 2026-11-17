@@ -3,7 +3,7 @@ jest.mock(
   () => jest.requireActual('../../test/prisma-mock').databaseModule,
 );
 
-import { UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { UnauthorizedException, ConflictException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -160,8 +160,11 @@ describe('AuthService', () => {
     it('rejects an email that is already registered', async () => {
       prismaMock.users.findUnique.mockResolvedValue(dbUser());
       await expect(service.register(signup)).rejects.toBeInstanceOf(
-        BadRequestException,
+        ConflictException,
       );
+      await expect(service.register(signup)).rejects.toMatchObject({
+        response: { code: ErrorCode.EMAIL_IN_USE },
+      });
       expect(prismaMock.users.create).not.toHaveBeenCalled();
     });
 

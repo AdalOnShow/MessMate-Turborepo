@@ -8,7 +8,12 @@ import { useSignup } from "../hooks/use-auth";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { useTranslations } from "next-intl";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
-import { formatZodError, signUpSchema } from "@repo/shared";
+import { ErrorCode, formatZodError, signUpSchema } from "@repo/shared";
+import { translateFieldErrors } from "../lib/error-text";
+import { fieldErrorsFrom, focusFirstInvalid } from "../lib/field-errors";
+import { toActionError } from "../lib/action-result";
+import { FieldError, invalidInput } from "../components/ui/field-error";
+import { PasswordChecklist } from "../components/ui/password-checklist";
 
 const OAUTH_ERRORS = [
   "ACCOUNT_EXISTS",
@@ -43,21 +48,58 @@ export default function SignUpForm() {
     }
   }, [searchParams, router, t]);
 
+  const showFieldErrors = (errors: Record<string, string>) => {
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) focusFirstInvalid();
+  };
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const rest = { ...prev };
+      delete rest[field];
+      return rest;
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setOauthError(null);
     const validation = signUpSchema.safeParse({ name, email, password });
 
     if (!validation.success) {
-      setFieldErrors(formatZodError(validation.error));
+      showFieldErrors(translateFieldErrors(formatZodError(validation.error)));
       return;
     }
 
     setFieldErrors({});
-    signup.mutate(validation.data);
+    signup.mutate(validation.data, {
+      onError: (err) => {
+        const error = toActionError(err);
+        // "Already registered" belongs under the email box, with a way out.
+        if (error.code === ErrorCode.EMAIL_IN_USE) {
+          showFieldErrors({ email: error.message });
+          return;
+        }
+        // Server-side field problems go next to their fields.
+        showFieldErrors(fieldErrorsFrom(err));
+      },
+    });
   };
 
+  const signupError = signup.error ? toActionError(signup.error) : null;
+  const emailInUse = signupError?.code === ErrorCode.EMAIL_IN_USE;
+  // Shown in the box under the form only when no field explains it.
+  const formError =
+    oauthError ??
+    (signupError && !emailInUse && Object.keys(fieldErrors).length === 0
+      ? signupError.message || t("signup.fallbackError")
+      : null);
+  const inputClass =
+    "w-full h-11 px-3.5 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors";
+
   return (
-    <div className="relative min-h-dvh flex items-center justify-center bg-background px-4 py-12">
+    <div className="relative min-h-dvh flex items-center justify-center bg-background px-4 py-6 sm:py-8">
       <div
         className="bg-grid pointer-events-none absolute inset-0 opacity-50"
         aria-hidden
@@ -66,7 +108,7 @@ export default function SignUpForm() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center justify-center gap-2.5 mb-10 focus:outline-none"
+          className="flex items-center justify-center gap-2.5 mb-5 focus:outline-none"
         >
           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-surface-raised border border-border overflow-hidden">
             <Image
@@ -82,9 +124,9 @@ export default function SignUpForm() {
           </span>
         </Link>
 
-        <div className="bg-surface border border-border rounded-2xl overflow-hidden p-8 shadow-panel">
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden p-6 sm:px-7 shadow-panel">
           <div
-            className="-mx-8 -mt-8 mb-8 flex items-center gap-3 border-b border-border bg-surface-raised px-4 py-2.5"
+            className="-mx-6 -mt-6 mb-5 sm:-mx-7 flex items-center gap-3 border-b border-border bg-surface-raised px-4 py-2.5"
             aria-hidden
           >
             <div className="flex gap-1.5">
@@ -99,25 +141,12 @@ export default function SignUpForm() {
           <h1 className="heading-tight text-2xl text-foreground font-heading text-center mb-1">
             {t("signup.title")}
           </h1>
-          <p className="text-sm text-foreground-muted text-center mb-8">
+          <p className="text-sm text-foreground-muted text-center mb-5">
             {t("signup.subtitle")}
           </p>
 
           <div className="space-y-4">
-            <GoogleSignInButton />
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center font-mono text-[10px] uppercase tracking-[0.12em]">
-                <span className="bg-surface px-2 text-foreground-muted">
-                  {t("or")}
-                </span>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
                 <label
                   htmlFor="name"
@@ -129,15 +158,18 @@ export default function SignUpForm() {
                   id="name"
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    clearFieldError("name");
+                  }}
                   placeholder={t("namePlaceholder")}
                   required
                   autoComplete="name"
-                  className="w-full h-11 px-3.5 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
+                  aria-invalid={!!fieldErrors.name}
+                  aria-describedby={fieldErrors.name ? "name-error" : undefined}
+                  className={`${inputClass} ${fieldErrors.name ? invalidInput : ""}`}
                 />
-                {fieldErrors.name && (
-                  <p className="text-xs text-destructive">{fieldErrors.name}</p>
-                )}
+                <FieldError id="name-error" message={fieldErrors.name} />
               </div>
 
               <div className="space-y-1.5">
@@ -151,16 +183,27 @@ export default function SignUpForm() {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    clearFieldError("email");
+                  }}
                   placeholder={t("emailPlaceholder")}
                   required
                   autoComplete="email"
-                  className="w-full h-11 px-3.5 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={
+                    fieldErrors.email ? "email-error" : undefined
+                  }
+                  className={`${inputClass} ${fieldErrors.email ? invalidInput : ""}`}
                 />
-                {fieldErrors.email && (
-                  <p className="text-xs text-destructive">
-                    {fieldErrors.email}
-                  </p>
+                <FieldError id="email-error" message={fieldErrors.email} />
+                {emailInUse && fieldErrors.email && (
+                  <Link
+                    href={`/signin?email=${encodeURIComponent(email.trim())}`}
+                    className="inline-block text-sm font-medium text-primary hover:text-primary-hover transition-colors"
+                  >
+                    {t("signup.emailInUseAction")} →
+                  </Link>
                 )}
               </div>
 
@@ -176,12 +219,17 @@ export default function SignUpForm() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      clearFieldError("password");
+                    }}
                     placeholder={t("signup.passwordPlaceholder")}
                     required
                     minLength={8}
                     autoComplete="new-password"
-                    className="w-full h-11 px-3.5 pr-11 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
+                    aria-invalid={!!fieldErrors.password}
+                    aria-describedby="password-error password-rules"
+                    className={`${inputClass} pr-11 ${fieldErrors.password ? invalidInput : ""}`}
                   />
                   <button
                     type="button"
@@ -194,22 +242,20 @@ export default function SignUpForm() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {fieldErrors.password && (
-                  <p className="text-xs text-destructive">
-                    {fieldErrors.password}
-                  </p>
-                )}
-                <p className="text-xs text-foreground-muted/70">
-                  {t("signup.passwordHint")}
-                </p>
+                <FieldError
+                  id="password-error"
+                  message={fieldErrors.password}
+                />
+                <PasswordChecklist id="password-rules" password={password} />
               </div>
 
-              {(signup.error || oauthError) && (
-                <p className="text-sm text-destructive bg-destructive/10 border border-destructive/25 px-3 py-2 rounded-lg flex items-center gap-2">
-                  <AlertCircle size={16} />
-                  {oauthError ||
-                    signup.error?.message ||
-                    t("signup.fallbackError")}
+              {formError && (
+                <p
+                  role="alert"
+                  className="text-sm text-destructive bg-destructive/10 border border-destructive/25 px-3 py-2 rounded-lg flex items-center gap-2"
+                >
+                  <AlertCircle size={16} className="shrink-0" />
+                  {formError}
                 </p>
               )}
 
@@ -228,9 +274,22 @@ export default function SignUpForm() {
                 )}
               </button>
             </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center font-mono text-[10px] uppercase tracking-[0.12em]">
+                <span className="bg-surface px-2 text-foreground-muted">
+                  {t("or")}
+                </span>
+              </div>
+            </div>
+
+            <GoogleSignInButton />
           </div>
 
-          <p className="text-sm text-foreground-muted text-center mt-6">
+          <p className="text-sm text-foreground-muted text-center mt-5">
             {t("signup.haveAccount")}{" "}
             <Link
               href="/signin"

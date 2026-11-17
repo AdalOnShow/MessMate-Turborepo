@@ -3,13 +3,14 @@ import { ErrorCode } from "@repo/shared";
 import { toast } from "../store/toast";
 import { ActionError, toActionError } from "./action-result";
 import { errorText } from "./error-text";
+import { successText, type SuccessMessageKey } from "./success-text";
 
 declare module "@tanstack/react-query" {
   interface Register {
     defaultError: ActionError;
     mutationMeta: {
       /** Toast shown when the mutation succeeds. */
-      successMessage?: string;
+      successMessage?: SuccessMessageKey;
       /** Set false when the UI already shows the error (e.g. auth forms). */
       errorToast?: boolean;
     };
@@ -89,7 +90,7 @@ function makeQueryClient() {
     mutationCache: new MutationCache({
       onSuccess: (_data, _vars, _ctx, mutation) => {
         const message = mutation.meta?.successMessage;
-        if (message) toast.success(message);
+        if (message) toast.success(successText(message));
         void client.invalidateQueries();
       },
       onError: (error, variables, _ctx, mutation) => {

@@ -302,7 +302,10 @@ export class MealsService {
     });
 
     if (!entry) {
-      throw new NotFoundException('Meal entry not found');
+      throw new NotFoundException({
+        message: 'Meal entry not found',
+        code: ErrorCode.MEAL_ENTRY_NOT_FOUND,
+      });
     }
 
     await prisma.$transaction(async (tx) => {
@@ -418,7 +421,10 @@ export class MealsService {
     });
 
     if (!member) {
-      throw new NotFoundException('Member not found');
+      throw new NotFoundException({
+        message: 'Member not found',
+        code: ErrorCode.MEMBER_NOT_FOUND,
+      });
     }
 
     const entries = await prisma.meal_entries.findMany({
@@ -485,7 +491,10 @@ export class MealsService {
     });
 
     if (!month) {
-      throw new NotFoundException('Month not found');
+      throw new NotFoundException({
+        message: 'Month not found',
+        code: ErrorCode.MONTH_NOT_FOUND,
+      });
     }
 
     const entries = await prisma.meal_entries.findMany({

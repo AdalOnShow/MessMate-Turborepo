@@ -19,7 +19,7 @@ export function useInviteUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Invite sent" },
+    meta: { successMessage: "inviteSent" },
     mutationFn: (userId: string) => unwrap(inviteUser({ userId })),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invites"] });
@@ -31,7 +31,7 @@ export function useAcceptInvite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Invite accepted" },
+    meta: { successMessage: "inviteAccepted" },
     mutationFn: (inviteId: string) => unwrap(acceptInvite(inviteId)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invites"] });
@@ -44,7 +44,7 @@ export function useRejectInvite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Invite declined" },
+    meta: { successMessage: "inviteDeclined" },
     mutationFn: (inviteId: string) => unwrap(rejectInvite(inviteId)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invites"] });

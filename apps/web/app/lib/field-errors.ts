@@ -1,16 +1,20 @@
 import { useCallback, useState } from "react";
 import { ErrorCode } from "@repo/shared";
 import { toActionError } from "./action-result";
+import { validationText } from "./error-text";
 
 export type FieldErrors = Record<string, string>;
 
 /**
  * Field messages from an API validation failure (`details` is the
- * `formatZodError` map: `{ field: message }`), or `{}` for any other error.
+ * `formatZodError` map: `{ field: message }`), translated to the user's
+ * language, or `{}` for any other error.
  */
 export function fieldErrorsFrom(error: unknown): FieldErrors {
   const err = toActionError(error);
+  // Any 400 can carry per-field details (e.g. CURRENT_PASSWORD_INCORRECT).
   const isValidation =
+    err.status === 400 ||
     err.code === ErrorCode.VALIDATION_FAILED ||
     err.code === ErrorCode.BAD_REQUEST;
   if (!isValidation || !err.details || typeof err.details !== "object") {
@@ -20,9 +24,9 @@ export function fieldErrorsFrom(error: unknown): FieldErrors {
   for (const [key, value] of Object.entries(
     err.details as Record<string, unknown>,
   )) {
-    if (typeof value === "string" && value) out[key] = value;
+    if (typeof value === "string" && value) out[key] = validationText(value);
     else if (Array.isArray(value) && typeof value[0] === "string") {
-      out[key] = value[0];
+      out[key] = validationText(value[0]);
     }
   }
   return out;

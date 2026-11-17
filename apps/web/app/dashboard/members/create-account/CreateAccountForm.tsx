@@ -12,6 +12,7 @@ import { createMemberAccount } from "../../../actions/members";
 import { toActionError, unwrap } from "../../../lib/action-result";
 import { toast } from "../../../store/toast";
 import { ErrorCode } from "@repo/shared";
+import { PasswordChecklist } from "../../../components/ui/password-checklist";
 import { FieldError, invalidInput } from "../../../components/ui/field-error";
 import { OfflineHint } from "../../../components/ui/offline-hint";
 import { useOnline } from "../../../hooks/use-online";
@@ -157,6 +158,7 @@ export default function CreateAccountForm() {
             placeholder={t("minimum8Characters")}
           />
           <FieldError message={errors.password} />
+          <PasswordChecklist password={password} />
         </div>
 
         <div>

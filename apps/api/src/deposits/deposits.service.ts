@@ -124,9 +124,10 @@ export class DepositsService {
     });
 
     if (!member) {
-      throw new BadRequestException(
-        'Selected member is not an active member of this mess',
-      );
+      throw new BadRequestException({
+        message: 'Selected member is not an active member of this mess',
+        code: ErrorCode.MEMBER_NOT_ACTIVE,
+      });
     }
 
     return member;
@@ -305,7 +306,10 @@ export class DepositsService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Deposit not found');
+      throw new NotFoundException({
+        message: 'Deposit not found',
+        code: ErrorCode.DEPOSIT_NOT_FOUND,
+      });
     }
 
     // A closed month is already billed (member summaries, carry forward);
@@ -366,7 +370,10 @@ export class DepositsService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Deposit not found');
+      throw new NotFoundException({
+        message: 'Deposit not found',
+        code: ErrorCode.DEPOSIT_NOT_FOUND,
+      });
     }
 
     // A closed month is already billed (member summaries, carry forward);

@@ -170,7 +170,7 @@
     "cancel": "বাতিল",
     "enterFullName": "পুরো নাম লিখুন",
     "enterEmailAddress": "ইমেইল ঠিকানা লিখুন",
-    "minimum8Characters": "কমপক্ষে ৮ অক্ষর",
+    "minimum8Characters": "কমপক্ষে ৮ অক্ষর, A-Z, a-z, 0-9",
     "enterPhoneNumber": "ফোন নম্বর লিখুন",
     "memberAccountCreated": "সদস্যের অ্যাকাউন্ট তৈরি হয়েছে",
     "couldnTCreateAccount": "অ্যাকাউন্ট তৈরি করা যায়নি",

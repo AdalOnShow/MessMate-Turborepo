@@ -69,7 +69,7 @@ export function useCreateExpense(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Expense added" },
+    meta: { successMessage: "expenseAdded" },
     mutationFn: async (payload: CreateExpensePayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
       return unwrap(createExpense(messId, monthId, payload));
@@ -89,7 +89,7 @@ export function useUpdateExpense(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Expense updated" },
+    meta: { successMessage: "expenseUpdated" },
     mutationFn: async ({
       expenseId,
       data,
@@ -115,7 +115,7 @@ export function useDeleteExpense(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Expense deleted" },
+    meta: { successMessage: "expenseDeleted" },
     mutationFn: async (expenseId: string) => {
       if (!messId) throw new Error("No mess ID");
       return unwrap(deleteExpense(messId, expenseId));

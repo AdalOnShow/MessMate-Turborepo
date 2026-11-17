@@ -1,19 +1,18 @@
 import { z } from "zod";
+import { ValidationMessage } from "../../validation/messages";
+import { strongPasswordSchema } from "../../validation/password";
 
 export const createMemberSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Name must be at least 2 characters")
-    .max(80, "Name must be at most 80 characters"),
-  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(100, "Password must be at most 100 characters"),
+    .min(2, ValidationMessage.NAME_MIN)
+    .max(80, ValidationMessage.NAME_MAX),
+  email: z.string().trim().toLowerCase().email(ValidationMessage.EMAIL_INVALID),
+  password: strongPasswordSchema,
   phone: z
     .union([
-      z.string().trim().max(20, "Phone number must be at most 20 characters"),
+      z.string().trim().max(20, ValidationMessage.PHONE_MAX),
       z.literal(""),
       z.null(),
     ])
@@ -24,7 +23,7 @@ export const createMemberSchema = z.object({
       }
       return value;
     }),
-  messId: z.string().uuid("Invalid mess ID"),
+  messId: z.string().uuid(ValidationMessage.MESS_ID_INVALID),
 });
 
 export type CreateMemberRequest = z.infer<typeof createMemberSchema>;

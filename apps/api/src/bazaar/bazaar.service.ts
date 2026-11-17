@@ -131,9 +131,10 @@ export class BazaarService {
     const totalAmount = this.computeTotalAmount(data.items);
 
     if (totalAmount <= 0) {
-      throw new BadRequestException(
-        'Total bazaar amount must be greater than zero',
-      );
+      throw new BadRequestException({
+        message: 'Total bazaar amount must be greater than zero',
+        code: ErrorCode.BAZAAR_TOTAL_ZERO,
+      });
     }
 
     const submission = await prisma.$transaction(async (tx) => {
@@ -187,7 +188,10 @@ export class BazaarService {
     });
 
     if (!submission) {
-      throw new NotFoundException('Bazaar submission not found');
+      throw new NotFoundException({
+        message: 'Bazaar submission not found',
+        code: ErrorCode.BAZAAR_NOT_FOUND,
+      });
     }
 
     if (submission.month.month_status !== 'ACTIVE') {
@@ -198,7 +202,10 @@ export class BazaarService {
     }
 
     if (submission.status !== 'PENDING') {
-      throw new BadRequestException(`Only pending submissions can be ${verb}`);
+      throw new ConflictException({
+        message: `Only pending submissions can be ${verb}`,
+        code: ErrorCode.BAZAAR_NOT_PENDING,
+      });
     }
 
     return submission;
@@ -228,9 +235,11 @@ export class BazaarService {
     });
 
     if (claimed.count === 0) {
-      throw new ConflictException(
-        'This submission was just changed by someone else. Refresh and try again.',
-      );
+      throw new ConflictException({
+        message:
+          'This submission was just changed by someone else. Refresh and try again.',
+        code: ErrorCode.BAZAAR_CHANGED,
+      });
     }
   }
 
@@ -294,18 +303,20 @@ export class BazaarService {
     const isManager = membership.mess_role === 'MANAGER';
 
     if (!isSubmitter && !isManager) {
-      throw new ForbiddenException(
-        'Only the submitter or a manager can edit this submission',
-      );
+      throw new ForbiddenException({
+        message: 'Only the submitter or a manager can edit this submission',
+        code: ErrorCode.BAZAAR_NOT_OWNER,
+      });
     }
 
     const items = data.items ?? (submission.items as unknown as BazaarItem[]);
     const totalAmount = this.computeTotalAmount(items);
 
     if (totalAmount <= 0) {
-      throw new BadRequestException(
-        'Total bazaar amount must be greater than zero',
-      );
+      throw new BadRequestException({
+        message: 'Total bazaar amount must be greater than zero',
+        code: ErrorCode.BAZAAR_TOTAL_ZERO,
+      });
     }
 
     const updated = await prisma.$transaction(async (tx) => {
@@ -361,9 +372,10 @@ export class BazaarService {
     const isManager = membership.mess_role === 'MANAGER';
 
     if (!isSubmitter && !isManager) {
-      throw new ForbiddenException(
-        'Only the submitter or a manager can delete this submission',
-      );
+      throw new ForbiddenException({
+        message: 'Only the submitter or a manager can delete this submission',
+        code: ErrorCode.BAZAAR_NOT_OWNER,
+      });
     }
 
     await prisma.$transaction(async (tx) => {

@@ -95,7 +95,7 @@ export function useRemoveMember(messId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Member removed" },
+    meta: { successMessage: "memberRemoved" },
     mutationFn: async (userId: string) => {
       await unwrap(removeMember(messId, userId));
     },
@@ -112,7 +112,7 @@ export function useUpdateMemberRole(messId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Member role updated" },
+    meta: { successMessage: "memberRoleUpdated" },
     mutationFn: async ({
       userId,
       role,

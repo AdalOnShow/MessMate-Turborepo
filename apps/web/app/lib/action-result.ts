@@ -1,5 +1,5 @@
 import { ErrorCode } from "@repo/shared";
-import { errorCodeText, errorText } from "./error-text";
+import { errorCodeText, errorText, validationText } from "./error-text";
 
 /**
  * Server actions must not throw for expected API failures: in production
@@ -69,8 +69,10 @@ const UNAVAILABLE_MESSAGE =
 function firstDetail(details: unknown): string | null {
   if (!details || typeof details !== "object") return null;
   for (const value of Object.values(details as Record<string, unknown>)) {
-    if (typeof value === "string" && value) return value;
-    if (Array.isArray(value) && typeof value[0] === "string") return value[0];
+    if (typeof value === "string" && value) return validationText(value);
+    if (Array.isArray(value) && typeof value[0] === "string") {
+      return validationText(value[0]);
+    }
   }
   return null;
 }

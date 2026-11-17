@@ -1,14 +1,15 @@
 import { z } from "zod";
+import { ValidationMessage } from "../../validation/messages";
 
 export const createMessSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Mess name must be at least 2 characters")
-    .max(80, "Mess name must be at most 80 characters"),
+    .min(2, ValidationMessage.MESS_NAME_MIN)
+    .max(80, ValidationMessage.MESS_NAME_MAX),
   description: z
     .union([
-      z.string().trim().max(300, "Description must be at most 300 characters"),
+      z.string().trim().max(300, ValidationMessage.DESCRIPTION_MAX_300),
       z.literal(""),
       z.null(),
     ])

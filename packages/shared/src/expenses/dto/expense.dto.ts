@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ValidationMessage } from "../../validation/messages";
 
 export const expenseTypeSchema = z.enum(["SHARED", "INDIVIDUAL"]);
 
@@ -8,23 +9,23 @@ export const createExpenseSchema = z
     title: z
       .string()
       .trim()
-      .min(1, "Title is required")
-      .max(150, "Title must be at most 150 characters"),
+      .min(1, ValidationMessage.TITLE_REQUIRED)
+      .max(150, ValidationMessage.TITLE_MAX),
     amount: z
       .number()
-      .positive("Amount must be greater than zero")
-      .max(100000000, "Amount is too large"),
-    expense_date: z.string().datetime("Invalid date format"),
+      .positive(ValidationMessage.AMOUNT_POSITIVE)
+      .max(100000000, ValidationMessage.AMOUNT_TOO_LARGE),
+    expense_date: z.string().datetime(ValidationMessage.DATE_INVALID),
     member_ids: z
-      .array(z.string().uuid("Invalid member id"))
-      .min(1, "At least one member must be selected"),
+      .array(z.string().uuid(ValidationMessage.MEMBER_ID_INVALID))
+      .min(1, ValidationMessage.MEMBERS_REQUIRED),
   })
   .superRefine((data, ctx) => {
     if (data.type === "INDIVIDUAL" && data.member_ids.length !== 1) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["member_ids"],
-        message: "Individual expenses must be assigned to exactly one member",
+        message: ValidationMessage.INDIVIDUAL_ONE_MEMBER,
       });
     }
   });
@@ -35,18 +36,21 @@ export const updateExpenseSchema = z
     title: z
       .string()
       .trim()
-      .min(1, "Title is required")
-      .max(150, "Title must be at most 150 characters")
+      .min(1, ValidationMessage.TITLE_REQUIRED)
+      .max(150, ValidationMessage.TITLE_MAX)
       .optional(),
     amount: z
       .number()
-      .positive("Amount must be greater than zero")
-      .max(100000000, "Amount is too large")
+      .positive(ValidationMessage.AMOUNT_POSITIVE)
+      .max(100000000, ValidationMessage.AMOUNT_TOO_LARGE)
       .optional(),
-    expense_date: z.string().datetime("Invalid date format").optional(),
+    expense_date: z
+      .string()
+      .datetime(ValidationMessage.DATE_INVALID)
+      .optional(),
     member_ids: z
-      .array(z.string().uuid("Invalid member id"))
-      .min(1, "At least one member must be selected")
+      .array(z.string().uuid(ValidationMessage.MEMBER_ID_INVALID))
+      .min(1, ValidationMessage.MEMBERS_REQUIRED)
       .optional(),
   })
   .superRefine((data, ctx) => {
@@ -55,7 +59,7 @@ export const updateExpenseSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["member_ids"],
-          message: "Individual expenses must be assigned to exactly one member",
+          message: ValidationMessage.INDIVIDUAL_ONE_MEMBER,
         });
       }
     }

@@ -3,7 +3,6 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
@@ -13,6 +12,7 @@ import {
   changePasswordSchema,
   formatZodError,
   ErrorCode,
+  ValidationMessage,
 } from '@repo/shared';
 import { CloudinaryService } from '../common/services/cloudinary.service';
 import type { MulterFile } from '../common/upload/multer.types';
@@ -66,7 +66,10 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        message: 'User not found',
+        code: ErrorCode.USER_NOT_FOUND,
+      });
     }
 
     return user;
@@ -139,11 +142,17 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        message: 'User not found',
+        code: ErrorCode.USER_NOT_FOUND,
+      });
     }
 
     if (!user.password) {
-      throw new BadRequestException('Password sign-in is not enabled');
+      throw new BadRequestException({
+        message: 'Password sign-in is not enabled',
+        code: ErrorCode.PASSWORD_NOT_SET,
+      });
     }
 
     const matches = await bcrypt.compare(
@@ -151,7 +160,14 @@ export class UsersService {
       user.password,
     );
     if (!matches) {
-      throw new UnauthorizedException('Current password is incorrect');
+      // 400, not 401: the web client treats a 401 as an expired session.
+      throw new BadRequestException({
+        message: 'Current password is incorrect',
+        code: ErrorCode.CURRENT_PASSWORD_INCORRECT,
+        details: {
+          currentPassword: ValidationMessage.CURRENT_PASSWORD_INCORRECT,
+        },
+      });
     }
 
     const saltRounds = Number(
@@ -181,7 +197,10 @@ export class UsersService {
 
   async uploadAvatar(userId: string, file: MulterFile): Promise<UserProfile> {
     if (!file?.buffer) {
-      throw new BadRequestException('No file provided');
+      throw new BadRequestException({
+        message: 'No file provided',
+        code: ErrorCode.FILE_REQUIRED,
+      });
     }
 
     // Upload new avatar to Cloudinary first

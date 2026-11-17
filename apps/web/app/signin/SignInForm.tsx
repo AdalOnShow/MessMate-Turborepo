@@ -9,6 +9,9 @@ import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { useTranslations } from "next-intl";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { formatZodError, signInSchema } from "@repo/shared";
+import { translateFieldErrors } from "../lib/error-text";
+import { focusFirstInvalid } from "../lib/field-errors";
+import { FieldError, invalidInput } from "../components/ui/field-error";
 
 const OAUTH_ERRORS = [
   "ACCOUNT_EXISTS",
@@ -24,14 +27,15 @@ function oauthErrorKey(error: string) {
 
 export default function SignInForm() {
   const t = useTranslations("auth");
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  // Pre-filled when coming from "email already registered" on sign-up.
+  const [email, setEmail] = useState(() => searchParams.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const router = useRouter();
-  const searchParams = useSearchParams();
   const signin = useSignin();
 
   useEffect(() => {
@@ -48,13 +52,26 @@ export default function SignInForm() {
     const validation = signInSchema.safeParse({ email, password });
 
     if (!validation.success) {
-      setFieldErrors(formatZodError(validation.error));
+      setFieldErrors(translateFieldErrors(formatZodError(validation.error)));
+      focusFirstInvalid();
       return;
     }
 
     setFieldErrors({});
     signin.mutate(validation.data);
   };
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const rest = { ...prev };
+      delete rest[field];
+      return rest;
+    });
+  };
+
+  const inputClass =
+    "w-full h-11 px-3.5 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors";
 
   return (
     <div className="relative min-h-dvh flex items-center justify-center bg-background px-4 py-12">
@@ -129,17 +146,20 @@ export default function SignInForm() {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    clearFieldError("email");
+                  }}
                   placeholder={t("emailPlaceholder")}
                   required
                   autoComplete="email"
-                  className="w-full h-11 px-3.5 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={
+                    fieldErrors.email ? "email-error" : undefined
+                  }
+                  className={`${inputClass} ${fieldErrors.email ? invalidInput : ""}`}
                 />
-                {fieldErrors.email && (
-                  <p className="text-xs text-destructive">
-                    {fieldErrors.email}
-                  </p>
-                )}
+                <FieldError id="email-error" message={fieldErrors.email} />
               </div>
 
               <div className="space-y-1.5">
@@ -154,11 +174,18 @@ export default function SignInForm() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      clearFieldError("password");
+                    }}
                     placeholder={t("signin.passwordPlaceholder")}
                     required
                     autoComplete="current-password"
-                    className="w-full h-11 px-3.5 pr-11 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors"
+                    aria-invalid={!!fieldErrors.password}
+                    aria-describedby={
+                      fieldErrors.password ? "password-error" : undefined
+                    }
+                    className={`${inputClass} pr-11 ${fieldErrors.password ? invalidInput : ""}`}
                   />
                   <button
                     type="button"
@@ -171,16 +198,18 @@ export default function SignInForm() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {fieldErrors.password && (
-                  <p className="text-xs text-destructive">
-                    {fieldErrors.password}
-                  </p>
-                )}
+                <FieldError
+                  id="password-error"
+                  message={fieldErrors.password}
+                />
               </div>
 
               {(signin.error || oauthError) && (
-                <p className="text-sm text-destructive bg-destructive/10 border border-destructive/25 px-3 py-2 rounded-lg flex items-center gap-2">
-                  <AlertCircle size={16} />
+                <p
+                  role="alert"
+                  className="text-sm text-destructive bg-destructive/10 border border-destructive/25 px-3 py-2 rounded-lg flex items-center gap-2"
+                >
+                  <AlertCircle size={16} className="shrink-0" />
                   {oauthError ||
                     signin.error?.message ||
                     t("signin.fallbackError")}

@@ -53,7 +53,7 @@ export function useCreateDeposit(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Deposit added" },
+    meta: { successMessage: "depositAdded" },
     mutationFn: async (payload: CreateDepositPayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
       return unwrap(createDeposit(messId, monthId, payload));
@@ -73,7 +73,7 @@ export function useUpdateDeposit(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Deposit updated" },
+    meta: { successMessage: "depositUpdated" },
     mutationFn: async ({
       depositId,
       data,
@@ -99,7 +99,7 @@ export function useDeleteDeposit(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "Deposit deleted" },
+    meta: { successMessage: "depositDeleted" },
     mutationFn: async (depositId: string) => {
       if (!messId) throw new Error("No mess ID");
       return unwrap(deleteDeposit(messId, depositId));

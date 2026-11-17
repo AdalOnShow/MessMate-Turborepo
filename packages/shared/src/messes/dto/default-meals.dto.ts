@@ -1,17 +1,18 @@
 import { z } from "zod";
+import { ValidationMessage } from "../../validation/messages";
 
 export const defaultMealItemSchema = z.object({
-  mealTypeId: z.string().uuid("Invalid meal type ID"),
+  mealTypeId: z.string().uuid(ValidationMessage.MEAL_TYPE_ID_INVALID),
   mealValue: z
     .number()
-    .min(0, "Meal value must be at least 0")
-    .max(10, "Meal value must be at most 10"),
+    .min(0, ValidationMessage.MEAL_VALUE_MIN)
+    .max(10, ValidationMessage.MEAL_VALUE_MAX),
 });
 
 export const updateDefaultMealsSchema = z.object({
   meals: z
     .array(defaultMealItemSchema)
-    .min(1, "At least one meal type is required"),
+    .min(1, ValidationMessage.MEAL_TYPES_REQUIRED),
 });
 
 export type UpdateDefaultMealsDto = z.infer<typeof updateDefaultMealsSchema>;

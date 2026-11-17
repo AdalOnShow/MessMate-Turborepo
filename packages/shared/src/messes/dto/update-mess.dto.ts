@@ -1,15 +1,16 @@
 import { z } from "zod";
+import { ValidationMessage } from "../../validation/messages";
 
 export const updateMessSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Name must be at least 2 characters")
-    .max(80, "Name must be at most 80 characters")
+    .min(2, ValidationMessage.NAME_MIN)
+    .max(80, ValidationMessage.NAME_MAX)
     .optional(),
   description: z
     .union([
-      z.string().trim().max(300, "Description must be at most 300 characters"),
+      z.string().trim().max(300, ValidationMessage.DESCRIPTION_MAX_300),
       z.literal(""),
       z.null(),
     ])
@@ -23,12 +24,9 @@ export const updateMessSchema = z.object({
   slug: z
     .string()
     .trim()
-    .min(2, "Slug must be at least 2 characters")
-    .max(80, "Slug must be at most 80 characters")
-    .regex(
-      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      "Slug must contain only lowercase letters, numbers, and hyphens",
-    )
+    .min(2, ValidationMessage.SLUG_MIN)
+    .max(80, ValidationMessage.SLUG_MAX)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, ValidationMessage.SLUG_FORMAT)
     .optional(),
 });
 

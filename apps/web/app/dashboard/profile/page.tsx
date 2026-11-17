@@ -21,6 +21,7 @@ import {
   useUploadAvatar,
 } from "../../hooks/use-profile";
 import { QueryErrorState } from "../../components/feedback/QueryErrorState";
+import { PasswordChecklist } from "../../components/ui/password-checklist";
 import { FieldError, invalidInput } from "../../components/ui/field-error";
 import { OfflineHint } from "../../components/ui/offline-hint";
 import { useOnline } from "../../hooks/use-online";
@@ -417,6 +418,7 @@ function ProfileContent() {
                     className={`mt-2 h-11 w-full rounded-lg border border-border bg-surface-sunken px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 ${passwordErrors.errors.newPassword ? invalidInput : ""}`}
                   />
                   <FieldError message={passwordErrors.errors.newPassword} />
+                  <PasswordChecklist password={newPassword} />
                 </label>
               </div>
 

@@ -3,11 +3,7 @@ jest.mock(
   () => jest.requireActual('../../test/prisma-mock').databaseModule,
 );
 
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { ErrorCode } from '@repo/shared';
 import { prismaMock, resetPrismaMock } from '../../test/prisma-mock';
 import { rejectsWith } from '../../test/helpers';
@@ -77,7 +73,8 @@ describe('BazaarService', () => {
       managerAndSubmission({ status: 'APPROVED' });
       await rejectsWith(
         service.approveBazaar(MESS, 'baz-1', MANAGER),
-        BadRequestException,
+        ConflictException,
+        ErrorCode.BAZAAR_NOT_PENDING,
       );
       expect(prismaMock.expenses.create).not.toHaveBeenCalled();
     });

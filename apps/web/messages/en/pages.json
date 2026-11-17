@@ -170,7 +170,7 @@
     "cancel": "Cancel",
     "enterFullName": "Enter full name",
     "enterEmailAddress": "Enter email address",
-    "minimum8Characters": "Minimum 8 characters",
+    "minimum8Characters": "Min. 8 characters, A-Z, a-z, 0-9",
     "enterPhoneNumber": "Enter phone number",
     "memberAccountCreated": "Member account created",
     "couldnTCreateAccount": "Couldn’t create the account",

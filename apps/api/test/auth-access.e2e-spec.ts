@@ -325,7 +325,7 @@ describe('Authentication & authorization (HTTP)', () => {
         .send({
           name: 'New Person',
           email: 'new@example.com',
-          password: 'password-123',
+          password: 'Password-123',
           messId: MESS_A,
         })
         .expect(403);
@@ -339,7 +339,7 @@ describe('Authentication & authorization (HTTP)', () => {
         .send({
           name: 'New Person',
           email: 'new@example.com',
-          password: 'password-123',
+          password: 'Password-123',
           messId: MESS_B,
         })
         .expect(403);
@@ -427,6 +427,36 @@ describe('Authentication & authorization (HTTP)', () => {
       expect(prismaMock.users.create).not.toHaveBeenCalled();
     });
 
+    it('signup: 400 for a password without an uppercase letter and a number', async () => {
+      const res = await http()
+        .post('/auth/signup')
+        .send({
+          name: 'Dave',
+          email: 'dave@example.com',
+          password: 'alllowercase',
+        })
+        .expect(400);
+      expect(res.body.code).toBe(ErrorCode.VALIDATION_FAILED);
+      expect(res.body.details.password).toBe(
+        'Password must include an uppercase letter (A-Z)',
+      );
+      expect(prismaMock.users.create).not.toHaveBeenCalled();
+    });
+
+    it('signup: 409 EMAIL_IN_USE for an already registered email', async () => {
+      prismaMock.users.findUnique.mockResolvedValue({ id: ALICE });
+      const res = await http()
+        .post('/auth/signup')
+        .send({
+          name: 'Dave',
+          email: 'alice@example.com',
+          password: 'Long-enough-1',
+        })
+        .expect(409);
+      expect(res.body.code).toBe(ErrorCode.EMAIL_IN_USE);
+      expect(prismaMock.users.create).not.toHaveBeenCalled();
+    });
+
     it('signup: stores the email in lower case', async () => {
       prismaMock.users.findUnique.mockResolvedValue(null);
       prismaMock.users.create.mockImplementation(
@@ -437,7 +467,7 @@ describe('Authentication & authorization (HTTP)', () => {
         .send({
           name: 'Dave',
           email: 'Dave@Example.COM',
-          password: 'long-enough-1',
+          password: 'Long-enough-1',
         })
         .expect(201);
       expect(prismaMock.users.create).toHaveBeenCalledWith({

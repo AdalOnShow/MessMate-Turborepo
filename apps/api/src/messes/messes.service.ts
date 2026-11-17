@@ -434,7 +434,10 @@ export class MessesService {
     userId: string,
   ): Promise<{ success: true }> {
     if (actorId === userId) {
-      throw new BadRequestException('You cannot remove yourself from the mess');
+      throw new BadRequestException({
+        message: 'You cannot remove yourself from the mess',
+        code: ErrorCode.CANNOT_REMOVE_SELF,
+      });
     }
 
     await prisma.$transaction(async (tx) => {
@@ -448,7 +451,10 @@ export class MessesService {
       });
 
       if (!member) {
-        throw new NotFoundException('Member not found');
+        throw new NotFoundException({
+          message: 'Member not found',
+          code: ErrorCode.MEMBER_NOT_FOUND,
+        });
       }
 
       if (member.mess_role === 'MANAGER') {
@@ -462,7 +468,10 @@ export class MessesService {
         });
 
         if (managerCount <= 1) {
-          throw new BadRequestException('Cannot remove the last manager');
+          throw new BadRequestException({
+            message: 'Cannot remove the last manager',
+            code: ErrorCode.LAST_MANAGER,
+          });
         }
       }
 
@@ -505,7 +514,10 @@ export class MessesService {
     });
 
     if (!member) {
-      throw new NotFoundException('Member not found');
+      throw new NotFoundException({
+        message: 'Member not found',
+        code: ErrorCode.MEMBER_NOT_FOUND,
+      });
     }
 
     // Role change and its activity log succeed or fail together, so a
@@ -536,12 +548,18 @@ export class MessesService {
       });
 
       if (newRole === 'MANAGER' && managerCount >= 2) {
-        throw new BadRequestException('Maximum 2 managers allowed per mess');
+        throw new BadRequestException({
+          message: 'Maximum 2 managers allowed per mess',
+          code: ErrorCode.MANAGER_LIMIT_REACHED,
+        });
       }
 
       // A mess must always keep a manager (same rule as removeMember).
       if (newRole === 'MEMBER' && managerCount <= 1) {
-        throw new BadRequestException('Cannot demote the last manager');
+        throw new BadRequestException({
+          message: 'Cannot demote the last manager',
+          code: ErrorCode.LAST_MANAGER,
+        });
       }
 
       const row = await tx.mess_members.update({
@@ -626,7 +644,10 @@ export class MessesService {
     });
 
     if (!mess) {
-      throw new NotFoundException('Mess not found');
+      throw new NotFoundException({
+        message: 'Mess not found',
+        code: ErrorCode.MESS_NOT_FOUND,
+      });
     }
 
     if (data.slug && data.slug !== mess.slug) {
@@ -635,9 +656,11 @@ export class MessesService {
       });
 
       if (existingSlug) {
-        throw new BadRequestException(
-          'A mess with this slug already exists. Please choose a different slug.',
-        );
+        throw new BadRequestException({
+          message:
+            'A mess with this slug already exists. Please choose a different slug.',
+          code: ErrorCode.SLUG_TAKEN,
+        });
       }
     }
 
@@ -699,7 +722,10 @@ export class MessesService {
     });
 
     if (!mealType) {
-      throw new NotFoundException('Meal type not found');
+      throw new NotFoundException({
+        message: 'Meal type not found',
+        code: ErrorCode.MEAL_TYPE_NOT_FOUND,
+      });
     }
 
     const updated = await prisma.$transaction(async (tx) => {
@@ -768,7 +794,10 @@ export class MessesService {
     });
 
     if (existingCount >= 10) {
-      throw new BadRequestException('Maximum 10 meal types allowed per mess');
+      throw new BadRequestException({
+        message: 'Maximum 10 meal types allowed per mess',
+        code: ErrorCode.MEAL_TYPE_LIMIT_REACHED,
+      });
     }
 
     try {
@@ -808,9 +837,10 @@ export class MessesService {
     } catch (error: any) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new ConflictException(
-            'A meal type with this name already exists',
-          );
+          throw new ConflictException({
+            message: 'A meal type with this name already exists',
+            code: ErrorCode.MEAL_TYPE_NAME_TAKEN,
+          });
         }
       }
       throw error;
@@ -848,7 +878,10 @@ export class MessesService {
     });
 
     if (!mealType) {
-      throw new NotFoundException('Meal type not found');
+      throw new NotFoundException({
+        message: 'Meal type not found',
+        code: ErrorCode.MEAL_TYPE_NOT_FOUND,
+      });
     }
 
     await prisma.$transaction([

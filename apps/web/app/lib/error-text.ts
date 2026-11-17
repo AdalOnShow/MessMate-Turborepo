@@ -1,3 +1,4 @@
+import { validationMessageKey } from "@repo/shared";
 /**
  * Translated error text for code that runs outside React (query client,
  * `unwrap`). `ErrorTranslatorBridge` registers the current locale's
@@ -29,4 +30,25 @@ export function errorCodeText(code: string | undefined): string | null {
   if (!code || !translator) return null;
   const key = `codes.${code}`;
   return translator.has(key) ? translator(key) : null;
+}
+
+/**
+ * A validation message from the shared Zod schemas (client-side or in an
+ * API `details` map), in the user's language. Messages that are not in
+ * `ValidationMessage` (e.g. Zod's own defaults) are returned unchanged.
+ */
+export function validationText(message: string): string {
+  const key = validationMessageKey(message);
+  return key ? errorText(`validation.${key}`, message) : message;
+}
+
+/** `validationText` applied to every message of a `{ field: message }` map. */
+export function translateFieldErrors(
+  errors: Record<string, string>,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [field, message] of Object.entries(errors)) {
+    out[field] = validationText(message);
+  }
+  return out;
 }
