@@ -55,14 +55,73 @@ export type InstallState =
   | { kind: "ios" } // must use Share → Add to Home Screen
   | { kind: "unavailable" };
 
+function isIosDevice(ua: string) {
+  return (
+    /iphone|ipad|ipod/i.test(ua) ||
+    // iPadOS reports itself as desktop Safari
+    (ua.includes("Macintosh") && navigator.maxTouchPoints > 1)
+  );
+}
+
 function getState(): InstallState {
   if (installed) return { kind: "installed" };
   if (deferredPrompt) return { kind: "prompt" };
+  return isIosDevice(navigator.userAgent)
+    ? { kind: "ios" }
+    : { kind: "unavailable" };
+}
+
+export type DeviceOs = "ios" | "android" | "desktop";
+export type DeviceBrowser =
+  | "safari"
+  | "chrome"
+  | "samsung"
+  | "brave"
+  | "firefox"
+  | "edge"
+  | "inapp"
+  | "other";
+export interface DeviceEnv {
+  os: DeviceOs;
+  browser: DeviceBrowser;
+}
+
+/** Best-effort OS + browser sniffing, used only to pick which install guide
+ *  to show first. Never gate functionality on it. */
+export function detectEnvironment(): DeviceEnv {
   const ua = navigator.userAgent;
-  const isIos =
-    /iphone|ipad|ipod/i.test(ua) ||
-    (ua.includes("Macintosh") && navigator.maxTouchPoints > 1);
-  return isIos ? { kind: "ios" } : { kind: "unavailable" };
+  const os: DeviceOs = isIosDevice(ua)
+    ? "ios"
+    : /android/i.test(ua)
+      ? "android"
+      : "desktop";
+
+  let browser: DeviceBrowser;
+  // In-app WebViews (Facebook, Messenger, Instagram, LINE, generic Android WebView)
+  if (/FBAN|FBAV|FB_IAB|Instagram|Line\/|; wv\)/i.test(ua)) browser = "inapp";
+  else if (/SamsungBrowser/i.test(ua)) browser = "samsung";
+  else if ((navigator as Navigator & { brave?: unknown }).brave)
+    browser = "brave";
+  else if (/EdgA|EdgiOS|Edg\//i.test(ua)) browser = "edge";
+  else if (/FxiOS|Firefox/i.test(ua)) browser = "firefox";
+  else if (/CriOS|Chrome/i.test(ua)) browser = "chrome";
+  else if (/Safari/i.test(ua)) browser = "safari";
+  else browser = "other";
+
+  // iOS in-app browsers often lack "Safari" in the UA; anything unrecognised there is a WebView.
+  if (os === "ios" && browser === "other") browser = "inapp";
+  return { os, browser };
+}
+
+let cachedEnv: DeviceEnv | null = null;
+const noopSubscribe = () => () => {};
+/** Device environment, or `null` during SSR / first hydration render. */
+export function useDeviceEnv(): DeviceEnv | null {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => (cachedEnv ??= detectEnvironment()),
+    () => null,
+  );
 }
 
 // Snapshots must be referentially stable between changes.

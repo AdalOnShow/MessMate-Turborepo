@@ -12,6 +12,7 @@ const PRODUCT_LINKS = [
 const RESOURCE_LINKS = [
   { key: "footer.accountingSystem", href: "/#accounting" },
   { key: "nav.faq", href: "/#faq" },
+  { key: "nav.install", href: "/install" },
 ] as const;
 
 const ACCOUNT_LINKS = [

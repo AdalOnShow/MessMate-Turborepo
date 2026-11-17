@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { richAccent } from "./ui";
-import { ArrowRight, MessageSquareText } from "lucide-react";
+import { ArrowRight, MessageSquareText, Smartphone } from "lucide-react";
 import { Reveal } from "./Reveal";
+import { PrimaryCta } from "./PrimaryCta";
 
 export async function FinalCTASection() {
   const t = await getTranslations("landing.finalCta");
@@ -20,13 +21,7 @@ export async function FinalCTASection() {
 
         <Reveal delay={140}>
           <div className="mt-10 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
-            <a
-              href="/signup"
-              className="group inline-flex w-full items-center justify-center gap-2 bg-cta rounded-[9px] px-9 py-4 text-sm font-bold sm:w-auto"
-            >
-              {tc("getStartedFree")}
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-            </a>
+            <PrimaryCta className="w-full rounded-[9px] px-9 py-4 text-sm sm:w-auto" />
             <a
               href="/signin"
               className="inline-flex w-full items-center justify-center gap-2 rounded-[9px] border border-border-strong bg-transparent px-9 py-4 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-surface-raised sm:w-auto"
@@ -35,6 +30,14 @@ export async function FinalCTASection() {
               {tc("signIn")}
             </a>
           </div>
+          <a
+            href="/install"
+            className="mt-6 hidden items-center gap-2 text-sm font-medium md:inline-flex text-foreground-muted transition-colors hover:text-primary"
+          >
+            <Smartphone className="size-4" />
+            {t("installHint")}
+            <ArrowRight className="size-3.5" />
+          </a>
         </Reveal>
       </div>
     </section>

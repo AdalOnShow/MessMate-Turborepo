@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { richAccent } from "./ui";
-import { ArrowRight, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { Reveal } from "./Reveal";
+import { PrimaryCta } from "./PrimaryCta";
 
 const POINTS = ["p1", "p2", "p3"] as const;
 
@@ -26,13 +27,7 @@ export async function FreeSection() {
               </p>
 
               <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
-                <a
-                  href="/signup"
-                  className="group inline-flex w-full items-center justify-center gap-2 bg-cta rounded-[9px] px-8 py-3.5 text-sm font-bold sm:w-auto"
-                >
-                  {tc("getStartedFree")}
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </a>
+                <PrimaryCta className="w-full rounded-[9px] px-8 py-3.5 text-sm sm:w-auto" />
                 <a
                   href="/signin"
                   className="inline-flex w-full items-center justify-center rounded-[9px] border border-border-strong bg-transparent px-8 py-3.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-surface-raised sm:w-auto"

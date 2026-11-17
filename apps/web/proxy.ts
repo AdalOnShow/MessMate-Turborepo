@@ -3,9 +3,13 @@ import type { NextRequest } from "next/server";
 
 // Routes only accessible when NOT logged in
 const authRoutes = ["/", "/signin", "/signup"];
+// Routes open to everyone, logged in or not
+const publicRoutes = ["/install"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (publicRoutes.includes(pathname)) return NextResponse.next();
 
   const accessToken = request.cookies.get("access_token")?.value;
   const refreshToken = request.cookies.get("refresh_token")?.value;

@@ -25,8 +25,7 @@
   "language": "ভাষা",
   "installApp": "অ্যাপ ইনস্টল করুন",
   "installDesc": "হোম স্ক্রিনে মেসমেট যোগ করুন",
-  "installIosTitle": "আইফোনে ইনস্টল",
-  "installIosHint": "Safari-তে Share বাটনে চাপুন, তারপর “Add to Home Screen” বেছে নিন।",
   "installed": "অ্যাপ ইনস্টল করা আছে",
-  "account": "অ্যাকাউন্ট"
+  "account": "অ্যাকাউন্ট",
+  "installGuideDesc": "আপনার ফোনের জন্য ধাপে ধাপে গাইড"
 }

@@ -1,15 +1,15 @@
 import { getTranslations } from "next-intl/server";
 import { richAccent } from "./ui";
-import { ArrowRight, Check, Play } from "lucide-react";
+import { Check, Play } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { DashboardPreview } from "./DashboardPreview";
 import { Reveal } from "./Reveal";
+import { PrimaryCta } from "./PrimaryCta";
 
 const TRUST = ["trust1", "trust2", "trust3"] as const;
 
 export async function HeroSection() {
   const t = await getTranslations("landing.hero");
-  const tc = await getTranslations("common");
   return (
     <section className="relative overflow-hidden bg-background pt-32 pb-24 lg:pt-40 lg:pb-32">
       <div
@@ -40,13 +40,7 @@ export async function HeroSection() {
 
             <Reveal delay={240}>
               <div className="mt-9 flex flex-col gap-3.5 sm:flex-row sm:items-center">
-                <a
-                  href="/signup"
-                  className="bg-cta group inline-flex items-center justify-center gap-2 rounded-[9px] px-7 py-3.5 text-sm font-bold"
-                >
-                  {tc("getStartedFree")}
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </a>
+                <PrimaryCta className="rounded-[9px] px-7 py-3.5 text-sm" />
                 <a
                   href="#how-it-works"
                   className="inline-flex items-center justify-center gap-2 rounded-[9px] border border-border-strong bg-transparent px-7 py-3.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-surface-raised"

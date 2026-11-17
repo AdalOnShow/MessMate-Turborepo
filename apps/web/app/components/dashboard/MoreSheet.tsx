@@ -2,15 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { useTranslations } from "next-intl";
-import {
-  ChevronRight,
-  Download,
-  LogOut,
-  Share,
-  SquarePlus,
-} from "lucide-react";
+import { ChevronRight, Download, LogOut, SquarePlus } from "lucide-react";
 import { Sheet } from "../ui/sheet";
 import { ThemeToggle } from "../ThemeToggle";
 import { LanguageToggle } from "../LanguageToggle";
@@ -33,7 +26,6 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
   const { data: myMess } = useGetMyMess();
   const isManager = myMess?.current_user_role === "MANAGER";
   const install = useInstallState();
-  const [showIosHint, setShowIosHint] = useState(false);
 
   const items = MORE_ITEMS.filter(
     (item) => !item.managerOnly || isManager,
@@ -118,37 +110,29 @@ export function MoreSheet({ onClose }: { onClose: () => void }) {
           </span>
         </button>
       )}
-      {install.kind === "ios" && (
-        <div className="rounded-2xl border border-primary/30 bg-primary/10 p-3">
-          <button
-            type="button"
-            onClick={() => setShowIosHint((v) => !v)}
-            aria-expanded={showIosHint}
-            className="flex w-full items-center gap-3 text-left"
-          >
-            <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-white">
-              <SquarePlus size={20} aria-hidden="true" />
+      {install.kind !== "installed" && install.kind !== "prompt" && (
+        <Link
+          href="/install"
+          onClick={onClose}
+          className="flex w-full items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-3 text-left"
+        >
+          <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-white">
+            <SquarePlus size={20} aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-foreground">
+              {t("installApp")}
             </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-foreground">
-                {t("installIosTitle")}
-              </span>
-              <span className="block text-xs text-foreground-muted">
-                {t("installDesc")}
-              </span>
+            <span className="block text-xs text-foreground-muted">
+              {t("installGuideDesc")}
             </span>
-          </button>
-          {showIosHint && (
-            <p className="mt-3 flex items-start gap-2 text-sm text-foreground-body">
-              <Share
-                size={16}
-                className="mt-0.5 shrink-0 text-primary"
-                aria-hidden="true"
-              />
-              {t("installIosHint")}
-            </p>
-          )}
-        </div>
+          </span>
+          <ChevronRight
+            size={18}
+            className="text-foreground-muted"
+            aria-hidden="true"
+          />
+        </Link>
       )}
 
       {/* Preferences */}

@@ -1,0 +1,183 @@
+{
+  "metaTitle": "Install MessMate on your phone",
+  "metaDescription": "Add MessMate to your iPhone or Android home screen in a few taps. Step-by-step guide for Safari, Chrome, Samsung Internet and Brave.",
+  "eyebrow": "Install the app",
+  "title": "MessMate on your <accent>home screen</accent>",
+  "subtitle": "No app store needed. Install MessMate straight from your browser. It opens full screen, loads fast and sits next to your other apps.",
+  "detected": "Your device",
+  "os": {
+    "ios": "iPhone",
+    "android": "Android",
+    "desktop": "Computer"
+  },
+  "browser": {
+    "safari": "Safari",
+    "chrome": "Chrome",
+    "samsung": "Samsung Internet",
+    "brave": "Brave",
+    "firefox": "Firefox",
+    "edge": "Edge",
+    "inapp": "In-app browser",
+    "other": "Browser"
+  },
+  "action": {
+    "installNow": "Install now",
+    "installNowDesc": "One tap. Your browser will ask you to confirm.",
+    "successToast": "MessMate installed! Find it on your home screen.",
+    "dismissedToast": "Install cancelled. You can try again anytime.",
+    "installedTitle": "MessMate is installed",
+    "installedDesc": "You're all set. Open MessMate from your home screen anytime.",
+    "openDashboard": "Open dashboard",
+    "iosTitle": "iPhone needs 3 quick taps",
+    "iosDesc": "Apple doesn't let websites install themselves, so you'll add MessMate from the Share menu. It takes about 10 seconds.",
+    "showSteps": "Show me how",
+    "inappTitle": "Open this page in your browser first",
+    "inappDescIos": "You're inside another app's browser (like Facebook or Messenger), which can't install apps. Copy the link and open it in Safari.",
+    "inappDescAndroid": "You're inside another app's browser (like Facebook or Messenger), which can't install apps. Open this page in Chrome to continue.",
+    "openInChrome": "Open in Chrome",
+    "copyLink": "Copy link",
+    "copied": "Link copied",
+    "manualTitle": "Install from your browser menu",
+    "manualDesc": "Follow the steps below. It only takes a few taps.",
+    "desktopTitle": "Open this page on your phone",
+    "desktopDesc": "MessMate works best installed on your phone. Copy the link and open it on your phone. On a computer, Chrome and Edge also show an install icon in the address bar."
+  },
+  "guideTitle": "Step-by-step guide",
+  "guideSubtitle": "Pick your phone and browser. We've already selected the one you're using.",
+  "stepLabel": "Step {n}",
+  "recommended": "Your browser",
+  "guides": {
+    "iosSafari": {
+      "s1": {
+        "title": "Tap the Share button",
+        "body": "In Safari, tap the Share icon (a square with an arrow pointing up) in the toolbar at the bottom of the screen."
+      },
+      "s2": {
+        "title": "Choose “Add to Home Screen”",
+        "body": "Scroll down the menu and tap “Add to Home Screen”. If you don't see it, tap “Edit Actions” and add it."
+      },
+      "s3": {
+        "title": "Tap “Add”",
+        "body": "Keep the name “MessMate” and tap “Add” in the top-right corner."
+      },
+      "s4": {
+        "title": "Open MessMate",
+        "body": "MessMate is now on your home screen. Tap the icon to open it full screen, just like an app."
+      }
+    },
+    "iosChrome": {
+      "s1": {
+        "title": "Tap the Share button",
+        "body": "In Chrome, tap the Share icon on the right side of the address bar at the top. Requires iOS 16.4 or newer."
+      },
+      "s2": {
+        "title": "Choose “Add to Home Screen”",
+        "body": "Scroll down the menu and tap “Add to Home Screen”."
+      },
+      "s3": {
+        "title": "Tap “Add”",
+        "body": "Keep the name “MessMate” and tap “Add” in the top-right corner."
+      },
+      "s4": {
+        "title": "Open MessMate",
+        "body": "MessMate is now on your home screen. Tap the icon to open it full screen."
+      }
+    },
+    "androidChrome": {
+      "s1": {
+        "title": "Open the menu",
+        "body": "In Chrome, tap the three-dot menu (⋮) in the top-right corner."
+      },
+      "s2": {
+        "title": "Tap “Add to home screen”",
+        "body": "Tap “Add to home screen”. On some phones it's called “Install app”."
+      },
+      "s3": {
+        "title": "Tap “Install”",
+        "body": "Confirm by tapping “Install”. Chrome adds the app in a few seconds."
+      },
+      "s4": {
+        "title": "Open MessMate",
+        "body": "Find MessMate on your home screen or in the app drawer and tap to open."
+      }
+    },
+    "samsung": {
+      "s1": {
+        "title": "Open the menu",
+        "body": "In Samsung Internet, tap the menu button (☰) at the bottom right. Tip: if you see a download icon in the address bar, tap that to install in one step."
+      },
+      "s2": {
+        "title": "Tap “Add page to”",
+        "body": "In the menu, tap “Add page to”."
+      },
+      "s3": {
+        "title": "Choose “Home screen”",
+        "body": "Select “Home screen” from the list."
+      },
+      "s4": {
+        "title": "Tap “Add”",
+        "body": "Confirm by tapping “Add”."
+      },
+      "s5": {
+        "title": "Open MessMate",
+        "body": "MessMate is now on your home screen. Tap the icon to open it."
+      }
+    },
+    "brave": {
+      "s1": {
+        "title": "Open the menu",
+        "body": "In Brave, tap the three-dot menu (⋮). It's at the bottom right, or at the top right if your address bar is on top."
+      },
+      "s2": {
+        "title": "Tap “Add to Home screen”",
+        "body": "Tap “Add to Home screen”. On some versions it's called “Install app”."
+      },
+      "s3": {
+        "title": "Tap “Install”",
+        "body": "Confirm by tapping “Install”."
+      },
+      "s4": {
+        "title": "Open MessMate",
+        "body": "Find MessMate on your home screen and tap to open."
+      }
+    }
+  },
+  "benefits": {
+    "title": "Why install?",
+    "fullscreen": {
+      "title": "Full screen",
+      "body": "No address bar, so more room for your meals and accounts."
+    },
+    "fast": {
+      "title": "Opens instantly",
+      "body": "One tap from your home screen, no typing the address."
+    },
+    "offline": {
+      "title": "Works on weak internet",
+      "body": "Recently viewed pages stay available when the network drops."
+    },
+    "light": {
+      "title": "Tiny size",
+      "body": "Uses almost no storage compared to a store app."
+    }
+  },
+  "faq": {
+    "title": "Common questions",
+    "safe": {
+      "q": "Is it safe to install?",
+      "a": "Yes. It's the same MessMate website, saved to your home screen by your own browser. It can't access anything on your phone that the website can't."
+    },
+    "update": {
+      "q": "Do I need to update it?",
+      "a": "No. The installed app always loads the latest version automatically."
+    },
+    "account": {
+      "q": "Will I need to sign in again?",
+      "a": "Usually not on Android. On iPhone, the home-screen app keeps its own session, so you may need to sign in once."
+    },
+    "uninstall": {
+      "q": "How do I remove it?",
+      "a": "Long-press the MessMate icon and choose “Remove App” (iPhone) or “Uninstall” (Android), just like any other app."
+    }
+  }
+}

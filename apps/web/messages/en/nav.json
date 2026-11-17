@@ -25,8 +25,7 @@
   "language": "Language",
   "installApp": "Install app",
   "installDesc": "Add MessMate to your home screen",
-  "installIosTitle": "Install on iPhone",
-  "installIosHint": "Tap the Share button in Safari, then choose “Add to Home Screen”.",
   "installed": "App installed",
-  "account": "Account"
+  "account": "Account",
+  "installGuideDesc": "Step-by-step guide for your phone"
 }

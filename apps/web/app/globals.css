@@ -627,3 +627,152 @@
     animation-duration: 2.4s;
   }
 }
+
+/* ============================================
+    Install guide: looping phone-mockup animations (app/components/install).
+    One 3.6s cycle: sheet/dialog appears → finger moves in → tap + ripple →
+    target highlights → finger leaves. Base styles are the static "final"
+    frame, shown under reduced motion.
+    ============================================ */
+@keyframes install-finger {
+  0%,
+  16% {
+    opacity: 0;
+    transform: translate(26px, 34px) scale(1);
+  }
+  32% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  38% {
+    transform: translate(0, 0) scale(0.82);
+  }
+  46%,
+  78% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  92%,
+  100% {
+    opacity: 0;
+    transform: translate(10px, 18px) scale(1);
+  }
+}
+
+@keyframes install-ripple {
+  0%,
+  37% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  40% {
+    opacity: 0.7;
+  }
+  62%,
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+@keyframes install-highlight {
+  0%,
+  38% {
+    opacity: 0;
+  }
+  44%,
+  82% {
+    opacity: 1;
+  }
+  94%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes install-sheet {
+  0% {
+    opacity: 1;
+    transform: translateY(105%);
+  }
+  14%,
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
+@keyframes install-dialog {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  12%,
+  90% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes install-pop {
+  0%,
+  6% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+  26%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.ia-finger {
+  animation: install-finger 3.6s ease-in-out infinite;
+}
+.ia-ripple {
+  opacity: 0;
+  animation: install-ripple 3.6s ease-out infinite;
+}
+.ia-hl {
+  animation: install-highlight 3.6s ease-in-out infinite;
+}
+.ia-sheet {
+  animation: install-sheet 3.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+.ia-dialog {
+  animation: install-dialog 3.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+.ia-pop {
+  animation: install-pop 3.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
+/* Only animate while the mockup is on screen. */
+.install-anim:not([data-play]) * {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ia-finger,
+  .ia-hl,
+  .ia-sheet,
+  .ia-dialog,
+  .ia-pop {
+    animation: none;
+  }
+  .ia-ripple {
+    display: none;
+  }
+}

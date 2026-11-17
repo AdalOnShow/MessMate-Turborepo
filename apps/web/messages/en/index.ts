@@ -5,6 +5,7 @@ import common from "./common.json";
 import dashboard from "./dashboard.json";
 import expenseType from "./expenseType.json";
 import feedback from "./feedback.json";
+import install from "./install.json";
 import landing from "./landing.json";
 import members from "./members.json";
 import metadata from "./metadata.json";
@@ -20,6 +21,7 @@ const messages = {
   dashboard: dashboard,
   expenseType: expenseType,
   feedback: feedback,
+  install: install,
   landing: landing,
   members: members,
   metadata: metadata,

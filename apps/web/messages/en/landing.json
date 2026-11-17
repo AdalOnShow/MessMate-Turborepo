@@ -200,7 +200,8 @@
     "accounting": "Accounting",
     "preview": "Preview",
     "faq": "FAQ",
-    "logoAlt": "MessMate logo"
+    "logoAlt": "MessMate logo",
+    "install": "Install App"
   },
   "hero": {
     "badge": "Mess management, simplified",
@@ -221,7 +222,8 @@
   },
   "finalCta": {
     "title": "Stop Managing Your Mess <accent>in Spreadsheets.</accent>",
-    "subtitle": "Create your mess tonight, track tomorrow's meals, and be the first flatmate who shows up at month-end with the numbers — already done."
+    "subtitle": "Create your mess tonight, track tomorrow's meals, and be the first flatmate who shows up at month-end with the numbers — already done.",
+    "installHint": "Use it like a real app — install MessMate on your phone"
   },
   "footer": {
     "tagline": "Simple mess management and transparent accounting. Meal tracking, expenses, deposits, and month-end — all in one calm place for shared living.",
