@@ -6,6 +6,8 @@ import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
+  type InfiniteData,
+  type QueryClient,
 } from "@tanstack/react-query";
 import {
   submitBazaar,
@@ -22,11 +24,16 @@ import {
   type UpdateBazaarPayload,
 } from "../actions/bazaar";
 import { unwrap } from "../lib/action-result";
+import { useOpenAtFirstPage } from "../lib/infinite-pages";
 
 /**
  * Cursor-paginated submissions for one status tab. Loads one page (4 rows)
- * at a time; call `fetchNextPage()` to load more. Mutations invalidate the
- * ["bazaar-history", messId, monthId] prefix, which refreshes every tab.
+ * at a time; call `fetchNextPage()` to load more.
+ *
+ * Writes update this cache in place (see `bazaarCache`) instead of
+ * refetching it: refetching an infinite query re-requests every page
+ * already loaded, one after another, which made the page slow after each
+ * add/approve/reject once a few pages were open.
  *
  * `keepPreviousData` keeps the old tab's data (and its status counts) on
  * screen while a newly selected tab loads; check `isPlaceholderData` before
@@ -37,8 +44,10 @@ export function useBazaarSubmissions(
   monthId: string | undefined,
   status: BazaarStatus,
 ) {
+  const queryKey = ["bazaar-history", messId, monthId, status];
+  useOpenAtFirstPage(queryKey);
   const query = useInfiniteQuery({
-    queryKey: ["bazaar-history", messId, monthId, status],
+    queryKey,
     queryFn: async ({ pageParam }) => {
       const page = await unwrap(
         getBazaarPage(messId!, monthId!, status, pageParam),
@@ -58,6 +67,9 @@ export function useBazaarSubmissions(
       lastPage.next_cursor ?? undefined,
     enabled: !!messId && !!monthId,
     placeholderData: keepPreviousData,
+    // Kept up to date by the mutations below, not by the global
+    // "invalidate everything after a write" in query-client.ts.
+    meta: { manualCacheUpdate: true },
   });
 
   const pages = query.data?.pages;
@@ -66,6 +78,90 @@ export function useBazaarSubmissions(
     // Skip malformed pages (e.g. restored from an older offline cache).
     items: pages?.flatMap((page) => page?.items ?? []) ?? [],
     counts: pages?.[0]?.counts ?? null,
+  };
+}
+
+type BazaarPages = InfiniteData<BazaarPageInfo, string | undefined>;
+type CountKey = keyof BazaarStatusCountsInfo;
+const countKey = (status: BazaarStatus) => status.toLowerCase() as CountKey;
+
+/**
+ * In-place updates of the cached bazaar tabs for one month, so a write
+ * costs at most one small request instead of re-fetching every loaded page.
+ */
+function bazaarCache(
+  queryClient: QueryClient,
+  messId: string | undefined,
+  monthId: string | undefined,
+) {
+  const prefix = ["bazaar-history", messId, monthId];
+  const tabKey = (status: BazaarStatus) => [...prefix, status];
+
+  /** Apply `fn` to one tab's cached pages, if that tab was loaded. */
+  const editTab = (status: BazaarStatus, fn: (d: BazaarPages) => BazaarPages) =>
+    queryClient.setQueryData<BazaarPages>(tabKey(status), (d) =>
+      d ? fn(d) : d,
+    );
+
+  /** The status counts live on each tab's first page; keep them all in step. */
+  const shiftCounts = (delta: Partial<Record<CountKey, number>>) =>
+    queryClient.setQueriesData<BazaarPages>({ queryKey: prefix }, (d) => {
+      const first = d?.pages[0];
+      if (!d || !first?.counts) return d;
+      const counts = { ...first.counts };
+      for (const [k, v] of Object.entries(delta) as [CountKey, number][]) {
+        counts[k] = Math.max(0, counts[k] + v);
+      }
+      return { ...d, pages: [{ ...first, counts }, ...d.pages.slice(1)] };
+    });
+
+  const without = (d: BazaarPages, id: string): BazaarPages => ({
+    ...d,
+    pages: d.pages.map((p) => ({
+      ...p,
+      items: p.items.filter((i) => i.id !== id),
+    })),
+  });
+
+  return {
+    /** A new submission is the newest pending one: put it on top. */
+    added(item: BazaarSubmissionInfo) {
+      editTab("PENDING", (d) => ({
+        ...d,
+        pages: d.pages.map((p, i) =>
+          i === 0 ? { ...p, items: [item, ...p.items] } : p,
+        ),
+      }));
+      shiftCounts({ pending: 1 });
+    },
+    /** Same row, new contents (still pending). */
+    replaced(item: BazaarSubmissionInfo) {
+      editTab(item.status, (d) => ({
+        ...d,
+        pages: d.pages.map((p) => ({
+          ...p,
+          items: p.items.map((i) => (i.id === item.id ? item : i)),
+        })),
+      }));
+    },
+    /**
+     * Approved/rejected: leaves Pending. The target tab is dropped so it
+     * loads its first page fresh (and in the right order) when opened.
+     */
+    moved(item: BazaarSubmissionInfo, from: BazaarStatus) {
+      editTab(from, (d) => without(d, item.id));
+      shiftCounts({ [countKey(from)]: -1, [countKey(item.status)]: 1 });
+      queryClient.removeQueries({ queryKey: tabKey(item.status), exact: true });
+    },
+    removed(id: string) {
+      for (const status of ["PENDING", "APPROVED", "REJECTED"] as const) {
+        const d = queryClient.getQueryData<BazaarPages>(tabKey(status));
+        if (d?.pages.some((p) => p.items.some((i) => i.id === id))) {
+          editTab(status, (data) => without(data, id));
+          shiftCounts({ [countKey(status)]: -1 });
+        }
+      }
+    },
   };
 }
 
@@ -81,10 +177,8 @@ export function useSubmitBazaar(
       if (!messId || !monthId) throw new Error("No mess or month ID");
       return unwrap(submitBazaar(messId, monthId, payload));
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["bazaar-history", messId, monthId],
-      });
+    onSuccess: (created) => {
+      bazaarCache(queryClient, messId, monthId).added(created);
     },
   });
 }
@@ -107,10 +201,8 @@ export function useUpdateBazaar(
       if (!messId) throw new Error("No mess ID");
       return unwrap(updateBazaar(messId, submissionId, data));
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["bazaar-history", messId, monthId],
-      });
+    onSuccess: (updated) => {
+      bazaarCache(queryClient, messId, monthId).replaced(updated);
     },
   });
 }
@@ -127,10 +219,8 @@ export function useDeleteBazaar(
       if (!messId) throw new Error("No mess ID");
       return unwrap(deleteBazaar(messId, submissionId));
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["bazaar-history", messId, monthId],
-      });
+    onSuccess: (_data, submissionId) => {
+      bazaarCache(queryClient, messId, monthId).removed(submissionId);
     },
   });
 }
@@ -147,11 +237,8 @@ export function useApproveBazaar(
       if (!messId) throw new Error("No mess ID");
       return unwrap(approveBazaar(messId, submissionId));
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["bazaar-history", messId, monthId],
-      });
-      queryClient.invalidateQueries({ queryKey: ["month-summary"] });
+    onSuccess: (approved) => {
+      bazaarCache(queryClient, messId, monthId).moved(approved, "PENDING");
     },
   });
 }
@@ -168,10 +255,8 @@ export function useRejectBazaar(
       if (!messId) throw new Error("No mess ID");
       return unwrap(rejectBazaar(messId, submissionId));
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["bazaar-history", messId, monthId],
-      });
+    onSuccess: (rejected) => {
+      bazaarCache(queryClient, messId, monthId).moved(rejected, "PENDING");
     },
   });
 }

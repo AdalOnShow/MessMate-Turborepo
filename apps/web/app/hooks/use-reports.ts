@@ -8,6 +8,7 @@ import type {
   MealDaysPage,
 } from "@repo/shared";
 import { unwrap } from "../lib/action-result";
+import { useOpenAtFirstPage } from "../lib/infinite-pages";
 import {
   getBazaarHistoryPage,
   getDepositHistoryPage,
@@ -26,6 +27,7 @@ function useReportPages<P extends { next_cursor: string | null }>(
   enabled: boolean,
   fetchPage: (cursor?: string) => Promise<P>,
 ) {
+  useOpenAtFirstPage(key);
   return useInfiniteQuery({
     queryKey: key,
     queryFn: ({ pageParam }) => fetchPage(pageParam),

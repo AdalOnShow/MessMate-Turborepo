@@ -38,7 +38,8 @@
     "approvedBy": "Approved by {name}",
     "reviewedBy": "Reviewed by {name}",
     "onDate": "on {date}",
-    "descriptionOptional": "Description (optional)"
+    "descriptionOptional": "Description (optional)",
+    "showingOf": "Showing {shown} of {total}"
   },
   "createMess": {
     "messSetup": "Mess Setup",

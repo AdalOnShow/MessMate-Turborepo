@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useSessionStore } from "../../store";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetActiveMonth } from "../../hooks/use-months";
@@ -513,46 +513,36 @@ function BazaarCard({
 }
 
 /**
- * Loads the next page when it scrolls into view, with a button as a
- * fallback. After a failed load it stops auto-loading and shows a retry.
+ * "Showing 4 of 23" and a button that fetches the next 4 from the server.
+ * Loads only when tapped: auto-loading on scroll fetched every page at once
+ * on tall screens, where the button is visible right away.
  */
 function LoadMore({
+  shown,
+  total,
   onLoadMore,
   isLoading,
   failed,
 }: {
+  shown: number;
+  total: number;
   onLoadMore: () => void;
   isLoading: boolean;
   failed: boolean;
 }) {
   const t = useTranslations("pages.bazaar");
-  const ref = useRef<HTMLDivElement>(null);
-  const onLoadMoreRef = useRef(onLoadMore);
-
-  useEffect(() => {
-    onLoadMoreRef.current = onLoadMore;
-  });
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || failed || isLoading) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) onLoadMoreRef.current();
-      },
-      { rootMargin: "200px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [failed, isLoading]);
-
   return (
-    <div ref={ref} className="mt-4 flex justify-center">
+    <div className="mt-4 flex flex-col items-center gap-2">
+      {total > shown && (
+        <p className="text-xs text-foreground-muted">
+          {t("showingOf", { shown, total })}
+        </p>
+      )}
       <button
         type="button"
         onClick={onLoadMore}
         disabled={isLoading}
-        className="flex items-center gap-2 rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised hover:text-foreground disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-border-strong px-4 py-2.5 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised hover:text-foreground disabled:opacity-60 sm:w-auto sm:py-2"
       >
         {isLoading && <Loader2 size={14} className="animate-spin" />}
         {isLoading
@@ -732,7 +722,15 @@ export default function BazaarPage() {
           </div>
           {listQuery.hasNextPage && (
             <LoadMore
-              onLoadMore={() => listQuery.fetchNextPage()}
+              shown={items.length}
+              total={
+                activeTab === "PENDING"
+                  ? pendingCount
+                  : activeTab === "APPROVED"
+                    ? approvedCount
+                    : rejectedCount
+              }
+              onLoadMore={() => void listQuery.fetchNextPage()}
               isLoading={listQuery.isFetchingNextPage}
               failed={listQuery.isFetchNextPageError}
             />

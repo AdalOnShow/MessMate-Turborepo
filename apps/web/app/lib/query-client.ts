@@ -17,6 +17,11 @@ declare module "@tanstack/react-query" {
     queryMeta: {
       /** Set false to stop background-refetch failures from toasting. */
       errorToast?: boolean;
+      /**
+       * The query's own mutations keep its cache up to date, so the global
+       * "invalidate everything after a write" skips it.
+       */
+      manualCacheUpdate?: boolean;
     };
   }
 }
@@ -91,7 +96,19 @@ function makeQueryClient() {
       onSuccess: (_data, _vars, _ctx, mutation) => {
         const message = mutation.meta?.successMessage;
         if (message) toast.success(successText(message));
-        void client.invalidateQueries();
+        // Refetching a "Load more" list re-requests every page it has
+        // loaded. Lists that are not on screen are dropped instead, so they
+        // load just their first page when opened again.
+        for (const query of client.getQueryCache().getAll()) {
+          if (query.meta?.manualCacheUpdate) continue;
+          const data = query.state.data as { pages?: unknown } | undefined;
+          if (Array.isArray(data?.pages) && query.getObserversCount() === 0) {
+            client.removeQueries({ queryKey: query.queryKey, exact: true });
+          }
+        }
+        void client.invalidateQueries({
+          predicate: (query) => !query.meta?.manualCacheUpdate,
+        });
       },
       onError: (error, variables, _ctx, mutation) => {
         if (mutation.meta?.errorToast === false) {

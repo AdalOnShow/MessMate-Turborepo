@@ -38,7 +38,8 @@
     "approvedBy": "{name} অনুমোদন করেছেন",
     "reviewedBy": "{name} পর্যালোচনা করেছেন",
     "onDate": "{date} তারিখে",
-    "descriptionOptional": "বিবরণ (ঐচ্ছিক)"
+    "descriptionOptional": "বিবরণ (ঐচ্ছিক)",
+    "showingOf": "{total}টির মধ্যে {shown}টি দেখানো হচ্ছে"
   },
   "createMess": {
     "messSetup": "মেস সেটআপ",
