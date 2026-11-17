@@ -451,7 +451,10 @@ function ExpenseList({ messId, monthId }: { messId: string; monthId: string }) {
 // The entries endpoint requires a date range; the month id already scopes it.
 const ALL_DATES = { start: "2000-01-01", end: "2999-12-31" };
 
-/** Day-by-day meal counts per member, newest day first, revealed 10 rows at a time. */
+/**
+ * Meal grid: one row per day (newest first), one column per member, so the
+ * list stays as long as the number of days. Revealed 10 days at a time.
+ */
 function MealList({ messId, monthId }: { messId: string; monthId: string }) {
   const t = useTranslations("pages.reports");
   const query = useGetMealEntries(
@@ -460,35 +463,49 @@ function MealList({ messId, monthId }: { messId: string; monthId: string }) {
     ALL_DATES.start,
     ALL_DATES.end,
   );
-  const [member, setMember] = useState<string>("ALL");
   const [visible, setVisible] = useState(PAGE_SIZE);
 
-  // Days where a member ate nothing are left out to keep the list readable.
-  const sorted = useMemo(
-    () =>
-      (query.data ?? [])
-        .filter((entry) => entry.total_meal > 0)
-        .sort(
-          (a, b) =>
-            new Date(b.date).getTime() - new Date(a.date).getTime() ||
-            a.member.user.name.localeCompare(b.member.user.name),
-        ),
-    [query.data],
-  );
+  const { members, days } = useMemo(() => {
+    const memberMap = new Map<
+      string,
+      { id: string; name: string; total: number }
+    >();
+    const dayMap = new Map<
+      string,
+      { date: string; total: number; byMember: Record<string, number> }
+    >();
 
-  const members = useMemo(() => {
-    const totals = new Map<string, { name: string; meals: number }>();
-    for (const entry of sorted) {
-      const current = totals.get(entry.member_id);
-      totals.set(entry.member_id, {
+    for (const entry of query.data ?? []) {
+      if (entry.total_meal <= 0) continue;
+      const member = memberMap.get(entry.member_id) ?? {
+        id: entry.member_id,
         name: entry.member.user.name,
-        meals: (current?.meals ?? 0) + entry.total_meal,
-      });
+        total: 0,
+      };
+      member.total += entry.total_meal;
+      memberMap.set(entry.member_id, member);
+
+      const key = entry.date.slice(0, 10);
+      const day = dayMap.get(key) ?? {
+        date: entry.date,
+        total: 0,
+        byMember: {},
+      };
+      day.total += entry.total_meal;
+      day.byMember[entry.member_id] =
+        (day.byMember[entry.member_id] ?? 0) + entry.total_meal;
+      dayMap.set(key, day);
     }
-    return [...totals.entries()]
-      .map(([id, v]) => ({ id, ...v }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [sorted]);
+
+    return {
+      members: [...memberMap.values()].sort((a, b) =>
+        a.name.localeCompare(b.name),
+      ),
+      days: [...dayMap.values()].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      ),
+    };
+  }, [query.data]);
 
   if (query.isLoading) return <LoadingBlock />;
   if (query.isError && !query.data) {
@@ -503,62 +520,83 @@ function MealList({ messId, monthId }: { messId: string; monthId: string }) {
     );
   }
 
-  const filtered =
-    member === "ALL" ? sorted : sorted.filter((e) => e.member_id === member);
-  const shown = filtered.slice(0, visible);
-  const allMeals = sorted.reduce((sum, e) => sum + e.total_meal, 0);
+  if (days.length === 0) {
+    return <EmptyBlock message={t("noMealEntriesRecorded")} />;
+  }
+
+  const shown = days.slice(0, visible);
+  const grandTotal = members.reduce((sum, m) => sum + m.total, 0);
 
   return (
     <div className="space-y-3">
-      <FilterChips
-        value={member}
-        onChange={(key) => {
-          setMember(key);
-          setVisible(PAGE_SIZE);
-        }}
-        options={[
-          { key: "ALL", label: t("all"), count: allMeals },
-          ...members.map((m) => ({ key: m.id, label: m.name, count: m.meals })),
-        ]}
-      />
-
-      {shown.length === 0 ? (
-        <EmptyBlock message={t("noMealEntriesRecorded")} />
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-          <table className="table-sticky-first w-full text-sm">
-            <thead>
-              <tr className="border-b border-border">
-                <ThLeft label={t("date")} />
-                <ThLeft label={t("name")} />
-                <Th label={t("meals")} />
-              </tr>
-            </thead>
-            <tbody>
-              {shown.map((entry) => (
-                <tr
-                  key={entry.id}
-                  className="border-b border-border last:border-0"
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+        <table className="table-sticky-first w-full text-sm">
+          <thead>
+            <tr className="border-b border-border">
+              <ThLeft label={t("date")} />
+              {members.map((m) => (
+                <th
+                  key={m.id}
+                  title={m.name}
+                  className="max-w-[6.5rem] truncate px-3 pb-2 pt-3 text-center text-xs font-semibold text-foreground-muted"
                 >
-                  <td className="px-4 py-3 align-top">
-                    <DayDateCell iso={entry.date} />
-                  </td>
-                  <td className="min-w-[9rem] px-4 py-3 align-top font-medium break-words text-foreground">
-                    {entry.member.user.name}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right align-top font-semibold tabular-nums text-foreground">
-                    {entry.total_meal}
-                  </td>
-                </tr>
+                  {m.name.split(/\s+/)[0]}
+                </th>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              <Th label={t("total")} />
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((day) => (
+              <tr key={day.date} className="border-b border-border">
+                <td className="px-4 py-2.5">
+                  <DayDateCell iso={day.date} />
+                </td>
+                {members.map((m) => {
+                  const count = day.byMember[m.id] ?? 0;
+                  return (
+                    <td
+                      key={m.id}
+                      className={`px-3 py-2.5 text-center tabular-nums ${
+                        count > 0
+                          ? "font-medium text-foreground"
+                          : "text-foreground-muted/50"
+                      }`}
+                    >
+                      {count > 0 ? count : "–"}
+                    </td>
+                  );
+                })}
+                <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-primary">
+                  {day.total}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-border-strong">
+              <td className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-foreground-muted">
+                {t("monthTotal")}
+              </td>
+              {members.map((m) => (
+                <td
+                  key={m.id}
+                  className="px-3 py-3 text-center font-bold tabular-nums text-foreground"
+                >
+                  {m.total}
+                </td>
+              ))}
+              <td className="px-4 py-3 text-right font-bold tabular-nums text-primary">
+                {grandTotal}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
 
       <LoadMore
         shown={shown.length}
-        total={filtered.length}
+        total={days.length}
         onClick={() => setVisible((v) => v + PAGE_SIZE)}
       />
     </div>

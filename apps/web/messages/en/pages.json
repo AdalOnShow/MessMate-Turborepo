@@ -287,7 +287,8 @@
     "all": "All",
     "loadMore": "Load more",
     "showingOf": "Showing {shown} of {total}",
-    "noExpensesOfType": "No expenses of this type this month."
+    "noExpensesOfType": "No expenses of this type this month.",
+    "monthTotal": "Month total"
   },
   "settings": {
     "messName": "Mess Name",
