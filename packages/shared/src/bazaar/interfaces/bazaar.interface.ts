@@ -34,8 +34,17 @@ export interface BazaarSubmissionWithRelations extends BazaarSubmission {
   } | null;
 }
 
-export interface BazaarHistory {
-  pending: BazaarSubmissionWithRelations[];
-  approved: BazaarSubmissionWithRelations[];
-  rejected: BazaarSubmissionWithRelations[];
+export interface BazaarStatusCounts {
+  pending: number;
+  approved: number;
+  rejected: number;
+}
+
+/** One cursor-paginated page of submissions for a single status. */
+export interface BazaarSubmissionPage {
+  items: BazaarSubmissionWithRelations[];
+  /** Pass back as `cursor` to get the next page; null on the last page. */
+  next_cursor: string | null;
+  /** Per-status totals for the month; only sent with the first page. */
+  counts: BazaarStatusCounts | null;
 }

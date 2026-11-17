@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Check, Loader2, X } from "lucide-react";
 import {
   useApproveBazaar,
-  useGetBazaarHistory,
+  useBazaarSubmissions,
   useRejectBazaar,
 } from "@/app/hooks/use-bazaar";
 import { formatMoney } from "@/app/lib/format";
@@ -24,10 +24,13 @@ export function BazaarApprovals({
   monthId: string;
 }) {
   const t = useTranslations("dashboard.home");
-  const historyQuery = useGetBazaarHistory(messId, monthId);
+  // First page of pending only; shares its cache with the bazaar page's
+  // Pending tab. The badge shows the full count from the server.
+  const historyQuery = useBazaarSubmissions(messId, monthId, "PENDING");
   const approve = useApproveBazaar(messId, monthId);
   const reject = useRejectBazaar(messId, monthId);
-  const pending = historyQuery.data?.pending ?? [];
+  const pending = historyQuery.items;
+  const pendingTotal = historyQuery.counts?.pending ?? pending.length;
   const busy = approve.isPending || reject.isPending;
 
   if (historyQuery.isError && !historyQuery.data) {
@@ -48,7 +51,7 @@ export function BazaarApprovals({
       <CardTitle
         title={t("bazaarApprovals")}
         href="/dashboard/bazaar"
-        linkLabel={String(pending.length)}
+        linkLabel={String(pendingTotal)}
         badge={
           <span className="size-1.5 rounded-full bg-accent-warm" aria-hidden />
         }

@@ -10,8 +10,10 @@ import { Prisma, prisma } from '@repo/database';
 import type {
   BazaarItem,
   BazaarSubmissionWithRelations,
-  BazaarHistory,
+  BazaarStatusCounts,
+  BazaarSubmissionPage,
   CreateBazaarDto,
+  ListBazaarQueryDto,
   UpdateBazaarDto,
 } from '@repo/shared';
 
@@ -51,6 +53,27 @@ function toSubmissionWithRelations(
     submitter: row.submitter,
     approver: row.approver ?? null,
   };
+}
+
+const CURSOR_SEPARATOR = '_';
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function encodeCursor(row: { created_at: Date; id: string }): string {
+  return `${row.created_at.toISOString()}${CURSOR_SEPARATOR}${row.id}`;
+}
+
+function decodeCursor(cursor: string): { createdAt: Date; id: string } {
+  const at = cursor.lastIndexOf(CURSOR_SEPARATOR);
+  const createdAt = new Date(cursor.slice(0, at));
+  const id = cursor.slice(at + 1);
+  if (at <= 0 || Number.isNaN(createdAt.getTime()) || !uuidPattern.test(id)) {
+    throw new BadRequestException({
+      message: 'Validation failed',
+      details: { cursor: 'Invalid cursor' },
+    });
+  }
+  return { createdAt, id };
 }
 
 @Injectable()
@@ -428,26 +451,73 @@ export class BazaarService {
     return toSubmissionWithRelations(rejected);
   }
 
-  async getBazaarHistory(
+  /**
+   * One page of a month's submissions in a single status, newest first.
+   *
+   * Keyset pagination on (created_at, id): the cursor is the last row's
+   * position, so pages stay correct even when rows before it change status
+   * or are deleted between requests. created_at is TIMESTAMP(3), so the
+   * millisecond ISO string in the cursor matches it exactly. Status counts
+   * (for the tab badges) are only computed for the first page.
+   */
+  async listBazaarSubmissions(
     messId: string,
     monthId: string,
-  ): Promise<BazaarHistory> {
-    const submissions = await prisma.bazaar_submissions.findMany({
-      where: {
-        mess_id: messId,
-        month_id: monthId,
-        deleted_at: null,
-      },
-      include: submissionInclude,
-      orderBy: { created_at: 'desc' },
-    });
+    query: ListBazaarQueryDto,
+  ): Promise<BazaarSubmissionPage> {
+    const { status, cursor, limit } = query;
+    const after = cursor ? decodeCursor(cursor) : null;
 
-    const mapped = submissions.map(toSubmissionWithRelations);
+    const monthWhere = {
+      mess_id: messId,
+      month_id: monthId,
+      deleted_at: null,
+    } satisfies Prisma.bazaar_submissionsWhereInput;
+
+    const [rows, grouped] = await Promise.all([
+      prisma.bazaar_submissions.findMany({
+        where: {
+          ...monthWhere,
+          status,
+          ...(after && {
+            OR: [
+              { created_at: { lt: after.createdAt } },
+              { created_at: after.createdAt, id: { lt: after.id } },
+            ],
+          }),
+        },
+        include: submissionInclude,
+        orderBy: [{ created_at: 'desc' }, { id: 'desc' }],
+        take: limit + 1,
+      }),
+      after
+        ? null
+        : prisma.bazaar_submissions.groupBy({
+            by: ['status'],
+            where: monthWhere,
+            _count: { _all: true },
+          }),
+    ]);
+
+    const hasMore = rows.length > limit;
+    const page = hasMore ? rows.slice(0, limit) : rows;
+    const last = page[page.length - 1];
+
+    let counts: BazaarStatusCounts | null = null;
+    if (grouped) {
+      const countOf = (s: BazaarSubmissionWithRelations['status']) =>
+        grouped.find((g) => g.status === s)?._count._all ?? 0;
+      counts = {
+        pending: countOf('PENDING'),
+        approved: countOf('APPROVED'),
+        rejected: countOf('REJECTED'),
+      };
+    }
 
     return {
-      pending: mapped.filter((s) => s.status === 'PENDING'),
-      approved: mapped.filter((s) => s.status === 'APPROVED'),
-      rejected: mapped.filter((s) => s.status === 'REJECTED'),
+      items: page.map(toSubmissionWithRelations),
+      next_cursor: hasMore && last ? encodeCursor(last) : null,
+      counts,
     };
   }
 }

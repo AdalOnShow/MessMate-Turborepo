@@ -1,5 +1,8 @@
 {
   "bazaar": {
+    "loadMore": "Load more",
+    "loadingMore": "Loading...",
+    "retryLoadMore": "Couldn't load more. Retry",
     "items": "Items",
     "addItem": "Add Item",
     "expenseDate": "Expense Date",

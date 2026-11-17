@@ -1,5 +1,8 @@
 {
   "bazaar": {
+    "loadMore": "আরও দেখুন",
+    "loadingMore": "লোড হচ্ছে...",
+    "retryLoadMore": "আরও লোড করা যায়নি। আবার চেষ্টা করুন",
     "items": "আইটেম",
     "addItem": "আইটেম যোগ করুন",
     "expenseDate": "খরচের তারিখ",

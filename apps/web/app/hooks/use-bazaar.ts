@@ -1,7 +1,12 @@
 "use client";
 
-import { getBazaarHistory } from "../lib/reads";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getBazaarPage } from "../lib/reads";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   submitBazaar,
   updateBazaar,
@@ -9,26 +14,46 @@ import {
   approveBazaar,
   rejectBazaar,
   type BazaarSubmissionInfo,
-  type BazaarHistoryInfo,
+  type BazaarPageInfo,
+  type BazaarStatus,
+  type BazaarStatusCountsInfo,
   type BazaarItemInfo,
   type CreateBazaarPayload,
   type UpdateBazaarPayload,
 } from "../actions/bazaar";
 import { unwrap } from "../lib/action-result";
 
-export function useGetBazaarHistory(
+/**
+ * Cursor-paginated submissions for one status tab. Loads one page (10 rows)
+ * at a time; call `fetchNextPage()` to load more. Mutations invalidate the
+ * ["bazaar-history", messId, monthId] prefix, which refreshes every tab.
+ *
+ * `keepPreviousData` keeps the old tab's data (and its status counts) on
+ * screen while a newly selected tab loads; check `isPlaceholderData` before
+ * rendering `items`.
+ */
+export function useBazaarSubmissions(
   messId: string | undefined,
   monthId: string | undefined,
+  status: BazaarStatus,
 ) {
-  return useQuery({
-    queryKey: ["bazaar-history", messId, monthId],
-    queryFn: async () => {
-      if (!messId || !monthId)
-        return { pending: [], approved: [], rejected: [] };
-      return unwrap(getBazaarHistory(messId, monthId));
-    },
+  const query = useInfiniteQuery({
+    queryKey: ["bazaar-history", messId, monthId, status],
+    queryFn: ({ pageParam }) =>
+      unwrap(getBazaarPage(messId!, monthId!, status, pageParam)),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage: BazaarPageInfo) =>
+      lastPage.next_cursor ?? undefined,
     enabled: !!messId && !!monthId,
+    placeholderData: keepPreviousData,
   });
+
+  const pages = query.data?.pages;
+  return {
+    ...query,
+    items: pages?.flatMap((page) => page.items) ?? [],
+    counts: pages?.[0]?.counts ?? null,
+  };
 }
 
 export function useSubmitBazaar(
@@ -140,7 +165,9 @@ export function useRejectBazaar(
 
 export type {
   BazaarSubmissionInfo,
-  BazaarHistoryInfo,
+  BazaarPageInfo,
+  BazaarStatus,
+  BazaarStatusCountsInfo,
   BazaarItemInfo,
   CreateBazaarPayload,
   UpdateBazaarPayload,

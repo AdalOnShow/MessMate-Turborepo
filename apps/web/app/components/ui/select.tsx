@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { cn } from "@/app/lib/utils";
 
 interface SelectOption {
   value: string;
@@ -23,66 +25,76 @@ export function Select({
   className = "",
 }: SelectProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
 
   const selectedLabel = options.find((o) => o.value === value)?.label;
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
-    <div ref={ref} className={`relative ${className}`}>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between rounded-lg border border-border-strong bg-surface px-4 py-2.5 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
-      >
-        <span className={selectedLabel ? "" : "text-foreground-muted"}>
-          {selectedLabel || placeholder}
-        </span>
-        <svg
-          className={`h-4 w-4 text-foreground-muted transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => {
-                onValueChange(option.value);
-                setOpen(false);
-              }}
-              className={`flex w-full items-center px-4 py-2.5 text-left text-sm transition-colors ${
-                value === option.value
-                  ? "bg-primary/15 text-primary"
-                  : "text-foreground hover:bg-surface-raised"
-              } first:rounded-t-lg last:rounded-b-lg`}
+    <Popover open={open} onOpenChange={setOpen}>
+      <div className={cn("relative", className)}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="flex w-full items-center justify-between rounded-lg border border-border-strong bg-surface px-4 py-2.5 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none"
+          >
+            <span
+              className={cn(
+                "truncate",
+                !selectedLabel && "text-foreground-muted",
+              )}
             >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+              {selectedLabel || placeholder}
+            </span>
+            <svg
+              className={`h-4 w-4 shrink-0 text-foreground-muted transition-transform ${open ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+        </PopoverTrigger>
+      </div>
+
+      {/* Portalled so a parent's overflow-hidden can't clip it; Radix flips it
+          above the trigger when there's no room below, and the list scrolls
+          once it's taller than the space available (capped at 16rem). */}
+      <PopoverContent
+        align="start"
+        collisionPadding={8}
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          const list = e.currentTarget as HTMLElement | null;
+          list
+            ?.querySelector<HTMLElement>("[data-selected=true]")
+            ?.scrollIntoView({ block: "nearest" });
+        }}
+        className="max-h-[min(16rem,var(--radix-popover-content-available-height))] w-[var(--radix-popover-trigger-width)] overflow-y-auto overscroll-contain rounded-lg p-0 shadow-lg"
+      >
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            data-selected={value === option.value}
+            onClick={() => {
+              onValueChange(option.value);
+              setOpen(false);
+            }}
+            className={`flex w-full items-center px-4 py-2.5 text-left text-sm transition-colors ${
+              value === option.value
+                ? "bg-primary/15 text-primary"
+                : "text-foreground hover:bg-surface-raised"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
   );
 }

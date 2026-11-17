@@ -35,10 +35,20 @@ export interface BazaarSubmissionInfo {
   } | null;
 }
 
-export interface BazaarHistoryInfo {
-  pending: BazaarSubmissionInfo[];
-  approved: BazaarSubmissionInfo[];
-  rejected: BazaarSubmissionInfo[];
+export type BazaarStatus = BazaarSubmissionInfo["status"];
+
+export interface BazaarStatusCountsInfo {
+  pending: number;
+  approved: number;
+  rejected: number;
+}
+
+export interface BazaarPageInfo {
+  items: BazaarSubmissionInfo[];
+  /** Cursor for the next page; null on the last page. */
+  next_cursor: string | null;
+  /** Per-status totals; only present on the first page. */
+  counts: BazaarStatusCountsInfo | null;
 }
 
 export interface CreateBazaarPayload {

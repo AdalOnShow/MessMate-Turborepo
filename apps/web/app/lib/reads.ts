@@ -3,7 +3,7 @@
 // would queue them one after another. Writes stay in app/actions.
 
 import { apiGet } from "./api-read";
-import type { BazaarHistoryInfo } from "../actions/bazaar";
+import type { BazaarPageInfo, BazaarStatus } from "../actions/bazaar";
 import type {
   DepositListInfo,
   DepositSummaryResponseInfo,
@@ -31,8 +31,15 @@ import type { MealTypeInfo, MessInfo } from "../actions/messes";
 import type { MonthInfo, MonthSummaryInfo } from "../actions/months";
 import type { ProfileUser } from "../actions/auth";
 
-export function getBazaarHistory(messId: string, monthId: string) {
-  return apiGet<BazaarHistoryInfo>(`/bazaar/${messId}/${monthId}`);
+export function getBazaarPage(
+  messId: string,
+  monthId: string,
+  status: BazaarStatus,
+  cursor?: string,
+) {
+  const params = new URLSearchParams({ status });
+  if (cursor) params.set("cursor", cursor);
+  return apiGet<BazaarPageInfo>(`/bazaar/${messId}/${monthId}?${params}`);
 }
 
 export function getDeposits(messId: string, monthId: string) {

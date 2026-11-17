@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -16,9 +17,10 @@ import type { Request } from 'express';
 import {
   createBazaarSchema,
   formatZodError,
+  listBazaarQuerySchema,
   updateBazaarSchema,
   type BazaarSubmissionWithRelations,
-  type BazaarHistory,
+  type BazaarSubmissionPage,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
 import { MembershipGuard } from '../auth/guards/membership.guard';
@@ -90,22 +92,37 @@ export class BazaarController {
 
   @Get(':messId/:monthId')
   @UseGuards(MembershipGuard)
-  async getBazaarHistory(
+  async listBazaarSubmissions(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
     @Param('monthId') monthId: string,
+    @Query() query: unknown,
   ): Promise<{
     success: true;
     message: string;
-    data: BazaarHistory;
+    data: BazaarSubmissionPage;
   }> {
     validateUuid(messId, 'messId');
     validateUuid(monthId, 'monthId');
 
-    const userId = req.user!.id;
-    this.logger.log(`📮 GET /bazaar/${messId}/${monthId} - user: ${userId}`);
+    const parsed = listBazaarQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
 
-    const data = await this.bazaarService.getBazaarHistory(messId, monthId);
+    const userId = req.user!.id;
+    this.logger.log(
+      `📮 GET /bazaar/${messId}/${monthId}?status=${parsed.data.status} - user: ${userId}`,
+    );
+
+    const data = await this.bazaarService.listBazaarSubmissions(
+      messId,
+      monthId,
+      parsed.data,
+    );
 
     return {
       success: true,

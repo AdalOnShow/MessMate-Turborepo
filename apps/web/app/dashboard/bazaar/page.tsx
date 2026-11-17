@@ -1,18 +1,19 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSessionStore } from "../../store";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetActiveMonth } from "../../hooks/use-months";
 import {
-  useGetBazaarHistory,
+  useBazaarSubmissions,
   useSubmitBazaar,
   useUpdateBazaar,
   useDeleteBazaar,
   useApproveBazaar,
   useRejectBazaar,
   type BazaarItemInfo,
+  type BazaarStatus,
   type BazaarSubmissionInfo,
 } from "../../hooks/use-bazaar";
 import { Button } from "../../components/ui/button";
@@ -511,6 +512,59 @@ function BazaarCard({
   );
 }
 
+/**
+ * Loads the next page when it scrolls into view, with a button as a
+ * fallback. After a failed load it stops auto-loading and shows a retry.
+ */
+function LoadMore({
+  onLoadMore,
+  isLoading,
+  failed,
+}: {
+  onLoadMore: () => void;
+  isLoading: boolean;
+  failed: boolean;
+}) {
+  const t = useTranslations("pages.bazaar");
+  const ref = useRef<HTMLDivElement>(null);
+  const onLoadMoreRef = useRef(onLoadMore);
+
+  useEffect(() => {
+    onLoadMoreRef.current = onLoadMore;
+  });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || failed || isLoading) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) onLoadMoreRef.current();
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [failed, isLoading]);
+
+  return (
+    <div ref={ref} className="mt-4 flex justify-center">
+      <button
+        type="button"
+        onClick={onLoadMore}
+        disabled={isLoading}
+        className="flex items-center gap-2 rounded-lg border border-border-strong px-4 py-2 text-sm font-semibold text-foreground-muted transition-colors hover:bg-surface-raised hover:text-foreground disabled:opacity-60"
+      >
+        {isLoading && <Loader2 size={14} className="animate-spin" />}
+        {isLoading
+          ? t("loadingMore")
+          : failed
+            ? t("retryLoadMore")
+            : t("loadMore")}
+      </button>
+    </div>
+  );
+}
+
 export default function BazaarPage() {
   const t = useTranslations("pages.bazaar");
   const user = useSessionStore((state) => state.user);
@@ -520,32 +574,36 @@ export default function BazaarPage() {
   const isManager = myMess?.current_user_role === "MANAGER";
   const monthQuery = useGetActiveMonth(messId);
   const { data: activeMonth, isLoading: monthLoading } = monthQuery;
-  const historyQuery = useGetBazaarHistory(messId, activeMonth?.id);
-  const { data: history, isLoading: historyLoading } = historyQuery;
-  const [activeTab, setActiveTab] = useState<
-    "pending" | "approved" | "rejected"
-  >("pending");
+  const [activeTab, setActiveTab] = useState<BazaarStatus>("PENDING");
+  // Only the selected tab is fetched, one page at a time.
+  const listQuery = useBazaarSubmissions(messId, activeMonth?.id, activeTab);
+  const {
+    items,
+    counts,
+    isLoading: listLoading,
+    isPlaceholderData: switchingTab,
+  } = listQuery;
 
-  const isLoading = messLoading || monthLoading || historyLoading;
+  const isLoading = messLoading || monthLoading || listLoading;
 
-  const pendingCount = history?.pending.length ?? 0;
-  const approvedCount = history?.approved.length ?? 0;
-  const rejectedCount = history?.rejected.length ?? 0;
+  const pendingCount = counts?.pending ?? 0;
+  const approvedCount = counts?.approved ?? 0;
+  const rejectedCount = counts?.rejected ?? 0;
 
   const tabs = useMemo(
     () => [
       {
-        key: "pending" as const,
+        key: "PENDING" as const,
         label: t("statusPending"),
         count: pendingCount,
       },
       {
-        key: "approved" as const,
+        key: "APPROVED" as const,
         label: t("statusApproved"),
         count: approvedCount,
       },
       {
-        key: "rejected" as const,
+        key: "REJECTED" as const,
         label: t("statusRejected"),
         count: rejectedCount,
       },
@@ -561,7 +619,7 @@ export default function BazaarPage() {
     );
   }
 
-  const pageQueries = [messQuery, monthQuery, historyQuery];
+  const pageQueries = [messQuery, monthQuery, listQuery];
   if (failedQueries(...pageQueries).length > 0) {
     return (
       <QueriesErrorState queries={pageQueries} resource="bazaar submissions" />
@@ -588,17 +646,10 @@ export default function BazaarPage() {
     );
   }
 
-  const currentList =
-    activeTab === "pending"
-      ? (history?.pending ?? [])
-      : activeTab === "approved"
-        ? (history?.approved ?? [])
-        : (history?.rejected ?? []);
-
   const emptyMessage =
-    activeTab === "pending"
+    activeTab === "PENDING"
       ? t("noPendingBazaarSubmissions")
-      : activeTab === "approved"
+      : activeTab === "APPROVED"
         ? t("noApprovedBazaarSubmissions")
         : t("noRejectedBazaarSubmissions");
 
@@ -650,7 +701,14 @@ export default function BazaarPage() {
         })}
       </div>
 
-      {currentList.length === 0 ? (
+      {switchingTab ? (
+        // The newly selected tab's first page is still loading; the data on
+        // screen still belongs to the previous tab. (A failed load drops the
+        // placeholder and falls through to the page-level error state.)
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        </div>
+      ) : items.length === 0 ? (
         <div className="rounded-2xl border border-border bg-surface p-8 text-center">
           <ShoppingCart
             size={32}
@@ -659,18 +717,27 @@ export default function BazaarPage() {
           <p className="text-sm text-foreground-muted">{emptyMessage}</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {currentList.map((submission) => (
-            <BazaarCard
-              key={submission.id}
-              submission={submission}
-              messId={messId!}
-              monthId={activeMonth.id}
-              isManager={isManager}
-              currentUserId={user?.id ?? ""}
+        <>
+          <div className="space-y-3">
+            {items.map((submission) => (
+              <BazaarCard
+                key={submission.id}
+                submission={submission}
+                messId={messId!}
+                monthId={activeMonth.id}
+                isManager={isManager}
+                currentUserId={user?.id ?? ""}
+              />
+            ))}
+          </div>
+          {listQuery.hasNextPage && (
+            <LoadMore
+              onLoadMore={() => listQuery.fetchNextPage()}
+              isLoading={listQuery.isFetchingNextPage}
+              failed={listQuery.isFetchNextPageError}
             />
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );
