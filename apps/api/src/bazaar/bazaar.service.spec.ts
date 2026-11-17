@@ -206,4 +206,41 @@ describe('BazaarService', () => {
       });
     });
   });
+
+  describe('getBazaarHistory (Reports "Load more")', () => {
+    it('pages by purchase date, approved by default, with status counts', async () => {
+      prismaMock.bazaar_submissions.findMany.mockResolvedValue([
+        submissionRow({ id: '11111111-1111-4111-8111-111111111111' }),
+      ]);
+      prismaMock.bazaar_submissions.groupBy.mockResolvedValue([
+        {
+          status: 'APPROVED',
+          _count: { _all: 3 },
+          _sum: { total_amount: 2450 },
+        },
+        { status: 'PENDING', _count: { _all: 1 }, _sum: { total_amount: 300 } },
+      ]);
+
+      const page = await service.getBazaarHistory(MESS, MONTH, {
+        limit: 8,
+        status: 'APPROVED',
+      });
+
+      expect(prismaMock.bazaar_submissions.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ status: 'APPROVED' }),
+          orderBy: [
+            { expense_date: 'desc' },
+            { created_at: 'desc' },
+            { id: 'desc' },
+          ],
+          take: 9,
+        }),
+      );
+      expect(page.next_cursor).toBeNull();
+      expect(page.total).toBe(3);
+      expect(page.total_amount).toBe(2450);
+      expect(page.counts).toEqual({ pending: 1, approved: 3, rejected: 0 });
+    });
+  });
 });

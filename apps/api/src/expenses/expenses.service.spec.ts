@@ -156,4 +156,76 @@ describe('ExpensesService', () => {
       });
     });
   });
+
+  describe('getExpenseHistory (Reports "Load more")', () => {
+    beforeEach(() => {
+      prismaMock.months.findFirst.mockResolvedValue({ id: MONTH });
+      prismaMock.expenses.groupBy.mockResolvedValue([
+        { type: 'SHARED', _count: { _all: 4 } },
+        { type: 'BAZAAR', _count: { _all: 6 } },
+      ]);
+    });
+
+    it('pages newest first and counts every type for the chips', async () => {
+      prismaMock.expenses.findMany.mockResolvedValue([
+        expenseRow({ id: '11111111-1111-4111-8111-111111111111' }),
+        expenseRow({ id: '22222222-2222-4222-8222-222222222222' }),
+      ]);
+
+      const page = await service.getExpenseHistory(MESS, MONTH, { limit: 1 });
+
+      expect(prismaMock.expenses.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          take: 2,
+          orderBy: [
+            { expense_date: 'desc' },
+            { created_at: 'desc' },
+            { id: 'desc' },
+          ],
+        }),
+      );
+      expect(page.items).toHaveLength(1);
+      expect(page.next_cursor).toEqual(expect.any(String));
+      expect(page.type_counts).toEqual({
+        ALL: 10,
+        SHARED: 4,
+        INDIVIDUAL: 0,
+        BAZAAR: 6,
+      });
+      expect(page.total).toBe(10);
+    });
+
+    it('continues after the cursor and filters by type on the server', async () => {
+      prismaMock.expenses.findMany.mockResolvedValue([]);
+      const first = await service.getExpenseHistory(MESS, MONTH, {
+        limit: 8,
+        type: 'BAZAAR',
+      });
+      expect(first.total).toBe(6);
+
+      const cursor = Buffer.from(
+        JSON.stringify([
+          '2026-11-10T00:00:00.000Z',
+          '2026-11-10T08:00:00.000Z',
+          '11111111-1111-4111-8111-111111111111',
+        ]),
+      ).toString('base64url');
+      await service.getExpenseHistory(MESS, MONTH, {
+        limit: 8,
+        type: 'BAZAAR',
+        cursor,
+      });
+      const where = (
+        prismaMock.expenses.findMany.mock.calls[1][0] as {
+          where: { AND: unknown[] };
+        }
+      ).where;
+      expect(where.AND[0]).toEqual({
+        mess_id: MESS,
+        month_id: MONTH,
+        type: 'BAZAAR',
+      });
+      expect(where.AND[1]).toHaveProperty('OR');
+    });
+  });
 });

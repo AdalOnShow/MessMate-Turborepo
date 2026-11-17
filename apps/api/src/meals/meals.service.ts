@@ -1,4 +1,4 @@
-import { ErrorCode } from '@repo/shared';
+import { ErrorCode, ValidationMessage } from '@repo/shared';
 import {
   BadRequestException,
   ForbiddenException,
@@ -9,12 +9,30 @@ import {
 import { Prisma, prisma } from '@repo/database';
 import type {
   BulkMealEntriesDto,
+  MealDaysPage,
+  MealDaysQuery,
   MealEntryWithMember,
   DailyMealReport,
   MemberMealReport,
   MonthMealSummary,
 } from '@repo/shared';
 import { entryKey, prepareMealEntries } from './meal-entries';
+
+/** Cursor for meal days: the last day shown (days are unique per page). */
+function encodeDayCursor(date: Date): string {
+  return Buffer.from(date.toISOString()).toString('base64url');
+}
+
+function decodeDayCursor(cursor: string): Date {
+  const date = new Date(Buffer.from(cursor, 'base64url').toString('utf8'));
+  if (Number.isNaN(date.getTime())) {
+    throw new BadRequestException({
+      message: 'Validation failed',
+      details: { cursor: ValidationMessage.CURSOR_INVALID },
+    });
+  }
+  return date;
+}
 
 @Injectable()
 export class MealsService {
@@ -215,6 +233,66 @@ export class MealsService {
     );
 
     return results;
+  }
+
+  /**
+   * One "Load more" page of the meal grid for Reports: days that have meals,
+   * newest first, with meals per member. Membership is checked by
+   * MembershipGuard; the month must belong to the mess.
+   */
+  async getMealDays(
+    messId: string,
+    monthId: string,
+    query: MealDaysQuery,
+  ): Promise<MealDaysPage> {
+    const where = {
+      month_id: monthId,
+      month: { mess_id: messId },
+      deleted_at: null,
+      total_meal: { gt: 0 },
+    };
+    const before = query.cursor ? decodeDayCursor(query.cursor) : null;
+
+    const [dayRows, allDays] = await Promise.all([
+      prisma.meal_entries.groupBy({
+        by: ['date'],
+        where: before ? { ...where, date: { lt: before } } : where,
+        _sum: { total_meal: true },
+        orderBy: { date: 'desc' },
+        take: query.limit + 1,
+      }),
+      // A month has at most ~31 days, so counting them this way is cheap.
+      prisma.meal_entries.groupBy({ by: ['date'], where }),
+    ]);
+
+    const hasMore = dayRows.length > query.limit;
+    const pageDays = hasMore ? dayRows.slice(0, query.limit) : dayRows;
+    const last = pageDays[pageDays.length - 1];
+
+    const entries = pageDays.length
+      ? await prisma.meal_entries.findMany({
+          where: { ...where, date: { in: pageDays.map((d) => d.date) } },
+          select: { date: true, member_id: true, total_meal: true },
+        })
+      : [];
+
+    const byDay = new Map<string, Record<string, number>>();
+    for (const e of entries) {
+      const key = e.date.toISOString();
+      const row = byDay.get(key) ?? {};
+      row[e.member_id] = (row[e.member_id] ?? 0) + Number(e.total_meal);
+      byDay.set(key, row);
+    }
+
+    return {
+      days: pageDays.map((d) => ({
+        date: d.date.toISOString(),
+        total: Number(d._sum.total_meal ?? 0),
+        by_member: byDay.get(d.date.toISOString()) ?? {},
+      })),
+      next_cursor: hasMore && last ? encodeDayCursor(last.date) : null,
+      total_days: allDays.length,
+    };
   }
 
   async getMealEntries(

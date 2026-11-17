@@ -8,8 +8,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, prisma } from '@repo/database';
+import {
+  afterKey,
+  decodeKeysetCursor,
+  newestFirst,
+  toPage,
+} from '../common/pagination/keyset';
 import type {
   CreateDepositDto,
+  DepositHistoryPage,
+  DepositHistoryQuery,
   DepositListResponse,
   DepositMemberSummary,
   DepositSummaryResponse,
@@ -214,6 +222,75 @@ export class DepositsService {
       items,
       total,
       count: items.length,
+    };
+  }
+
+  /**
+   * One "Load more" page of the month's deposits for Reports, newest first,
+   * optionally of one member. Membership is checked by MembershipGuard.
+   */
+  async getDepositHistory(
+    messId: string,
+    monthId: string,
+    query: DepositHistoryQuery,
+  ): Promise<DepositHistoryPage> {
+    await this.findActiveMonth(messId, monthId);
+
+    const base = { mess_id: messId, month_id: monthId, deleted_at: null };
+    const filtered = query.memberId
+      ? { ...base, member_id: query.memberId }
+      : base;
+    const after = query.cursor ? decodeKeysetCursor(query.cursor) : null;
+
+    const [rows, byMember] = await Promise.all([
+      prisma.deposits.findMany({
+        where: after
+          ? { AND: [filtered, afterKey('deposit_date', after)] }
+          : filtered,
+        include: depositInclude,
+        orderBy: newestFirst('deposit_date'),
+        take: query.limit + 1,
+      }),
+      prisma.deposits.groupBy({
+        by: ['member_id'],
+        where: base,
+        _count: { _all: true },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const members = await prisma.mess_members.findMany({
+      where: { id: { in: byMember.map((g) => g.member_id) } },
+      select: { id: true, user: { select: { name: true } } },
+    });
+    const nameOf = new Map(members.map((m) => [m.id, m.user.name]));
+
+    const money = (n: unknown) => Math.round(Number(n ?? 0) * 100) / 100;
+    const selected = query.memberId
+      ? byMember.filter((g) => g.member_id === query.memberId)
+      : byMember;
+
+    const page = toPage(rows, query.limit, (r) => ({
+      date: r.deposit_date,
+      createdAt: r.created_at,
+      id: r.id,
+    }));
+
+    return {
+      items: page.rows.map(toDepositWithRelations),
+      next_cursor: page.nextCursor,
+      total: selected.reduce((n, g) => n + g._count._all, 0),
+      total_amount: money(
+        selected.reduce((sum, g) => sum + Number(g._sum.amount ?? 0), 0),
+      ),
+      all_count: byMember.reduce((n, g) => n + g._count._all, 0),
+      member_counts: byMember
+        .map((g) => ({
+          member_id: g.member_id,
+          name: nameOf.get(g.member_id) ?? '',
+          count: g._count._all,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
     };
   }
 

@@ -8,8 +8,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, prisma } from '@repo/database';
+import {
+  afterKey,
+  decodeKeysetCursor,
+  newestFirst,
+  toPage,
+} from '../common/pagination/keyset';
 import type {
   CreateExpenseDto,
+  ExpenseHistoryPage,
+  ExpenseHistoryQuery,
   ExpenseListResponse,
   ExpenseMemberSummary,
   ExpenseSummaryResponse,
@@ -287,6 +295,57 @@ export class ExpensesService {
     );
 
     return { items, summary };
+  }
+
+  /**
+   * One "Load more" page of the month's expenses for Reports, newest first,
+   * optionally of one type. Membership is checked by MembershipGuard.
+   */
+  async getExpenseHistory(
+    messId: string,
+    monthId: string,
+    query: ExpenseHistoryQuery,
+  ): Promise<ExpenseHistoryPage> {
+    await this.findActiveMonth(messId, monthId);
+
+    const base = { mess_id: messId, month_id: monthId };
+    const filtered = query.type ? { ...base, type: query.type } : base;
+    const after = query.cursor ? decodeKeysetCursor(query.cursor) : null;
+
+    const [rows, byType] = await Promise.all([
+      prisma.expenses.findMany({
+        where: after
+          ? { AND: [filtered, afterKey('expense_date', after)] }
+          : filtered,
+        include: expenseInclude,
+        orderBy: newestFirst('expense_date'),
+        take: query.limit + 1,
+      }),
+      prisma.expenses.groupBy({
+        by: ['type'],
+        where: base,
+        _count: { _all: true },
+      }),
+    ]);
+
+    const type_counts = { ALL: 0, SHARED: 0, INDIVIDUAL: 0, BAZAAR: 0 };
+    for (const g of byType) {
+      type_counts[g.type] = g._count._all;
+      type_counts.ALL += g._count._all;
+    }
+
+    const page = toPage(rows, query.limit, (r) => ({
+      date: r.expense_date,
+      createdAt: r.created_at,
+      id: r.id,
+    }));
+
+    return {
+      items: page.rows.map(toExpenseWithRelations),
+      next_cursor: page.nextCursor,
+      total: query.type ? type_counts[query.type] : type_counts.ALL,
+      type_counts,
+    };
   }
 
   async getExpenseSummary(

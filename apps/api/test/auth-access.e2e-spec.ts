@@ -21,6 +21,10 @@ import { ErrorCode } from '@repo/shared';
 import { prismaMock, resetPrismaMock } from './prisma-mock';
 import { AuthModule } from '../src/auth/auth.module';
 import { MonthsModule } from '../src/months/months.module';
+import { MealsModule } from '../src/meals/meals.module';
+import { ExpensesModule } from '../src/expenses/expenses.module';
+import { DepositsModule } from '../src/deposits/deposits.module';
+import { BazaarModule } from '../src/bazaar/bazaar.module';
 import { InvitesModule } from '../src/invites/invites.module';
 import { MessesModule } from '../src/messes/messes.module';
 import { UsersModule } from '../src/users/users.module';
@@ -116,6 +120,10 @@ describe('Authentication & authorization (HTTP)', () => {
         MessesModule,
         InvitesModule,
         MonthsModule,
+        MealsModule,
+        ExpensesModule,
+        DepositsModule,
+        BazaarModule,
       ],
     }).compile();
 
@@ -224,6 +232,21 @@ describe('Authentication & authorization (HTTP)', () => {
 
     it('403 when a manager of mess A reads mess B', () =>
       http().get(`/messes/${MESS_B}/members`).set(as(ALICE)).expect(403));
+
+    it.each([
+      'meals/days',
+      'expenses/history',
+      'deposits/history',
+      'bazaar/history',
+    ])('403 for report pages of a mess you are not in (%s)', async (path) => {
+      const [resource, page] = path.split('/');
+      const MONTH = '99999999-9999-4999-8999-999999999999';
+      const res = await http()
+        .get(`/${resource}/${MESS_A}/${MONTH}/${page}`)
+        .set(as(CAROL))
+        .expect(403);
+      expect(res.body.code).toBe(ErrorCode.NOT_MESS_MEMBER);
+    });
   });
 
   describe('manager-only member management (RolesGuard)', () => {

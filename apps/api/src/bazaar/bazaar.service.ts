@@ -8,7 +8,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, prisma } from '@repo/database';
+import {
+  afterKey,
+  decodeKeysetCursor,
+  newestFirst,
+  toPage,
+} from '../common/pagination/keyset';
 import type {
+  BazaarHistoryPage,
+  BazaarHistoryQuery,
   BazaarItem,
   BazaarSubmissionWithRelations,
   BazaarStatusCounts,
@@ -568,6 +576,64 @@ export class BazaarService {
       items: page.map(toSubmissionWithRelations),
       next_cursor: hasMore && last ? encodeCursor(last) : null,
       counts,
+    };
+  }
+
+  /**
+   * One "Load more" page for Reports: bazaar in one status, newest purchase
+   * date first, with who bought it. Membership is checked by
+   * MembershipGuard.
+   */
+  async getBazaarHistory(
+    messId: string,
+    monthId: string,
+    query: BazaarHistoryQuery,
+  ): Promise<BazaarHistoryPage> {
+    const base = {
+      mess_id: messId,
+      month_id: monthId,
+      deleted_at: null,
+    } satisfies Prisma.bazaar_submissionsWhereInput;
+    const filtered = { ...base, status: query.status };
+    const after = query.cursor ? decodeKeysetCursor(query.cursor) : null;
+
+    const [rows, grouped] = await Promise.all([
+      prisma.bazaar_submissions.findMany({
+        where: after
+          ? { AND: [filtered, afterKey('expense_date', after)] }
+          : filtered,
+        include: submissionInclude,
+        orderBy: newestFirst('expense_date'),
+        take: query.limit + 1,
+      }),
+      prisma.bazaar_submissions.groupBy({
+        by: ['status'],
+        where: base,
+        _count: { _all: true },
+        _sum: { total_amount: true },
+      }),
+    ]);
+
+    const group = (s: BazaarHistoryQuery['status']) =>
+      grouped.find((g) => g.status === s);
+    const page = toPage(rows, query.limit, (r) => ({
+      date: r.expense_date,
+      createdAt: r.created_at,
+      id: r.id,
+    }));
+    const selected = group(query.status);
+
+    return {
+      items: page.rows.map(toSubmissionWithRelations),
+      next_cursor: page.nextCursor,
+      total: selected?._count._all ?? 0,
+      total_amount:
+        Math.round(Number(selected?._sum.total_amount ?? 0) * 100) / 100,
+      counts: {
+        pending: group('PENDING')?._count._all ?? 0,
+        approved: group('APPROVED')?._count._all ?? 0,
+        rejected: group('REJECTED')?._count._all ?? 0,
+      },
     };
   }
 }

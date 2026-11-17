@@ -14,3 +14,4 @@ export * from "./api-response/api-response";
 export * from "./api-response/error-codes";
 export * from "./validation/messages";
 export * from "./validation/password";
+export * from "./reports/report-pages";

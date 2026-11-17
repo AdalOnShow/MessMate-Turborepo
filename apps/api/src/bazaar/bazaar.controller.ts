@@ -21,6 +21,8 @@ import {
   updateBazaarSchema,
   type BazaarSubmissionWithRelations,
   type BazaarSubmissionPage,
+  bazaarHistoryQuerySchema,
+  type BazaarHistoryPage,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
 import { MembershipGuard } from '../auth/guards/membership.guard';
@@ -88,6 +90,42 @@ export class BazaarController {
       message: 'Bazaar submitted successfully',
       data,
     };
+  }
+
+  /** One "Load more" page for the Reports screen. */
+  @Get(':messId/:monthId/history')
+  @UseGuards(MembershipGuard)
+  async getBazaarHistory(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('monthId') monthId: string,
+    @Query() query: unknown,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: BazaarHistoryPage;
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(monthId, 'monthId');
+
+    const parsed = bazaarHistoryQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
+
+    this.logger.log(
+      `📄 GET /bazaar/${messId}/${monthId}/history - user: ${req.user!.id}`,
+    );
+
+    const data = await this.bazaarService.getBazaarHistory(
+      messId,
+      monthId,
+      parsed.data,
+    );
+    return { success: true, message: 'Request completed successfully', data };
   }
 
   @Get(':messId/:monthId')

@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -20,6 +21,8 @@ import {
   type ExpenseListResponse,
   type ExpenseSummaryResponse,
   type ExpenseWithRelations,
+  expenseHistoryQuerySchema,
+  type ExpenseHistoryPage,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
 import { MembershipGuard } from '../auth/guards/membership.guard';
@@ -74,6 +77,42 @@ export class ExpensesController {
       actorId,
     );
     return { success: true, message: 'Expenses fetched', data };
+  }
+
+  /** One "Load more" page for the Reports screen. */
+  @Get(':messId/:monthId/history')
+  @UseGuards(MembershipGuard)
+  async getExpenseHistory(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('monthId') monthId: string,
+    @Query() query: unknown,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: ExpenseHistoryPage;
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(monthId, 'monthId');
+
+    const parsed = expenseHistoryQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
+
+    this.logger.log(
+      `📄 GET /expenses/${messId}/${monthId}/history - actor: ${req.user!.id}`,
+    );
+
+    const data = await this.expensesService.getExpenseHistory(
+      messId,
+      monthId,
+      parsed.data,
+    );
+    return { success: true, message: 'Request completed successfully', data };
   }
 
   @Get(':messId/:monthId/summary')

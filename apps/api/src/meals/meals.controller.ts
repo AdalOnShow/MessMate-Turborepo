@@ -19,6 +19,8 @@ import {
   type DailyMealReport,
   type MemberMealReport,
   type MonthMealSummary,
+  mealDaysQuerySchema,
+  type MealDaysPage,
 } from '@repo/shared';
 import { AuthUser } from '../auth/auth.service';
 import { MembershipGuard } from '../auth/guards/membership.guard';
@@ -238,6 +240,42 @@ export class MealsController {
       message: 'Request completed successfully',
       data,
     };
+  }
+
+  /** One "Load more" page for the Reports screen. */
+  @Get(':messId/:monthId/days')
+  @UseGuards(MembershipGuard)
+  async getMealDays(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('monthId') monthId: string,
+    @Query() query: unknown,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: MealDaysPage;
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(monthId, 'monthId');
+
+    const parsed = mealDaysQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
+
+    this.logger.log(
+      `📄 GET /meals/${messId}/${monthId}/days - actor: ${req.user!.id}`,
+    );
+
+    const data = await this.mealsService.getMealDays(
+      messId,
+      monthId,
+      parsed.data,
+    );
+    return { success: true, message: 'Request completed successfully', data };
   }
 
   @Get(':messId/:monthId/summary')

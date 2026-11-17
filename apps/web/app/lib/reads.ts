@@ -2,7 +2,13 @@
 // app/api/[...path]/route.ts) so they load in parallel; server actions
 // would queue them one after another. Writes stay in app/actions.
 
-import type { MonthClosePreviewResponse } from "@repo/shared";
+import type {
+  BazaarHistoryPage,
+  DepositHistoryPage,
+  ExpenseHistoryPage,
+  MealDaysPage,
+  MonthClosePreviewResponse,
+} from "@repo/shared";
 import { apiGet } from "./api-read";
 import type { BazaarPageInfo, BazaarStatus } from "../actions/bazaar";
 import type {
@@ -143,4 +149,56 @@ export function getMonthSummary(messId: string, monthId: string) {
 
 export function getProfile() {
   return apiGet<ProfileUser>("/users/me");
+}
+
+// Reports "Load more" pages (server-side, cursor based).
+
+function pageQuery(params: Record<string, string | undefined>) {
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v) q.set(k, v);
+  const str = q.toString();
+  return str ? `?${str}` : "";
+}
+
+export function getMealDaysPage(
+  messId: string,
+  monthId: string,
+  cursor?: string,
+) {
+  return apiGet<MealDaysPage>(
+    `/meals/${messId}/${monthId}/days${pageQuery({ cursor })}`,
+  );
+}
+
+export function getExpenseHistoryPage(
+  messId: string,
+  monthId: string,
+  type?: string,
+  cursor?: string,
+) {
+  return apiGet<ExpenseHistoryPage>(
+    `/expenses/${messId}/${monthId}/history${pageQuery({ type, cursor })}`,
+  );
+}
+
+export function getDepositHistoryPage(
+  messId: string,
+  monthId: string,
+  memberId?: string,
+  cursor?: string,
+) {
+  return apiGet<DepositHistoryPage>(
+    `/deposits/${messId}/${monthId}/history${pageQuery({ memberId, cursor })}`,
+  );
+}
+
+export function getBazaarHistoryPage(
+  messId: string,
+  monthId: string,
+  status: string,
+  cursor?: string,
+) {
+  return apiGet<BazaarHistoryPage>(
+    `/bazaar/${messId}/${monthId}/history${pageQuery({ status, cursor })}`,
+  );
 }

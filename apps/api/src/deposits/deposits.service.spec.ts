@@ -162,4 +162,60 @@ describe('DepositsService', () => {
       });
     });
   });
+
+  describe('getDepositHistory (Reports "Load more")', () => {
+    beforeEach(() => {
+      prismaMock.months.findFirst.mockResolvedValue({ id: MONTH });
+      prismaMock.deposits.groupBy.mockResolvedValue([
+        { member_id: 'member-1', _count: { _all: 3 }, _sum: { amount: 1500 } },
+        { member_id: 'member-2', _count: { _all: 2 }, _sum: { amount: 700 } },
+      ]);
+      prismaMock.mess_members.findMany.mockResolvedValue([
+        { id: 'member-1', user: { name: 'Rahim' } },
+        { id: 'member-2', user: { name: 'Karim' } },
+      ]);
+    });
+
+    it('fetches one extra row to know if there is a next page', async () => {
+      prismaMock.deposits.findMany.mockResolvedValue([
+        depositRow({ id: '11111111-1111-4111-8111-111111111111' }),
+        depositRow({ id: '22222222-2222-4222-8222-222222222222' }),
+        depositRow({ id: '33333333-3333-4333-8333-333333333333' }),
+      ]);
+
+      const page = await service.getDepositHistory(MESS, MONTH, { limit: 2 });
+
+      expect(prismaMock.deposits.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 3 }),
+      );
+      expect(page.items).toHaveLength(2);
+      expect(page.next_cursor).toEqual(expect.any(String));
+      expect(page.total).toBe(5);
+      expect(page.total_amount).toBe(2200);
+      expect(page.member_counts.map((m) => [m.name, m.count])).toEqual([
+        ['Karim', 2],
+        ['Rahim', 3],
+      ]);
+    });
+
+    it('filters by member on the server, and the totals follow the filter', async () => {
+      prismaMock.deposits.findMany.mockResolvedValue([depositRow()]);
+
+      const page = await service.getDepositHistory(MESS, MONTH, {
+        limit: 8,
+        memberId: 'member-2',
+      });
+
+      expect(prismaMock.deposits.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ member_id: 'member-2' }),
+        }),
+      );
+      expect(page.next_cursor).toBeNull();
+      expect(page.total).toBe(2);
+      expect(page.total_amount).toBe(700);
+      // Chip counts stay for everyone, whatever the filter.
+      expect(page.all_count).toBe(5);
+    });
+  });
 });
