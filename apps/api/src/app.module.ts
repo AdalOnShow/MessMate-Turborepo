@@ -5,12 +5,14 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { BazaarModule } from './bazaar/bazaar.module';
+import { CacheInvalidationInterceptor } from './common/cache/cache-invalidation.interceptor';
+import { CacheModule } from './common/cache/cache.module';
 import { ApiResponseMiddleware } from './common/api-response/api-response.middleware';
 import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
 import { RequestIdMiddleware } from './common/request-id/request-id.middleware';
@@ -37,6 +39,7 @@ import { UsersModule } from './users/users.module';
         limit: 120,
       },
     ]),
+    CacheModule,
     AuthModule,
     UsersModule,
     MessesModule,
@@ -53,6 +56,10 @@ import { UsersModule } from './users/users.module';
     {
       provide: APP_GUARD,
       useClass: AppThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInvalidationInterceptor,
     },
   ],
 })

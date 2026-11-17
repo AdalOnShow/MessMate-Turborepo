@@ -18,6 +18,7 @@ import {
   roundMoney,
   type SummaryInputs,
 } from './month-summary';
+import { CacheService } from '../common/cache/cache.service';
 
 type CarryForwardSource = { member_id: string; final_balance: number };
 
@@ -25,7 +26,15 @@ type CarryForwardSource = { member_id: string; final_balance: number };
 export class MonthsService {
   private readonly logger = new Logger(MonthsService.name);
 
-  async getActiveMonth(messId: string): Promise<MonthResponse | null> {
+  constructor(private readonly cache: CacheService = new CacheService()) {}
+
+  getActiveMonth(messId: string): Promise<MonthResponse | null> {
+    return this.cache.remember(messId, 'live', 'active-month', () =>
+      this.loadActiveMonth(messId),
+    );
+  }
+
+  private async loadActiveMonth(messId: string): Promise<MonthResponse | null> {
     const month = await prisma.months.findFirst({
       where: {
         mess_id: messId,
@@ -405,7 +414,13 @@ export class MonthsService {
     return `${baseTitle} (${n})`;
   }
 
-  async getMonthHistory(messId: string): Promise<MonthResponse[]> {
+  getMonthHistory(messId: string): Promise<MonthResponse[]> {
+    return this.cache.remember(messId, 'live', 'month-history', () =>
+      this.loadMonthHistory(messId),
+    );
+  }
+
+  private async loadMonthHistory(messId: string): Promise<MonthResponse[]> {
     const months = await prisma.months.findMany({
       where: {
         mess_id: messId,
@@ -417,7 +432,26 @@ export class MonthsService {
     return months.map((m) => this.mapMonthResponse(m));
   }
 
-  async getMonthSummary(
+  /**
+   * A closed month's report never changes, so it is cached for days (only
+   * renamed or removed members clear it); an active month's report is
+   * cleared by the next write.
+   */
+  getMonthSummary(
+    messId: string,
+    monthId: string,
+  ): Promise<MonthSummaryResponse> {
+    return this.cache.rememberMonth(
+      messId,
+      `month-summary:${monthId}`,
+      async () => {
+        const value = await this.loadMonthSummary(messId, monthId);
+        return { value, closed: value.month.month_status !== 'ACTIVE' };
+      },
+    );
+  }
+
+  private async loadMonthSummary(
     messId: string,
     monthId: string,
   ): Promise<MonthSummaryResponse> {

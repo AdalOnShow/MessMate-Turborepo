@@ -34,6 +34,7 @@
     "@vendia/serverless-express": "^4.12.6",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.10.0",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
     "passport": "^0.7.0",

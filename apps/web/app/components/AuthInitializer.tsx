@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSessionStore } from "../store";
-import { getCurrentUser } from "../actions/auth";
+import { ErrorCode } from "@repo/shared";
+import { getCurrentUser, type ProfileUser } from "../actions/auth";
+import { apiGet } from "../lib/api-read";
 import { AppSplash } from "./feedback/AppSplash";
 import {
   clearOfflineData,
@@ -12,6 +14,22 @@ import {
   restoreQueries,
   saveCachedUser,
 } from "../lib/offline-cache";
+
+/**
+ * Asks the API who is signed in with a plain GET, so it loads in parallel
+ * with the page's other reads instead of waiting in Next.js's one-at-a-time
+ * server action queue. Only when that fails for a reason other than an
+ * expired session does it fall back to the server action, which can still
+ * read the user from the token while the API is unreachable.
+ */
+async function fetchCurrentUser(): Promise<ProfileUser | null> {
+  const result = await apiGet<ProfileUser>("/users/me");
+  if (result.ok) return result.data;
+  if (result.code === ErrorCode.SESSION_EXPIRED || result.status === 401) {
+    return null;
+  }
+  return getCurrentUser();
+}
 
 /**
  * Establishes the session. When this device has a saved user, the app
@@ -35,7 +53,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
       setInitialized(true);
     }
 
-    getCurrentUser()
+    fetchCurrentUser()
       .then((user) => {
         if (!mounted) return;
         if (user) {
@@ -45,6 +63,8 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
             clearOfflineData();
           }
           saveCachedUser(user);
+          // Same data as the profile query: saves a second /users/me call.
+          queryClient.setQueryData(["profile"], user);
           setSession(user);
         } else {
           clearOfflineData();

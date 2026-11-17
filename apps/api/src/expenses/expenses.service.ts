@@ -24,6 +24,7 @@ import type {
   ExpenseWithRelations,
   UpdateExpenseDto,
 } from '@repo/shared';
+import { CacheService } from '../common/cache/cache.service';
 
 const userSelect = {
   id: true,
@@ -103,6 +104,8 @@ function computeSharedSplit(amount: number, memberCount: number): number[] {
 
 @Injectable()
 export class ExpensesService {
+  constructor(private readonly cache: CacheService = new CacheService()) {}
+
   private readonly logger = new Logger(ExpensesService.name);
 
   private async requireManager(messId: string, actorId: string) {
@@ -369,6 +372,18 @@ export class ExpensesService {
       });
     }
 
+    return this.cache.remember(
+      messId,
+      'live',
+      `expense-summary:${monthId}`,
+      () => this.loadExpenseSummary(messId, monthId),
+    );
+  }
+
+  private async loadExpenseSummary(
+    messId: string,
+    monthId: string,
+  ): Promise<ExpenseSummaryResponse> {
     await this.findActiveMonth(messId, monthId);
 
     const rows = await prisma.expenses.findMany({

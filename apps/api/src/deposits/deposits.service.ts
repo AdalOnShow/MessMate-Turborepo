@@ -24,6 +24,7 @@ import type {
   DepositWithRelations,
   UpdateDepositDto,
 } from '@repo/shared';
+import { CacheService } from '../common/cache/cache.service';
 
 const userSelect = {
   id: true,
@@ -80,6 +81,8 @@ function toDepositWithRelations(row: DepositRow): DepositWithRelations {
 
 @Injectable()
 export class DepositsService {
+  constructor(private readonly cache: CacheService = new CacheService()) {}
+
   private readonly logger = new Logger(DepositsService.name);
 
   private async requireManager(messId: string, actorId: string) {
@@ -315,6 +318,18 @@ export class DepositsService {
       });
     }
 
+    return this.cache.remember(
+      messId,
+      'live',
+      `deposit-summary:${monthId}`,
+      () => this.loadDepositSummary(messId, monthId),
+    );
+  }
+
+  private async loadDepositSummary(
+    messId: string,
+    monthId: string,
+  ): Promise<DepositSummaryResponse> {
     await this.findActiveMonth(messId, monthId);
 
     const rows = await prisma.deposits.findMany({

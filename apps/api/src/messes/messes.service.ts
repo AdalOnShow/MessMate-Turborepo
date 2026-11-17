@@ -23,6 +23,7 @@ import type {
   MessMemberWithUser,
 } from '@repo/shared';
 import { computeMemberSummaries, roundMoney } from '../months/month-summary';
+import { CacheService } from '../common/cache/cache.service';
 
 export type MessWithMembership = {
   id: string;
@@ -37,6 +38,8 @@ export type MessWithMembership = {
 
 @Injectable()
 export class MessesService {
+  constructor(private readonly cache: CacheService = new CacheService()) {}
+
   private readonly logger = new Logger(MessesService.name);
 
   async createMess(
@@ -240,7 +243,16 @@ export class MessesService {
     }));
   }
 
-  async getMemberCalculations(messId: string): Promise<MemberCalculationList> {
+  /** Balances of the active month. Cached until the next write to the mess. */
+  getMemberCalculations(messId: string): Promise<MemberCalculationList> {
+    return this.cache.remember(messId, 'live', 'calculations', () =>
+      this.computeMemberCalculations(messId),
+    );
+  }
+
+  private async computeMemberCalculations(
+    messId: string,
+  ): Promise<MemberCalculationList> {
     const month = await prisma.months.findFirst({
       where: {
         mess_id: messId,
@@ -405,9 +417,15 @@ export class MessesService {
     };
   }
 
-  async getRecentActivities(
+  getRecentActivities(messId: string, limit = 10): Promise<ActivityLog[]> {
+    return this.cache.remember(messId, 'live', `activities:${limit}`, () =>
+      this.loadRecentActivities(messId, limit),
+    );
+  }
+
+  private async loadRecentActivities(
     messId: string,
-    limit = 10,
+    limit: number,
   ): Promise<ActivityLog[]> {
     const logs = await prisma.activity_logs.findMany({
       where: { mess_id: messId },

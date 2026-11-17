@@ -16,6 +16,7 @@ import type {
   MemberMealReport,
   MonthMealSummary,
 } from '@repo/shared';
+import { CacheService } from '../common/cache/cache.service';
 import { entryKey, prepareMealEntries } from './meal-entries';
 
 /** Cursor for meal days: the last day shown (days are unique per page). */
@@ -37,6 +38,8 @@ function decodeDayCursor(cursor: string): Date {
 @Injectable()
 export class MealsService {
   private readonly logger = new Logger(MealsService.name);
+
+  constructor(private readonly cache: CacheService = new CacheService()) {}
 
   async bulkSaveMealEntries(
     messId: string,
@@ -560,10 +563,19 @@ export class MealsService {
     };
   }
 
-  async getMonthMealSummary(
+  getMonthMealSummary(
     messId: string,
     monthId: string,
   ): Promise<MonthMealSummary> {
+    return this.cache.rememberMonth(messId, `meal-summary:${monthId}`, () =>
+      this.loadMonthMealSummary(messId, monthId),
+    );
+  }
+
+  private async loadMonthMealSummary(
+    messId: string,
+    monthId: string,
+  ): Promise<{ value: MonthMealSummary; closed: boolean }> {
     const month = await prisma.months.findFirst({
       where: { id: monthId, mess_id: messId, deleted_at: null },
     });
@@ -646,7 +658,7 @@ export class MealsService {
       }
     }
 
-    return {
+    const value: MonthMealSummary = {
       month_id: monthId,
       title: month.title,
       total_entries: entries.length,
@@ -657,5 +669,7 @@ export class MealsService {
       meal_type_totals: mealTypeTotals,
       active_days: activeDays.size,
     };
+
+    return { value, closed: month.month_status !== 'ACTIVE' };
   }
 }

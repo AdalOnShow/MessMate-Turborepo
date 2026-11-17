@@ -13,16 +13,18 @@ const inter = Inter({
   display: "swap",
 });
 
+// Variable fonts: one file covers every weight, instead of one per weight.
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   variable: "--font-jetbrains",
   display: "swap",
 });
 
+// Not preloaded: English pages never use it, and its unicode-range makes
+// the browser fetch it only when Bengali text is on screen.
 const notoBengali = Noto_Sans_Bengali({
   subsets: ["bengali"],
-  weight: ["400", "500", "600", "700", "800"],
+  preload: false,
   variable: "--font-bangla",
   display: "swap",
 });

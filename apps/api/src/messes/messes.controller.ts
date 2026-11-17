@@ -28,6 +28,7 @@ import { AuthUser } from '../auth/auth.service';
 import { MembershipGuard } from '../auth/guards/membership.guard';
 import { Roles } from '../auth/guards/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { InvalidatesCache } from '../common/cache/cache.decorator';
 import { MessesService } from './messes.service';
 
 type AuthenticatedRequest = Request & {
@@ -234,6 +235,7 @@ export class MessesController {
   }
 
   @Delete(':messId/members/:userId')
+  @InvalidatesCache(['live', 'closed'])
   @UseGuards(RolesGuard)
   @Roles('MANAGER')
   async removeMember(
@@ -261,6 +263,7 @@ export class MessesController {
   }
 
   @Patch(':messId/members/:userId/role')
+  @InvalidatesCache(['live', 'closed'])
   @UseGuards(RolesGuard)
   @Roles('MANAGER')
   async updateMemberRole(
