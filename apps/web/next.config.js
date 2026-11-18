@@ -25,6 +25,11 @@ const securityHeaders = [
 
 const nextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // The app has two root layouts ((public) and (app)); unknown URLs get
+    // app/global-not-found.tsx.
+    globalNotFound: true,
+  },
   async redirects() {
     // The install guide lives at /install; send likely guesses there.
     return [
