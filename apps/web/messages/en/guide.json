@@ -63,7 +63,7 @@
       "title": "Record daily meals",
       "summary": "Pick a day and set how many meals each member had.",
       "steps": [
-        "Open Meals and choose the date (arrows or the calendar).",
+        "Open Meals and choose a past date (arrows or the calendar). Today's meals are saved from tomorrow.",
         "Use + and − for each member and meal type. Half meals (0.5) work too.",
         "Use the “everyone” row to set a meal for all members at once.",
         "Tap Save. You can come back and change any day of the active month."

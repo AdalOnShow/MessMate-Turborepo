@@ -129,7 +129,7 @@
     "value2": "Default per day",
     "nameRequired": "Name is required",
     "nameMustAtMost": "Name must be at most 50 characters",
-    "saveTodaysMeals": "Save today's meals",
+    "saveTodaysMeals": "Save meals",
     "everyone": "Everyone",
     "addForEveryone": "Add half a {meal} for everyone",
     "removeForEveryone": "Remove half a {meal} for everyone",

@@ -63,6 +63,17 @@ function shiftDate(ymd: string, days: number): string {
   return formatDate(new Date(y!, m! - 1, d! + days));
 }
 
+/**
+ * The latest day meals can be saved for: yesterday in Bangladesh. The API
+ * rejects today and later (MEAL_DATE_NOT_PAST), so the picker stops here.
+ */
+function latestMealDate(): string {
+  const todayDhaka = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Dhaka",
+  }).format(new Date());
+  return shiftDate(todayDhaka, -1);
+}
+
 // Every +/− press changes a meal count by half a meal.
 const MEAL_STEP = 0.5;
 
@@ -146,16 +157,17 @@ export default function MealsPage() {
     [mealTypes],
   );
 
-  const [selectedDate, setSelectedDate] = useState(() =>
-    formatDate(new Date()),
-  );
-  // When a month closes and the next one opens, start again from today
-  // instead of keeping a date the user had navigated to in the old month.
+  const [selectedDate, setSelectedDate] = useState(latestMealDate);
+  // When a month closes and the next one opens, start again from the latest
+  // day instead of keeping a date the user had navigated to in the old month.
   const [dateMonthId, setDateMonthId] = useState(monthId);
   if (monthId !== dateMonthId) {
     setDateMonthId(monthId);
-    if (dateMonthId !== undefined) setSelectedDate(formatDate(new Date()));
+    if (dateMonthId !== undefined) setSelectedDate(latestMealDate());
   }
+  // Recomputed each render so a page left open past midnight moves on too.
+  const latestDate = latestMealDate();
+  const atLatest = selectedDate >= latestDate;
 
   const entriesQuery = useGetMealEntries(
     messId,
@@ -403,6 +415,7 @@ export default function MealsPage() {
             <div className="min-w-0 flex-1">
               <DatePicker
                 date={parseDate(selectedDate)}
+                maxDate={parseDate(latestDate)}
                 onSelect={(d) => {
                   if (!d) return;
                   setSelectedDate(formatDate(d));
@@ -417,8 +430,9 @@ export default function MealsPage() {
                 setSelectedDate((d) => shiftDate(d, 1));
                 setLocalGrid({});
               }}
+              disabled={atLatest}
               aria-label="Next day"
-              className="flex size-11 shrink-0 items-center justify-center text-foreground-muted active:text-foreground sm:size-9"
+              className="flex size-11 shrink-0 items-center justify-center text-foreground-muted active:text-foreground disabled:opacity-30 sm:size-9"
             >
               <ChevronRight size={18} />
             </button>

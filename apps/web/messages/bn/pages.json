@@ -129,7 +129,7 @@
     "value2": "দৈনিক ডিফল্ট",
     "nameRequired": "নাম দিতে হবে",
     "nameMustAtMost": "নাম সর্বোচ্চ ৫০ অক্ষরের হতে পারে",
-    "saveTodaysMeals": "আজকের মিল সেভ করুন",
+    "saveTodaysMeals": "মিল সেভ করুন",
     "everyone": "সবাই",
     "addForEveryone": "সবার {meal} আধা বাড়ান",
     "removeForEveryone": "সবার {meal} আধা কমান",

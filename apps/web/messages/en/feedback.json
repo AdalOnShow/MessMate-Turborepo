@@ -83,6 +83,7 @@
       "MEAL_TYPE_LIMIT_REACHED": "A mess can have at most 10 meal types.",
       "MONTH_NOT_FOUND": "This month no longer exists. Refresh the page.",
       "MEAL_ALREADY_SAVED": "Meals for this day are already saved. Edit them from Reports → Meals.",
+      "MEAL_DATE_NOT_PAST": "Meals can only be saved for past days. Save today's meals tomorrow.",
       "MEAL_ENTRY_NOT_FOUND": "This meal entry was already deleted.",
       "EXPENSE_NOT_FOUND": "This expense was already deleted.",
       "DEPOSIT_NOT_FOUND": "This deposit was already deleted.",

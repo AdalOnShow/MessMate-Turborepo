@@ -18,7 +18,8 @@ const ctx = (over: Partial<PrepareContext> = {}): PrepareContext => ({
   ...over,
 });
 
-const day = '2026-11-17T00:00:00.000Z';
+// `now` is 16:00 on Nov 17 in Bangladesh, so Nov 16 is the latest past day.
+const day = '2026-11-16T00:00:00.000Z';
 
 function expectRejected(fn: () => unknown, message: string) {
   try {
@@ -60,10 +61,28 @@ describe('prepareMealEntries', () => {
     );
   });
 
-  it('rejects dates far outside the month', () => {
+  it('rejects dates far before the month', () => {
+    expectRejected(
+      () =>
+        prepareMealEntries(
+          [
+            {
+              memberId: MEMBER,
+              date: '2026-09-01T00:00:00.000Z', // > 31 days before the month started
+              meals: { [LUNCH]: 1 },
+            },
+          ],
+          ctx(),
+        ),
+      'Meal date is too far outside this month',
+    );
+  });
+
+  it('rejects today and upcoming days (Bangladesh time)', () => {
     for (const date of [
-      '2026-09-01T00:00:00.000Z', // > 31 days before the month started
-      '2027-01-30T00:00:00.000Z', // > 31 days after today
+      '2026-11-17T00:00:00.000Z', // today
+      '2026-11-18T00:00:00.000Z', // tomorrow
+      '2027-01-30T00:00:00.000Z',
     ]) {
       expectRejected(
         () =>
@@ -71,9 +90,24 @@ describe('prepareMealEntries', () => {
             [{ memberId: MEMBER, date, meals: { [LUNCH]: 1 } }],
             ctx(),
           ),
-        'Meal date is too far outside this month',
+        'Meals can only be saved for past days',
       );
     }
+  });
+
+  it('uses the Bangladesh date, not the UTC date', () => {
+    // 01:00 on Nov 18 in Dhaka is still Nov 17 in UTC: Nov 17 has ended.
+    const lateNight = ctx({ now: new Date('2026-11-17T19:00:00Z') });
+    const entry = (date: string) => [
+      { memberId: MEMBER, date, meals: { [LUNCH]: 1 } },
+    ];
+    expect(() =>
+      prepareMealEntries(entry('2026-11-17T00:00:00.000Z'), lateNight),
+    ).not.toThrow();
+    expectRejected(
+      () => prepareMealEntries(entry('2026-11-18T00:00:00.000Z'), lateNight),
+      'Meals can only be saved for past days',
+    );
   });
 
   it('allows back-filling a few days before the month started', () => {

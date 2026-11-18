@@ -66,7 +66,7 @@
       "items": {
         "date": {
           "title": "Pick the day",
-          "body": "Use the arrows or the calendar. Any day of the active month can be filled in or changed later."
+          "body": "Use the arrows or the calendar. Meals are saved only for past days, so record today's meals tomorrow."
         },
         "count": {
           "title": "Set the count",

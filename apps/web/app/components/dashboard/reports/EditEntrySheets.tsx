@@ -23,6 +23,7 @@ import {
   type MealEntryInfo,
 } from "../../../hooks/use-meals";
 import { fromDateOnlyISO, toDateOnlyISO } from "../../../lib/format";
+import { cn } from "../../../lib/utils";
 
 const inputClass =
   "w-full rounded-lg border border-border-strong bg-surface px-4 py-2.5 text-base text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none sm:text-sm";
@@ -460,7 +461,11 @@ function MealDayForm({
   };
 
   const stepBtn =
-    "flex size-9 items-center justify-center rounded-lg border border-border-strong text-foreground transition-colors hover:bg-surface-raised disabled:opacity-30";
+    "flex size-8 shrink-0 items-center justify-center rounded-lg border border-border-strong text-foreground transition-colors hover:bg-surface-raised active:scale-95 disabled:opacity-30";
+  // Name column, then one stepper column per meal type.
+  const gridCols = {
+    gridTemplateColumns: `minmax(5.5rem, 1fr) repeat(${types.length}, auto)`,
+  };
 
   return (
     <>
@@ -470,56 +475,78 @@ function MealDayForm({
       {types.length === 0 ? (
         <p className="text-sm text-foreground-muted">{t("noMealTypes")}</p>
       ) : (
-        <ul className="max-h-[55vh] space-y-2 overflow-y-auto">
-          {members.map((m) => (
-            <li
-              key={m.id}
-              className="rounded-xl border border-border bg-surface p-3"
+        // One scroll area (the sheet's); this only scrolls sideways when a
+        // mess has many meal types on a narrow phone.
+        <div className="-mx-1 overflow-x-auto px-1">
+          <div className="min-w-max rounded-xl border border-border">
+            <div
+              style={gridCols}
+              className="grid items-center gap-x-3 rounded-t-xl border-b border-border bg-surface-raised px-3 py-2"
             >
-              <p className="mb-2 truncate text-sm font-semibold text-foreground">
-                {m.user.name}
-              </p>
-              <div className="space-y-2">
-                {types.map((mt) => {
-                  const v = valueOf(m.id, mt.id);
-                  return (
-                    <div
-                      key={mt.id}
-                      className="flex items-center justify-between gap-3"
-                    >
-                      <span className="min-w-0 truncate text-sm text-foreground-muted">
-                        {mt.name}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          className={stepBtn}
-                          disabled={update.isPending || v <= 0}
-                          aria-label={`− ${mt.name}`}
-                          onClick={() => step(m.id, mt.id, -MEAL_STEP)}
+              <span className="text-xs font-medium text-foreground-muted">
+                {t("member")}
+              </span>
+              {types.map((mt) => (
+                <span
+                  key={mt.id}
+                  className="w-[5.75rem] truncate text-center text-xs font-medium text-foreground-muted"
+                >
+                  {mt.name}
+                </span>
+              ))}
+            </div>
+            <ul className="divide-y divide-border">
+              {members.map((m) => {
+                const isChanged = changed.some(([id]) => id === m.id);
+                return (
+                  <li
+                    key={m.id}
+                    style={gridCols}
+                    className={cn(
+                      "grid items-center gap-x-3 px-3 py-2",
+                      isChanged && "bg-primary/5",
+                    )}
+                  >
+                    <span className="min-w-0 truncate text-sm font-medium text-foreground">
+                      {m.user.name}
+                    </span>
+                    {types.map((mt) => {
+                      const v = valueOf(m.id, mt.id);
+                      return (
+                        <div
+                          key={mt.id}
+                          className="flex w-[5.75rem] items-center justify-between"
                         >
-                          <Minus size={14} />
-                        </button>
-                        <span className="w-9 text-center text-sm font-semibold tabular-nums text-foreground">
-                          {fmtMeal(v)}
-                        </span>
-                        <button
-                          type="button"
-                          className={stepBtn}
-                          disabled={update.isPending || v >= 10}
-                          aria-label={`+ ${mt.name}`}
-                          onClick={() => step(m.id, mt.id, MEAL_STEP)}
-                        >
-                          <Plus size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </li>
-          ))}
-        </ul>
+                          <button
+                            type="button"
+                            className={stepBtn}
+                            disabled={update.isPending || v <= 0}
+                            aria-label={`− ${mt.name}, ${m.user.name}`}
+                            onClick={() => step(m.id, mt.id, -MEAL_STEP)}
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="text-center text-sm font-semibold tabular-nums text-foreground">
+                            {fmtMeal(v)}
+                          </span>
+                          <button
+                            type="button"
+                            className={stepBtn}
+                            disabled={update.isPending || v >= 10}
+                            aria-label={`+ ${mt.name}, ${m.user.name}`}
+                            onClick={() => step(m.id, mt.id, MEAL_STEP)}
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
       )}
       <SheetActions>
         <button
