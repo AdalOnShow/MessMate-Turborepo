@@ -27,5 +27,6 @@
   "installed": "App installed",
   "account": "Account",
   "installGuideDesc": "Step-by-step guide for your phone",
-  "notifications": "Notifications"
+  "notifications": "Notifications",
+  "guide": "Guide"
 }
