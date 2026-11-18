@@ -52,15 +52,29 @@ export class CacheService implements OnModuleDestroy {
 
   constructor() {
     const url = process.env.REDIS_URL;
-    this.redis = url
-      ? new Redis(url, {
+    let redis: Redis | null = null;
+    if (url) {
+      try {
+        redis = new Redis(url, {
           maxRetriesPerRequest: 1,
           connectTimeout: 5000,
           commandTimeout: COMMAND_TIMEOUT_MS,
           // Retry the connection in the background, at most every 5s.
           retryStrategy: (times) => Math.min(times * 500, 5000),
-        })
-      : null;
+        });
+      } catch (err) {
+        // A malformed REDIS_URL must not take the API down: run uncached.
+        console.error(
+          JSON.stringify({
+            level: 'error',
+            source: 'cache',
+            op: 'init',
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+      }
+    }
+    this.redis = redis;
     this.redis?.on('error', (err) => this.logError('connection', err));
   }
 

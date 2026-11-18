@@ -27,7 +27,13 @@ const RESET = process.argv.includes('--reset');
 
 const MESS_SLUG = 'green-villa-bachelor-mess';
 const EMAIL_DOMAIN = '@messmate.demo';
-const DEMO_PASSWORD = 'MessMate@2026';
+// Never commit the demo password: it would be a known password for every
+// seeded account. Pass it in: DEMO_PASSWORD=... pnpm seed:demo
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD ?? '';
+if (DEMO_PASSWORD.length < 8) {
+  console.error('Set DEMO_PASSWORD (at least 8 characters) to seed demo data.');
+  process.exit(1);
+}
 
 // ---------------------------------------------------------------------------
 // Deterministic randomness, so every run produces the same mess.

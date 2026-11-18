@@ -80,7 +80,11 @@ describe('DepositsService', () => {
 
     it('rejects a member who is not active in this mess', async () => {
       asManager();
-      prismaMock.months.findFirst.mockResolvedValue({ id: MONTH });
+      prismaMock.months.findFirst.mockResolvedValue({
+        id: MONTH,
+        mess_id: MESS,
+        started_at: new Date('2026-11-01T00:00:00Z'),
+      });
       prismaMock.mess_members.findFirst.mockResolvedValueOnce(null);
       await rejectsWith(
         service.createDeposit(MESS, MONTH, MANAGER, input),
@@ -165,7 +169,11 @@ describe('DepositsService', () => {
 
   describe('getDepositHistory (Reports "Load more")', () => {
     beforeEach(() => {
-      prismaMock.months.findFirst.mockResolvedValue({ id: MONTH });
+      prismaMock.months.findFirst.mockResolvedValue({
+        id: MONTH,
+        mess_id: MESS,
+        started_at: new Date('2026-11-01T00:00:00Z'),
+      });
       prismaMock.deposits.groupBy.mockResolvedValue([
         { member_id: 'member-1', _count: { _all: 3 }, _sum: { amount: 1500 } },
         { member_id: 'member-2', _count: { _all: 2 }, _sum: { amount: 700 } },

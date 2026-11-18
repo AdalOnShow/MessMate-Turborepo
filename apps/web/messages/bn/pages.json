@@ -280,7 +280,22 @@
     "bazaarTotal": "{status} মোট",
     "purchases": "কেনাকাটা",
     "purchasedBy": "কিনেছেন",
-    "noBazaarOfStatus": "এই মাসে এই তালিকায় কোনো বাজার নেই।"
+    "noBazaarOfStatus": "এই মাসে এই তালিকায় কোনো বাজার নেই।",
+    "actions": "অ্যাকশন",
+    "edit": "সম্পাদনা",
+    "editExpense": "খরচ সম্পাদনা",
+    "editDeposit": "জমা সম্পাদনা",
+    "title": "শিরোনাম",
+    "save": "সংরক্ষণ",
+    "saving": "সংরক্ষণ হচ্ছে...",
+    "delete": "মুছুন",
+    "deleting": "মোছা হচ্ছে...",
+    "cancel": "বাতিল",
+    "deleteExpenseConfirm": "এই খরচ মুছবেন? সবার বিল আবার হিসাব হবে।",
+    "deleteDepositConfirm": "এই জমা মুছবেন? সদস্যের ব্যালেন্স আবার হিসাব হবে।",
+    "titleRequired": "শিরোনাম লিখুন",
+    "amountPositive": "পরিমাণ ০-এর বেশি হতে হবে",
+    "bazaarLockedHint": "বাজার খরচ অনুমোদিত বাজার থেকে আসে, এখানে সম্পাদনা করা যায় না।"
   },
   "settings": {
     "messName": "মেসের নাম",

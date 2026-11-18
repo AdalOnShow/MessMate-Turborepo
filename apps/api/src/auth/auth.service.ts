@@ -7,7 +7,12 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
+import {
+  createHash,
+  randomBytes,
+  randomUUID,
+  timingSafeEqual,
+} from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
 import { prisma } from '@repo/database';
 
@@ -42,6 +47,13 @@ function sameHash(a: string, b: string): boolean {
   const y = Buffer.from(b, 'hex');
   return x.length === y.length && timingSafeEqual(x, y);
 }
+
+// Hash of a random value nobody knows, compared against when the account
+// doesn't exist (see validateUser). Same cost as stored password hashes.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
+  randomBytes(16).toString('hex'),
+  Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
+);
 
 @Injectable()
 export class AuthService {
@@ -80,6 +92,44 @@ export class AuthService {
     };
   }
 
+  /**
+   * The user behind an access token, only while the token's session is
+   * live. Logging out or changing the password revokes sessions; without
+   * this check their access tokens kept working until they expired (1h).
+   */
+  async findUserBySession(
+    userId: string,
+    sessionId: string,
+  ): Promise<AuthUser | null> {
+    const session = await prisma.user_sessions.findFirst({
+      where: {
+        id: sessionId,
+        user_id: userId,
+        revoked_at: null,
+        expires_at: { gt: new Date() },
+      },
+      select: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            system_role: true,
+            deleted_at: true,
+          },
+        },
+      },
+    });
+    const user = session?.user;
+    if (!user || user.deleted_at) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      system_role: user.system_role,
+    };
+  }
+
   async validateUser(
     email: string,
     password: string,
@@ -87,13 +137,11 @@ export class AuthService {
     const user = await prisma.users.findUnique({
       where: { email: normalizeEmail(email) },
     });
-    if (!user?.password) {
-      this.logger.warn(`⚠️ Login attempt with non-existent email: ${email}`);
-      return null;
-    }
-
-    if (user.deleted_at) {
-      this.logger.warn(`⚠️ Login attempt by deleted user: ${email}`);
+    if (!user?.password || user.deleted_at) {
+      // Same bcrypt cost as a real check, so response time doesn't reveal
+      // whether an account exists.
+      await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
+      this.logger.warn(`⚠️ Login attempt for unknown or deleted account`);
       return null;
     }
 

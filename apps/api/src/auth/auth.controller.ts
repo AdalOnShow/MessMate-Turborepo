@@ -1,3 +1,4 @@
+import { GoogleCallbackGuard } from './guards/google-callback.guard';
 import {
   BadRequestException,
   Body,
@@ -183,7 +184,7 @@ export class AuthController {
 
   @Public()
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleCallbackGuard)
   async googleCallback(
     @Req()
     req: Request & { user?: AuthUser | { error: string; message: string } },

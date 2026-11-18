@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   ChevronDown,
   Loader2,
+  Pencil,
   ReceiptText,
   ShoppingCart,
   Utensils,
@@ -25,6 +26,11 @@ import type { ExpenseInfo } from "../../actions/expenses";
 import { useDepositSummary } from "../../hooks/use-deposits";
 import { formatMoney } from "../../lib/format";
 import { Button } from "../../components/ui/button";
+import {
+  EditDepositSheet,
+  EditExpenseSheet,
+} from "../../components/dashboard/reports/EditEntrySheets";
+import type { DepositWithRelations, ExpenseWithRelations } from "@repo/shared";
 import {
   QueriesErrorState,
   QueryErrorState,
@@ -90,6 +96,34 @@ function ThLeft({ label }: { label: string }) {
   );
 }
 
+function ActionsTh({ label }: { label: string }) {
+  return (
+    <th className="w-px whitespace-nowrap px-2 pb-2 pt-3 text-right text-xs font-semibold text-foreground-muted">
+      <span className="sr-only">{label}</span>
+    </th>
+  );
+}
+
+function EditButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-foreground-muted transition-colors hover:bg-surface-raised hover:text-foreground"
+    >
+      <Pencil size={14} />
+    </button>
+  );
+}
+
 function MealsSummaryView({
   messId,
   monthId,
@@ -143,9 +177,11 @@ function MealsSummaryView({
 function ExpensesSummaryView({
   messId,
   monthId,
+  isManager,
 }: {
   messId: string;
   monthId: string;
+  isManager: boolean;
 }) {
   const t = useTranslations("pages.reports");
   const query = useExpenseSummary(messId, monthId);
@@ -182,7 +218,7 @@ function ExpensesSummaryView({
         />
         <StatCard label={t("bazaar")} value={formatMoney(data.bazaar_total)} />
       </div>
-      <ExpenseList messId={messId} monthId={monthId} />
+      <ExpenseList messId={messId} monthId={monthId} isManager={isManager} />
     </div>
   );
 }
@@ -293,9 +329,18 @@ function flat<T, P>(pages: P[] | undefined, pick: (page: P) => T[]): T[] {
 }
 
 /** Every expense of the month, newest first, filterable by type, 8 per server page. */
-function ExpenseList({ messId, monthId }: { messId: string; monthId: string }) {
+function ExpenseList({
+  messId,
+  monthId,
+  isManager,
+}: {
+  messId: string;
+  monthId: string;
+  isManager: boolean;
+}) {
   const t = useTranslations("pages.reports");
   const [filter, setFilter] = useState<ExpenseFilter>("ALL");
+  const [editing, setEditing] = useState<ExpenseWithRelations | null>(null);
   const query = useExpenseHistory(
     messId,
     monthId,
@@ -359,6 +404,7 @@ function ExpenseList({ messId, monthId }: { messId: string; monthId: string }) {
                   {t("type")}
                 </th>
                 <Th label={t("amount")} />
+                {isManager && <ActionsTh label={t("actions")} />}
               </tr>
             </thead>
             <tbody>
@@ -395,11 +441,37 @@ function ExpenseList({ messId, monthId }: { messId: string; monthId: string }) {
                   <td className="whitespace-nowrap px-3 py-3 text-right align-top font-semibold tabular-nums text-foreground md:px-4">
                     {formatMoney(expense.amount)}
                   </td>
+                  {isManager && (
+                    <td className="px-2 py-2 text-right align-top">
+                      {expense.type === "BAZAAR" ? (
+                        <span
+                          className="inline-block px-2 py-1.5 text-xs text-foreground-muted"
+                          title={t("bazaarLockedHint")}
+                        >
+                          —
+                        </span>
+                      ) : (
+                        <EditButton
+                          label={t("edit")}
+                          onClick={() => setEditing(expense)}
+                        />
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {editing && (
+        <EditExpenseSheet
+          messId={messId}
+          monthId={monthId}
+          expense={editing}
+          onClose={() => setEditing(null)}
+        />
       )}
 
       <LoadMore
@@ -531,9 +603,11 @@ function MealList({
 function DepositsSummaryView({
   messId,
   monthId,
+  isManager,
 }: {
   messId: string;
   monthId: string;
+  isManager: boolean;
 }) {
   const t = useTranslations("pages.reports");
   const query = useDepositSummary(messId, monthId);
@@ -568,7 +642,7 @@ function DepositsSummaryView({
           value={String(data.per_member.length)}
         />
       </div>
-      <DepositList messId={messId} monthId={monthId} />
+      <DepositList messId={messId} monthId={monthId} isManager={isManager} />
     </div>
   );
 }
@@ -577,9 +651,18 @@ function DepositsSummaryView({
  * Every deposit of the month with its date, newest first, filterable by
  * member, 8 per server page: when each member paid and how much.
  */
-function DepositList({ messId, monthId }: { messId: string; monthId: string }) {
+function DepositList({
+  messId,
+  monthId,
+  isManager,
+}: {
+  messId: string;
+  monthId: string;
+  isManager: boolean;
+}) {
   const t = useTranslations("pages.reports");
   const [filter, setFilter] = useState<string>("ALL");
+  const [editing, setEditing] = useState<DepositWithRelations | null>(null);
   const query = useDepositHistory(
     messId,
     monthId,
@@ -638,6 +721,7 @@ function DepositList({ messId, monthId }: { messId: string; monthId: string }) {
                   {t("addedBy")}
                 </th>
                 <Th label={t("amount")} />
+                {isManager && <ActionsTh label={t("actions")} />}
               </tr>
             </thead>
             <tbody>
@@ -665,6 +749,14 @@ function DepositList({ messId, monthId }: { messId: string; monthId: string }) {
                   <td className="whitespace-nowrap px-3 py-3 text-right align-top font-semibold tabular-nums text-success md:px-4">
                     +{formatMoney(deposit.amount)}
                   </td>
+                  {isManager && (
+                    <td className="px-2 py-2 text-right align-top">
+                      <EditButton
+                        label={t("edit")}
+                        onClick={() => setEditing(deposit)}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -681,11 +773,21 @@ function DepositList({ messId, monthId }: { messId: string; monthId: string }) {
                   <td className="px-3 py-3 text-right font-bold tabular-nums text-primary md:px-4">
                     {formatMoney(first.total_amount)}
                   </td>
+                  {isManager && <td />}
                 </tr>
               </tfoot>
             )}
           </table>
         </div>
+      )}
+
+      {editing && (
+        <EditDepositSheet
+          messId={messId}
+          monthId={monthId}
+          deposit={editing}
+          onClose={() => setEditing(null)}
+        />
       )}
 
       <LoadMore
@@ -828,6 +930,7 @@ export default function ReportsPage() {
   const messQuery = useGetMyMess();
   const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
+  const isManager = myMess?.current_user_role === "MANAGER";
   const monthQuery = useGetActiveMonth(messId);
   const { data: activeMonth, isLoading: monthLoading } = monthQuery;
   const [activeTab, setActiveTab] = useState<Tab>("meals");
@@ -894,10 +997,18 @@ export default function ReportsPage() {
         <MealsSummaryView messId={messId} monthId={activeMonth.id} />
       )}
       {activeTab === "expenses" && (
-        <ExpensesSummaryView messId={messId} monthId={activeMonth.id} />
+        <ExpensesSummaryView
+          messId={messId}
+          monthId={activeMonth.id}
+          isManager={isManager}
+        />
       )}
       {activeTab === "deposits" && (
-        <DepositsSummaryView messId={messId} monthId={activeMonth.id} />
+        <DepositsSummaryView
+          messId={messId}
+          monthId={activeMonth.id}
+          isManager={isManager}
+        />
       )}
       {activeTab === "bazaar" && (
         <BazaarSummaryView messId={messId} monthId={activeMonth.id} />

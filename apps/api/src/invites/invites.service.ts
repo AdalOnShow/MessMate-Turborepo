@@ -279,6 +279,24 @@ export class InvitesService {
       });
     }
 
+    // ADR-003: one active mess per user. Such an invite could never be
+    // accepted, so say so now instead of sending it.
+    const otherMess = await prisma.mess_members.findFirst({
+      where: {
+        user_id: targetUserId,
+        mess_id: { not: messId },
+        removed_at: null,
+        deleted_at: null,
+      },
+      select: { id: true },
+    });
+    if (otherMess) {
+      throw new ConflictException({
+        message: 'This person is already in another mess.',
+        code: ErrorCode.ALREADY_IN_MESS,
+      });
+    }
+
     const pending = await prisma.join_requests.findFirst({
       where: {
         mess_id: messId,

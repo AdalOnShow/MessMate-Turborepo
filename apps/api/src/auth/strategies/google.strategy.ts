@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth.service';
+import { CookieStateStore } from './oauth-state.store';
 
 interface GoogleProfileJson {
   email_verified?: boolean;
@@ -37,7 +38,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientSecret: configService.getOrThrow<string>('GOOGLE_CLIENT_SECRET'),
       callbackURL: configService.getOrThrow<string>('GOOGLE_CALLBACK_URL'),
       scope: ['email', 'profile'],
-    });
+      // Login-CSRF protection: see CookieStateStore.
+      store: new CookieStateStore(),
+    } as ConstructorParameters<typeof Strategy>[0]);
   }
 
   async validate(
