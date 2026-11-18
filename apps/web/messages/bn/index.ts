@@ -1,5 +1,6 @@
 // Generated: one JSON file per app area, merged into one message tree.
 // Keys must stay identical between en/ and bn/.
+import about from "./about.json";
 import auth from "./auth.json";
 import common from "./common.json";
 import dashboard from "./dashboard.json";
@@ -18,6 +19,7 @@ import status from "./status.json";
 import tips from "./tips.json";
 
 const messages = {
+  about: about,
   auth: auth,
   common: common,
   dashboard: dashboard,

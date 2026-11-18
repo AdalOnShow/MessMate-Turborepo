@@ -4,6 +4,7 @@ import {
   BookOpen,
   Calendar,
   Home,
+  Info,
   ReceiptText,
   Settings,
   ShoppingCart,
@@ -29,6 +30,7 @@ export type NavLabel =
   | "reports"
   | "notifications"
   | "guide"
+  | "about"
   | "profile"
   | "settings"
   | "messSettings"
@@ -71,6 +73,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/profile", label: "profile", icon: User },
   // Leaves the dashboard for the public guide page.
   { href: "/guide", label: "guide", icon: BookOpen },
+  { href: "/about", label: "about", icon: Info },
 ];
 
 /**
@@ -89,6 +92,7 @@ const SIDEBAR_ORDER = [
   "/dashboard/activity",
   "/dashboard/profile",
   "/guide",
+  "/about",
 ];
 
 export const SIDEBAR_ITEMS: NavItem[] = SIDEBAR_ORDER.map(
