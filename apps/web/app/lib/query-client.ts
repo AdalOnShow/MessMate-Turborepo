@@ -13,6 +13,12 @@ declare module "@tanstack/react-query" {
       successMessage?: SuccessMessageKey;
       /** Set false when the UI already shows the error (e.g. auth forms). */
       errorToast?: boolean;
+      /**
+       * Set false to skip refetching every query after success. Logout
+       * needs this: the refetches would hit the API without a session, get
+       * 401s, and start a second sign-out redirect that races its own.
+       */
+      invalidate?: boolean;
     };
     queryMeta: {
       /** Set false to stop background-refetch failures from toasting. */
@@ -96,6 +102,7 @@ function makeQueryClient() {
       onSuccess: (_data, _vars, _ctx, mutation) => {
         const message = mutation.meta?.successMessage;
         if (message) toast.success(successText(message));
+        if (mutation.meta?.invalidate === false) return;
         // Refetching a "Load more" list re-requests every page it has
         // loaded. Lists that are not on screen are dropped instead, so they
         // load just their first page when opened again.

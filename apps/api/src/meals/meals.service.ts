@@ -187,6 +187,15 @@ export class MealsService {
         ]),
       ),
       monthStartedAt: month.started_at,
+      hasEarlierMonth:
+        (await prisma.months.count({
+          where: {
+            mess_id: messId,
+            deleted_at: null,
+            id: { not: month.id },
+            started_at: { lt: month.started_at },
+          },
+        })) > 0,
       now: new Date(),
     });
 
