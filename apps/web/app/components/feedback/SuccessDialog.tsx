@@ -2,22 +2,40 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, LayoutDashboard } from "lucide-react";
+import { CheckCircle2, LayoutDashboard, Trash2 } from "lucide-react";
+import { useSuccessDialog } from "../../store/success-dialog";
 import { Sheet } from "../ui/sheet";
 
 export interface SuccessSummary {
   /** Key under feedback.successDialog.titles */
-  title: "depositAdded" | "expenseAdded" | "bazaarSubmitted" | "mealsSaved";
+  title:
+    | "depositAdded"
+    | "depositUpdated"
+    | "depositDeleted"
+    | "expenseAdded"
+    | "expenseUpdated"
+    | "expenseDeleted"
+    | "bazaarSubmitted"
+    | "bazaarUpdated"
+    | "bazaarDeleted"
+    | "mealsSaved";
   /** What was saved, so a mistake is easy to spot. */
   rows: { label: string; value: string }[];
   hint?: string;
 }
 
 /**
- * Shown after adding a deposit, expense or bazaar, or saving meals, in place
- * of a toast: a summary of what was saved, and a choice between going to the
- * dashboard and staying to add more.
+ * Shown after adding, changing or deleting a deposit, expense or bazaar, or
+ * saving meals, in place of a toast: a summary of what happened, and a
+ * choice between going to the dashboard and staying on the page.
+ * Opened with `showSuccess(...)`; rendered once by the dashboard layout.
  */
+export function GlobalSuccessDialog() {
+  const summary = useSuccessDialog((s) => s.summary);
+  const close = useSuccessDialog((s) => s.close);
+  return <SuccessDialog summary={summary} onClose={close} />;
+}
+
 export function SuccessDialog({
   summary,
   onClose,
@@ -27,12 +45,23 @@ export function SuccessDialog({
 }) {
   const t = useTranslations("feedback.successDialog");
   if (!summary) return null;
+  const deleted = summary.title.endsWith("Deleted");
 
   return (
     <Sheet onClose={onClose} size="sm">
       <div className="flex flex-col items-center text-center">
-        <span className="flex size-14 items-center justify-center rounded-full bg-success/15 text-success">
-          <CheckCircle2 size={30} aria-hidden="true" />
+        <span
+          className={`flex size-14 items-center justify-center rounded-full ${
+            deleted
+              ? "bg-destructive/15 text-destructive"
+              : "bg-success/15 text-success"
+          }`}
+        >
+          {deleted ? (
+            <Trash2 size={26} aria-hidden="true" />
+          ) : (
+            <CheckCircle2 size={30} aria-hidden="true" />
+          )}
         </span>
         <h2 className="mt-3 font-heading text-xl font-bold text-foreground">
           {t(`titles.${summary.title}`)}

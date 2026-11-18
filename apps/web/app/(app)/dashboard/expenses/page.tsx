@@ -3,10 +3,7 @@
 import { PageTips } from "../../../components/help/PageTips";
 
 import { formatDateOnly, toDateOnlyISO } from "../../../lib/format";
-import {
-  SuccessDialog,
-  type SuccessSummary,
-} from "../../../components/feedback/SuccessDialog";
+import { showSuccess } from "../../../store/success-dialog";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useGetMyMess } from "../../../hooks/use-messes";
@@ -70,7 +67,6 @@ export default function AddExpensePage() {
   const [selected, setSelected] = useState<string[]>([]);
   const fieldErrors = useFieldErrors();
   const tsd = useTranslations("feedback.successDialog");
-  const [success, setSuccess] = useState<SuccessSummary | null>(null);
   const errors = fieldErrors.errors;
   const online = useOnline();
 
@@ -118,7 +114,7 @@ export default function AddExpensePage() {
       .filter(Boolean);
     create.mutate(payload, {
       onSuccess: () => {
-        setSuccess({
+        showSuccess({
           title: "expenseAdded",
           rows: [
             { label: tsd("labels.title"), value: payload.title },
@@ -242,7 +238,6 @@ export default function AddExpensePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <SuccessDialog summary={success} onClose={() => setSuccess(null)} />
       <div className="mb-6">
         <p className="label-mono text-primary">{t("expenses")}</p>
         <div className="mt-1 flex items-start justify-between gap-3">

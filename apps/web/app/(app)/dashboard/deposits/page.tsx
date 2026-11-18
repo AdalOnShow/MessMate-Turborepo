@@ -3,10 +3,7 @@
 import { PageTips } from "../../../components/help/PageTips";
 
 import { formatDateOnly, toDateOnlyISO } from "../../../lib/format";
-import {
-  SuccessDialog,
-  type SuccessSummary,
-} from "../../../components/feedback/SuccessDialog";
+import { showSuccess } from "../../../store/success-dialog";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useGetMyMess } from "../../../hooks/use-messes";
@@ -55,7 +52,6 @@ export default function AddDepositPage() {
   const [depositDate, setDepositDate] = useState<Date | undefined>(new Date());
   const fieldErrors = useFieldErrors();
   const tsd = useTranslations("feedback.successDialog");
-  const [success, setSuccess] = useState<SuccessSummary | null>(null);
   const errors = fieldErrors.errors;
   const online = useOnline();
 
@@ -82,7 +78,7 @@ export default function AddDepositPage() {
     const memberName = selectedMember?.user.name ?? "";
     create.mutate(payload, {
       onSuccess: () => {
-        setSuccess({
+        showSuccess({
           title: "depositAdded",
           rows: [
             { label: tsd("labels.member"), value: memberName },
@@ -179,7 +175,6 @@ export default function AddDepositPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <SuccessDialog summary={success} onClose={() => setSuccess(null)} />
       <div className="mb-6">
         <p className="label-mono text-primary">{t("deposits")}</p>
         <div className="mt-1 flex items-start justify-between gap-3">

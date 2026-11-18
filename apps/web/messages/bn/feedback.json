@@ -191,7 +191,13 @@
       "depositAdded": "জমা যোগ হয়েছে",
       "expenseAdded": "খরচ যোগ হয়েছে",
       "bazaarSubmitted": "বাজার জমা হয়েছে",
-      "mealsSaved": "মিল সেভ হয়েছে"
+      "mealsSaved": "মিল সেভ হয়েছে",
+      "depositUpdated": "জমা আপডেট হয়েছে",
+      "depositDeleted": "জমা মুছে ফেলা হয়েছে",
+      "expenseUpdated": "খরচ আপডেট হয়েছে",
+      "expenseDeleted": "খরচ মুছে ফেলা হয়েছে",
+      "bazaarUpdated": "বাজার আপডেট হয়েছে",
+      "bazaarDeleted": "বাজার মুছে ফেলা হয়েছে"
     },
     "hints": {
       "bazaarMember": "ম্যানেজার অনুমোদন করলে মিল রেটে যোগ হবে।",

@@ -190,7 +190,7 @@ export function useUpdateBazaar(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "bazaarUpdated" },
+    // No toast: the page shows a SuccessDialog with what changed.
     mutationFn: async ({
       submissionId,
       data,
@@ -214,7 +214,7 @@ export function useDeleteBazaar(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "bazaarDeleted" },
+    // No toast: the page shows a SuccessDialog with what changed.
     mutationFn: async (submissionId: string) => {
       if (!messId) throw new Error("No mess ID");
       return unwrap(deleteBazaar(messId, submissionId));

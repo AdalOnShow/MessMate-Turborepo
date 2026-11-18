@@ -191,7 +191,13 @@
       "depositAdded": "Deposit added",
       "expenseAdded": "Expense added",
       "bazaarSubmitted": "Bazaar submitted",
-      "mealsSaved": "Meals saved"
+      "mealsSaved": "Meals saved",
+      "depositUpdated": "Deposit updated",
+      "depositDeleted": "Deposit deleted",
+      "expenseUpdated": "Expense updated",
+      "expenseDeleted": "Expense deleted",
+      "bazaarUpdated": "Bazaar updated",
+      "bazaarDeleted": "Bazaar deleted"
     },
     "hints": {
       "bazaarMember": "It counts in the meal rate once a manager approves it.",

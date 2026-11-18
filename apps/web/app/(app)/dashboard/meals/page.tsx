@@ -1,10 +1,7 @@
 "use client";
 
 import { formatDateOnly } from "../../../lib/format";
-import {
-  SuccessDialog,
-  type SuccessSummary,
-} from "../../../components/feedback/SuccessDialog";
+import { showSuccess } from "../../../store/success-dialog";
 import { PageTips } from "../../../components/help/PageTips";
 
 import { useTranslations } from "next-intl";
@@ -293,7 +290,6 @@ export default function MealsPage() {
 
   const saveMutation = useBulkSaveMealEntries(messId, monthId);
   const tsd = useTranslations("feedback.successDialog");
-  const [success, setSuccess] = useState<SuccessSummary | null>(null);
   const online = useOnline();
   // Until the saved day is re-read, the old entries would make the default
   // rows look unsaved again for a moment, so keep Save disabled meanwhile.
@@ -320,7 +316,7 @@ export default function MealsPage() {
       { entries: payload },
       {
         onSuccess: async () => {
-          setSuccess({
+          showSuccess({
             title: "mealsSaved",
             rows: [
               {
@@ -392,7 +388,6 @@ export default function MealsPage() {
 
   return (
     <>
-      <SuccessDialog summary={success} onClose={() => setSuccess(null)} />
       <div className="mb-5 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="label-mono text-primary">{t("meals")}</p>

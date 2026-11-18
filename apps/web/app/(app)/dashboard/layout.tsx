@@ -7,6 +7,7 @@ import { Sidebar } from "../../components/dashboard/Sidebar";
 import { BottomNav } from "../../components/dashboard/BottomNav";
 import { LanguageToggle } from "../../components/LanguageToggle";
 import { MobileTopBar } from "../../components/dashboard/MobileTopBar";
+import { GlobalSuccessDialog } from "../../components/feedback/SuccessDialog";
 
 export default function DashboardLayout({
   children,
@@ -43,6 +44,7 @@ export default function DashboardLayout({
             <div className="mx-auto max-w-6xl">{children}</div>
           </main>
           <BottomNav />
+          <GlobalSuccessDialog />
         </div>
       </ProtectedPage>
     </AuthInitializer>

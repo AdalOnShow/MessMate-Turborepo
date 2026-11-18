@@ -7,10 +7,7 @@ import {
   fromDateOnlyISO,
   toDateOnlyISO,
 } from "../../../lib/format";
-import {
-  SuccessDialog,
-  type SuccessSummary,
-} from "../../../components/feedback/SuccessDialog";
+import { showSuccess } from "../../../store/success-dialog";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useSessionStore } from "../../../store";
@@ -88,7 +85,6 @@ function BazaarForm({
   const tsd = useTranslations("feedback.successDialog");
   const { data: myMess } = useGetMyMess();
   const isManager = myMess?.current_user_role === "MANAGER";
-  const [success, setSuccess] = useState<SuccessSummary | null>(null);
   const submit = useSubmitBazaar(messId, monthId);
   const update = useUpdateBazaar(messId, monthId);
 
@@ -151,26 +147,36 @@ function BazaarForm({
       onDone?.();
     };
 
+    const total = cleanedItems.reduce((sum, i) => sum + i.amount, 0);
+    const summaryRows = [
+      {
+        label: tsd("labels.items"),
+        value: cleanedItems.map((i) => i.name).join(", "),
+      },
+      { label: tsd("labels.total"), value: formatMoney(total) },
+      {
+        label: tsd("labels.date"),
+        value: formatDateOnly(payload.expense_date),
+      },
+    ];
+
     if (editing) {
-      update.mutate({ submissionId: editing.id, data: payload }, { onSuccess });
+      update.mutate(
+        { submissionId: editing.id, data: payload },
+        {
+          onSuccess: () => {
+            onSuccess();
+            showSuccess({ title: "bazaarUpdated", rows: summaryRows });
+          },
+        },
+      );
     } else {
-      const total = cleanedItems.reduce((sum, i) => sum + i.amount, 0);
       submit.mutate(payload, {
         onSuccess: () => {
           onSuccess();
-          setSuccess({
+          showSuccess({
             title: "bazaarSubmitted",
-            rows: [
-              {
-                label: tsd("labels.items"),
-                value: cleanedItems.map((i) => i.name).join(", "),
-              },
-              { label: tsd("labels.total"), value: formatMoney(total) },
-              {
-                label: tsd("labels.date"),
-                value: formatDateOnly(payload.expense_date),
-              },
-            ],
+            rows: summaryRows,
             hint: isManager
               ? tsd("hints.bazaarManager")
               : tsd("hints.bazaarMember"),
@@ -336,7 +342,6 @@ function BazaarForm({
         </h2>
       </div>
       <div className="px-4 py-5 sm:px-6 sm:py-6">{fields}</div>
-      <SuccessDialog summary={success} onClose={() => setSuccess(null)} />
     </div>
   );
 }
@@ -357,6 +362,7 @@ function BazaarCard({
   const t = useTranslations("pages.bazaar");
   const approve = useApproveBazaar(messId, monthId);
   const reject = useRejectBazaar(messId, monthId);
+  const tsd = useTranslations("feedback.successDialog");
   const remove = useDeleteBazaar(messId, monthId);
   const [showEdit, setShowEdit] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -467,7 +473,26 @@ function BazaarCard({
                       type="button"
                       variant="destructive"
                       size="sm"
-                      onClick={() => remove.mutate(submission.id)}
+                      onClick={() =>
+                        remove.mutate(submission.id, {
+                          onSuccess: () =>
+                            showSuccess({
+                              title: "bazaarDeleted",
+                              rows: [
+                                {
+                                  label: tsd("labels.items"),
+                                  value: submission.items
+                                    .map((i) => i.name)
+                                    .join(", "),
+                                },
+                                {
+                                  label: tsd("labels.total"),
+                                  value: formatMoney(submission.total_amount),
+                                },
+                              ],
+                            }),
+                        })
+                      }
                       disabled={remove.isPending}
                     >
                       {remove.isPending ? (

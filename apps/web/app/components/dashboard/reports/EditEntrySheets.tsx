@@ -13,7 +13,13 @@ import {
   useDeleteDeposit,
   useUpdateDeposit,
 } from "../../../hooks/use-deposits";
-import { fromDateOnlyISO, toDateOnlyISO } from "../../../lib/format";
+import {
+  formatDateOnly,
+  formatMoney,
+  fromDateOnlyISO,
+  toDateOnlyISO,
+} from "../../../lib/format";
+import { showSuccess } from "../../../store/success-dialog";
 
 const inputClass =
   "w-full rounded-lg border border-border-strong bg-surface px-4 py-2.5 text-base text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none sm:text-sm";
@@ -48,6 +54,7 @@ export function EditExpenseSheet({
   onClose: () => void;
 }) {
   const t = useTranslations("pages.reports");
+  const tsd = useTranslations("feedback.successDialog");
   const update = useUpdateExpense(messId, monthId);
   const remove = useDeleteExpense(messId, monthId);
   const [title, setTitle] = useState(expense.title);
@@ -76,7 +83,24 @@ export function EditExpenseSheet({
           ...(date ? { expense_date: toDateOnlyISO(date) } : {}),
         },
       },
-      { onSuccess: onClose },
+      {
+        onSuccess: () => {
+          onClose();
+          showSuccess({
+            title: "expenseUpdated",
+            rows: [
+              { label: tsd("labels.title"), value: title.trim() },
+              { label: tsd("labels.amount"), value: formatMoney(parsed) },
+              {
+                label: tsd("labels.date"),
+                value: formatDateOnly(
+                  date ? toDateOnlyISO(date) : expense.expense_date,
+                ),
+              },
+            ],
+          });
+        },
+      },
     );
   };
 
@@ -100,7 +124,23 @@ export function EditExpenseSheet({
               type="button"
               className={`${dangerBtn} bg-destructive/5`}
               disabled={busy}
-              onClick={() => remove.mutate(expense.id, { onSuccess: onClose })}
+              onClick={() =>
+                remove.mutate(expense.id, {
+                  onSuccess: () => {
+                    onClose();
+                    showSuccess({
+                      title: "expenseDeleted",
+                      rows: [
+                        { label: tsd("labels.title"), value: expense.title },
+                        {
+                          label: tsd("labels.amount"),
+                          value: formatMoney(Number(expense.amount)),
+                        },
+                      ],
+                    });
+                  },
+                })
+              }
             >
               {remove.isPending ? t("deleting") : t("delete")}
             </button>
@@ -197,6 +237,7 @@ export function EditDepositSheet({
   onClose: () => void;
 }) {
   const t = useTranslations("pages.reports");
+  const tsd = useTranslations("feedback.successDialog");
   const update = useUpdateDeposit(messId, monthId);
   const remove = useDeleteDeposit(messId, monthId);
   const [amount, setAmount] = useState(String(deposit.amount));
@@ -222,7 +263,24 @@ export function EditDepositSheet({
           ...(date ? { deposit_date: toDateOnlyISO(date) } : {}),
         },
       },
-      { onSuccess: onClose },
+      {
+        onSuccess: () => {
+          onClose();
+          showSuccess({
+            title: "depositUpdated",
+            rows: [
+              { label: tsd("labels.member"), value: deposit.member.name },
+              { label: tsd("labels.amount"), value: formatMoney(parsed) },
+              {
+                label: tsd("labels.date"),
+                value: formatDateOnly(
+                  date ? toDateOnlyISO(date) : deposit.deposit_date,
+                ),
+              },
+            ],
+          });
+        },
+      },
     );
   };
 
@@ -251,7 +309,26 @@ export function EditDepositSheet({
               type="button"
               className={`${dangerBtn} bg-destructive/5`}
               disabled={busy}
-              onClick={() => remove.mutate(deposit.id, { onSuccess: onClose })}
+              onClick={() =>
+                remove.mutate(deposit.id, {
+                  onSuccess: () => {
+                    onClose();
+                    showSuccess({
+                      title: "depositDeleted",
+                      rows: [
+                        {
+                          label: tsd("labels.member"),
+                          value: deposit.member.name,
+                        },
+                        {
+                          label: tsd("labels.amount"),
+                          value: formatMoney(Number(deposit.amount)),
+                        },
+                      ],
+                    });
+                  },
+                })
+              }
             >
               {remove.isPending ? t("deleting") : t("delete")}
             </button>

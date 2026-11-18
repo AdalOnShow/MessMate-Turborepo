@@ -89,7 +89,7 @@ export function useUpdateExpense(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "expenseUpdated" },
+    // No toast: the page shows a SuccessDialog with what changed.
     mutationFn: async ({
       expenseId,
       data,
@@ -115,7 +115,7 @@ export function useDeleteExpense(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "expenseDeleted" },
+    // No toast: the page shows a SuccessDialog with what changed.
     mutationFn: async (expenseId: string) => {
       if (!messId) throw new Error("No mess ID");
       return unwrap(deleteExpense(messId, expenseId));
