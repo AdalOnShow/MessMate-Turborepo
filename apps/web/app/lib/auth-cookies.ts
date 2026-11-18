@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 
 /** Must match the API (auth.service.ts ACCESS_TOKEN_TTL_SECONDS / SESSION_TTL_SECONDS). */
-const ACCESS_TOKEN_MAX_AGE = 60 * 60; // 1 hour
-const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60; // 30 days, renewed on use
+const ACCESS_TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
+const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60; // 30 days, renewed on each rotation
 
 // Google sign-in sets these cookies from the API (api.example.com), so in
 // production they carry the shared parent domain (COOKIE_DOMAIN=.example.com).

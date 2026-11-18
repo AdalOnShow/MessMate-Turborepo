@@ -19,7 +19,7 @@ import { formatZodError, signUpSchema } from '@repo/shared';
 import {
   ACCESS_TOKEN_TTL_SECONDS,
   AuthService,
-  AuthTokens,
+  SessionTokens,
   AuthUser,
   SESSION_TTL_SECONDS,
 } from './auth.service';
@@ -97,7 +97,7 @@ export class AuthController {
     const parsedSignup = parsed.data;
     this.logger.log(`📝 POST /auth/signup - email: ${parsedSignup.email}`);
 
-    const tokens: AuthTokens = await this.authService.register(
+    const tokens: SessionTokens = await this.authService.register(
       parsedSignup,
       clientUserAgent(req),
     );
@@ -123,7 +123,7 @@ export class AuthController {
 
     this.logger.log(`🔐 POST /auth/signin - user: ${user.email}`);
 
-    const tokens: AuthTokens = await this.authService.login(
+    const tokens: SessionTokens = await this.authService.login(
       user,
       clientUserAgent(req),
     );
@@ -150,8 +150,10 @@ export class AuthController {
 
     const tokens = await this.authService.refreshTokens(refreshToken);
 
-    // Re-sent so the cookie's lifetime slides with the session.
-    this.setRefreshCookie(res, tokens.refreshToken);
+    // The rotated token, with a fresh 30-day cookie lifetime. Null for a
+    // parallel refresh in the grace period: the cookie the other request
+    // set is the current one, so leave it alone.
+    if (tokens.refreshToken) this.setRefreshCookie(res, tokens.refreshToken);
     res.status(200).json({
       success: true,
       message: 'Token refreshed successfully',
@@ -210,7 +212,7 @@ export class AuthController {
     this.logger.log(`🔐 Google OAuth callback for user: ${authUser.email}`);
 
     try {
-      const tokens: AuthTokens = await this.authService.login(
+      const tokens: SessionTokens = await this.authService.login(
         authUser,
         clientUserAgent(req),
       );

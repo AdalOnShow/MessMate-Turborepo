@@ -677,6 +677,10 @@ A task can be marked complete only if:
 - [x] Manager-created accounts flagged `must_change_password`; dashboard
       notice asks the user to set their own password (cleared on change)
 
+- [x] Sessions: 7-day access token (revocation still checked per request);
+      refresh token rotated on every use with a 2-minute grace for parallel
+      refreshes; 30-day sliding expiry, so monthly users are never signed out
+
 ### Security TODO (open)
 
 - [ ] **Email verification** — needs an email-sending service first (e.g.
@@ -687,8 +691,6 @@ A task can be marked complete only if:
 - [ ] Forgot-password / reset flow (same email service)
 - [ ] Force a password change on first sign-in for manager-created accounts
       (today it is a reminder, not a block)
-- [ ] Refresh-token rotation with reuse detection and an absolute session
-      cap (today: one refresh token per session, 30-day sliding expiry)
 - [ ] Rate limits stored in Redis instead of memory (needed once the API
       runs on more than one instance)
 - [ ] Content-Security-Policy header on the web app (start in Report-Only)
