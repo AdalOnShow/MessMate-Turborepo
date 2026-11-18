@@ -42,6 +42,12 @@ export interface PrepareContext {
   /** Saved meals per `${memberId}|${date ISO}` for the dates being saved. */
   existingMeals: Map<string, Record<string, number>>;
   monthStartedAt: Date;
+  /**
+   * A month was closed before this one. Then every day before this month
+   * started belongs to that closed month, so the back-fill grace (meant for
+   * a mess's first month) must not apply: those days would be billed twice.
+   */
+  hasEarlierMonth?: boolean;
   now: Date;
 }
 
@@ -77,7 +83,8 @@ export function prepareMealEntries(
   ctx: PrepareContext,
 ): PreparedMealEntry[] {
   const earliest =
-    startOfUtcDay(ctx.monthStartedAt) - MEAL_DATE_GRACE_DAYS * DAY_MS;
+    startOfUtcDay(ctx.monthStartedAt) -
+    (ctx.hasEarlierMonth ? 0 : MEAL_DATE_GRACE_DAYS * DAY_MS);
   const latest = dhakaToday(ctx.now) - DAY_MS;
 
   const seen = new Set<string>();
@@ -95,6 +102,13 @@ export function prepareMealEntries(
       });
     }
     if (time < earliest) {
+      if (ctx.hasEarlierMonth) {
+        throw new BadRequestException({
+          message:
+            'This day belongs to a closed month. Pick a day in the current month.',
+          code: ErrorCode.DATE_OUTSIDE_MONTH,
+        });
+      }
       invalid('Meal date is too far outside this month');
     }
 

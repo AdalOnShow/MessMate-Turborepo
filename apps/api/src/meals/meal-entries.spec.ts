@@ -125,6 +125,41 @@ describe('prepareMealEntries', () => {
     ).not.toThrow();
   });
 
+  it('rejects a day of an already closed month (would bill it twice)', () => {
+    // December opened when November closed; the day before belongs to November.
+    const december = ctx({
+      monthStartedAt: new Date('2026-11-15T18:00:00Z'),
+      hasEarlierMonth: true,
+    });
+    expectRejected(
+      () =>
+        prepareMealEntries(
+          [
+            {
+              memberId: MEMBER,
+              date: '2026-11-14T00:00:00.000Z',
+              meals: { [LUNCH]: 1 },
+            },
+          ],
+          december,
+        ),
+      'This day belongs to a closed month. Pick a day in the current month.',
+    );
+    // The day the new month started is fine.
+    expect(() =>
+      prepareMealEntries(
+        [
+          {
+            memberId: MEMBER,
+            date: '2026-11-15T00:00:00.000Z',
+            meals: { [LUNCH]: 1 },
+          },
+        ],
+        december,
+      ),
+    ).not.toThrow();
+  });
+
   it('rejects the same member and day twice', () => {
     const e = { memberId: MEMBER, date: day, meals: { [LUNCH]: 1 } };
     expectRejected(
