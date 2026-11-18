@@ -13,8 +13,10 @@ export interface ActivityDetails {
   member?: string;
   /** Calendar date (UTC midnight ISO) of a meal, expense or deposit. */
   date?: string;
-  /** Meals of a meal entry. */
+  /** Meals of a meal entry, or of everyone on a saved day. */
   meals?: number;
+  /** How many members a saved meal day covered. */
+  members?: number;
 }
 
 export interface ActivityLog {

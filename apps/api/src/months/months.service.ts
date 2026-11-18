@@ -22,6 +22,9 @@ import { CacheService } from '../common/cache/cache.service';
 
 type CarryForwardSource = { member_id: string; final_balance: number };
 
+/** Activity rows older than this are removed when a month opens. */
+export const ACTIVITY_RETENTION_MONTHS = 12;
+
 @Injectable()
 export class MonthsService {
   private readonly logger = new Logger(MonthsService.name);
@@ -153,7 +156,40 @@ export class MonthsService {
 
     this.logger.log(`✅ Month created: ${month.id} (${monthTitle})`);
 
+    await this.purgeOldActivity(messId);
+
     return this.mapMonthResponse(month);
+  }
+
+  /**
+   * Keeps ACTIVITY_RETENTION_MONTHS of activity per mess. Runs when a month
+   * opens (once a month per active mess), so no scheduled job is needed.
+   * Closed months keep their full numbers in member_month_summaries, so
+   * nothing is lost from the accounts. Best effort: a failure here must
+   * not fail opening the month.
+   */
+  private async purgeOldActivity(messId: string): Promise<void> {
+    const cutoff = new Date();
+    cutoff.setUTCMonth(cutoff.getUTCMonth() - ACTIVITY_RETENTION_MONTHS);
+    try {
+      const { count } = await prisma.activity_logs.deleteMany({
+        where: { mess_id: messId, created_at: { lt: cutoff } },
+      });
+      if (count > 0) {
+        this.logger.log(
+          `🧹 Removed ${count} activity rows older than ${cutoff.toISOString()}`,
+        );
+      }
+    } catch (err) {
+      console.error(
+        JSON.stringify({
+          level: 'warn',
+          source: 'activity-retention',
+          messId,
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+    }
   }
 
   /**

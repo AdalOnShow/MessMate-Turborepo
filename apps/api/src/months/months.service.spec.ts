@@ -325,4 +325,41 @@ describe('MonthsService', () => {
       ]);
     });
   });
+
+  describe('activity retention', () => {
+    it("deletes only this mess's activity older than 12 months", async () => {
+      prismaMock.activity_logs.deleteMany.mockResolvedValue({ count: 3 });
+      const service = new MonthsService();
+      await (
+        service as unknown as {
+          purgeOldActivity: (id: string) => Promise<void>;
+        }
+      ).purgeOldActivity('mess-1');
+
+      const { where } = prismaMock.activity_logs.deleteMany.mock
+        .calls[0][0] as {
+        where: { mess_id: string; created_at: { lt: Date } };
+      };
+      expect(where.mess_id).toBe('mess-1');
+      const months =
+        (Date.now() - where.created_at.lt.getTime()) / (30.44 * 86_400_000);
+      expect(months).toBeGreaterThan(11.8);
+      expect(months).toBeLessThan(12.2);
+    });
+
+    it('never fails opening a month', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      prismaMock.activity_logs.deleteMany.mockRejectedValue(
+        new Error('db down'),
+      );
+      const service = new MonthsService();
+      await expect(
+        (
+          service as unknown as {
+            purgeOldActivity: (id: string) => Promise<void>;
+          }
+        ).purgeOldActivity('mess-1'),
+      ).resolves.toBeUndefined();
+    });
+  });
 });

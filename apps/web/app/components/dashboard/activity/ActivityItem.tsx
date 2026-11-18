@@ -110,6 +110,9 @@ function describe(details: ActivityLogInfo["details"], t: T): string | null {
   const parts: string[] = [];
   if (details.title) parts.push(details.title);
   if (details.member) parts.push(details.member);
+  if (typeof details.members === "number") {
+    parts.push(t("membersCount", { count: details.members }));
+  }
   if (typeof details.meals === "number") {
     parts.push(t("mealsCount", { count: details.meals }));
   }

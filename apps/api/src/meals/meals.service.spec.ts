@@ -120,6 +120,38 @@ describe('MealsService', () => {
       expect(prismaMock.$transaction).not.toHaveBeenCalled();
     });
 
+    it('logs one activity for the whole day, with member and meal counts', async () => {
+      prismaMock.mess_members.findFirst.mockResolvedValue({ id: 'mgr' });
+      prismaMock.months.findFirst.mockResolvedValue({
+        id: MONTH,
+        started_at: new Date('2026-11-01T00:00:00Z'),
+      });
+      prismaMock.meal_types.findMany.mockResolvedValue([{ id: 't1' }]);
+      prismaMock.mess_members.findMany.mockResolvedValue([
+        { id: 'm1' },
+        { id: 'm2' },
+      ]);
+      prismaMock.meal_entries.findMany.mockResolvedValue([]);
+      prismaMock.meal_entries.create.mockResolvedValue({ id: 'new' });
+
+      await service.bulkSaveMealEntries(MESS, MONTH, 'mgr-user', {
+        entries: [
+          { memberId: 'm1', date, meals: { t1: 1 } },
+          { memberId: 'm2', date, meals: { t1: 1.5 } },
+        ],
+      });
+
+      const { data } = prismaMock.activity_logs.createMany.mock.calls[0][0] as {
+        data: Record<string, unknown>[];
+      };
+      expect(data).toHaveLength(1);
+      expect(data[0]).toMatchObject({
+        action: 'MEAL_ADDED',
+        entity_type: 'meal_day',
+        details: { date, members: 2, meals: 2.5 },
+      });
+    });
+
     it('edit refuses a day with nothing saved', async () => {
       arrange([]);
       await rejectsWith(

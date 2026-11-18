@@ -403,8 +403,6 @@ model activity_logs {
 
   @@index([mess_id, created_at(sort: Desc)], map: "idx_activity_logs_mess_created")
   @@index([actor_id], map: "idx_activity_logs_actor")
-  @@index([entity_type, entity_id], map: "idx_activity_logs_entity")
-  @@index([action], map: "idx_activity_logs_action")
 }
 
 model join_requests {
