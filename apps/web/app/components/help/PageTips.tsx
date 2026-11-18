@@ -32,7 +32,7 @@ const PAGE_CONFIG: Record<
 > = {
   dashboard: { managerOnly: ["approvals"], guide: "" },
   members: {
-    managerOnly: ["invite", "create", "role", "remove"],
+    managerOnly: ["invite", "create", "remove"],
     guide: "guide-addMembers",
   },
   meals: {

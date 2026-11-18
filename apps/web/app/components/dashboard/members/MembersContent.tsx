@@ -11,7 +11,6 @@ import {
   useMembers,
   useMemberCalculations,
   useRemoveMember,
-  useUpdateMemberRole,
   type MemberData,
   type MemberFilters,
 } from "../../../hooks/use-members";
@@ -33,9 +32,6 @@ export function MembersContent() {
   // Removed members stay listed under the "Removed" filter only.
   const [filters, setFilters] = useState<MemberFilters>({ status: "ACTIVE" });
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [roleDialogMember, setRoleDialogMember] = useState<MemberData | null>(
-    null,
-  );
   const [removeDialogMember, setRemoveDialogMember] =
     useState<MemberData | null>(null);
 
@@ -44,10 +40,6 @@ export function MembersContent() {
 
   const membersQuery = useMembers(messId, filters);
   const { data: members = [], isPending: membersPending } = membersQuery;
-
-  // Unfiltered active list for the 2-manager rule (same query as the
-  // default view, so usually no extra request).
-  const activeMembersQuery = useMembers(messId, { status: "ACTIVE" });
 
   const calcQuery = useMemberCalculations(messId);
   const { data: calculations, isPending: calcPending } = calcQuery;
@@ -91,7 +83,6 @@ export function MembersContent() {
 
   const inviteUser = useInviteUser();
   const removeMember = useRemoveMember(messId ?? "");
-  const updateMemberRole = useUpdateMemberRole(messId ?? "");
 
   const handleSearchChange = useCallback((value: string) => {
     setFilters((prev) => ({
@@ -192,7 +183,6 @@ export function MembersContent() {
               monthTitle={calculations?.month_title}
               isManager={isManager}
               currentUserId={user?.id}
-              onRoleClick={setRoleDialogMember}
               onRemoveClick={setRemoveDialogMember}
             />
           )}
@@ -210,24 +200,6 @@ export function MembersContent() {
         }
         inviteMemberPending={inviteUser.isPending}
         onCloseAddDialog={() => setAddDialogOpen(false)}
-        roleDialogMember={roleDialogMember}
-        managerCount={
-          (activeMembersQuery.data ?? []).filter(
-            (m) => m.mess_role === "MANAGER",
-          ).length
-        }
-        onConfirmRole={(role) =>
-          updateMemberRole.mutate(
-            { userId: roleDialogMember!.user_id, role },
-            {
-              onSuccess: () => {
-                setRoleDialogMember(null);
-              },
-            },
-          )
-        }
-        updateRolePending={updateMemberRole.isPending}
-        onCloseRoleDialog={() => setRoleDialogMember(null)}
         removeDialogMember={removeDialogMember}
         onConfirmRemove={() =>
           removeMember.mutate(removeDialogMember!.user_id, {

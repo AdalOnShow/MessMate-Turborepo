@@ -15,6 +15,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
+  handoverManager,
   removeMember,
   updateMemberRole,
   type ActivityLogInfo,
@@ -130,12 +131,20 @@ export function useUpdateMemberRole(messId: string) {
       const result = await unwrap(updateMemberRole(messId, userId, role));
       return result;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["members", messId] });
-      queryClient.invalidateQueries({
-        queryKey: ["member-calculations", messId],
-      });
-    },
+    // A role change can be the caller's own (stepping down), which changes
+    // what every page shows, so refetch everything.
+    onSuccess: () => queryClient.invalidateQueries(),
+  });
+}
+
+/** Hand the caller's manager role to another member; the caller becomes a member. */
+export function useHandoverManager(messId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    meta: { successMessage: "managerHandedOver" },
+    mutationFn: (userId: string) => unwrap(handoverManager(messId, userId)),
+    onSuccess: () => queryClient.invalidateQueries(),
   });
 }
 

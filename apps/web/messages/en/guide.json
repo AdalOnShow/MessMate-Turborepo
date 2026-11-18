@@ -131,7 +131,7 @@
       "title": "Managers and mess settings",
       "summary": "Share the work with a second manager and keep the member list tidy.",
       "steps": [
-        "Members → Role on a member's card makes them a manager (at most 2 per mess).",
+        "Mess Settings → Managers: hand over your role, add a co-manager (at most 2 per mess) or step down.",
         "Members → Remove takes someone out of the mess; their past months stay in the records.",
         "Mess Settings lets you change the mess name and description."
       ],

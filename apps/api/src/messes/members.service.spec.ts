@@ -6,6 +6,7 @@ jest.mock(
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   HttpException,
   NotFoundException,
 } from '@nestjs/common';
@@ -261,6 +262,91 @@ describe('MessesService – members', () => {
       expect(result.mess_role).toBe('MANAGER');
       expect(prismaMock.mess_members.update).not.toHaveBeenCalled();
       expect(prismaMock.activity_logs.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handoverManager', () => {
+    const actorRow = memberRow({
+      id: 'member-actor',
+      user_id: MANAGER,
+      mess_role: 'MANAGER',
+    });
+
+    it('refuses to hand over to yourself', async () => {
+      await rejectsWith(
+        service.handoverManager(MESS, MANAGER, MANAGER),
+        BadRequestException,
+      );
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 for someone not active in this mess', async () => {
+      prismaMock.mess_members.findFirst
+        .mockResolvedValueOnce(actorRow)
+        .mockResolvedValueOnce(null);
+      await rejectsWith(
+        service.handoverManager(MESS, MANAGER, TARGET),
+        NotFoundException,
+        ErrorCode.MEMBER_NOT_FOUND,
+      );
+      expect(prismaMock.mess_members.update).not.toHaveBeenCalled();
+    });
+
+    it('refuses a target who is already a manager', async () => {
+      prismaMock.mess_members.findFirst
+        .mockResolvedValueOnce(actorRow)
+        .mockResolvedValueOnce(memberRow({ mess_role: 'MANAGER' }));
+      await rejectsWith(
+        service.handoverManager(MESS, MANAGER, TARGET),
+        BadRequestException,
+      );
+      expect(prismaMock.mess_members.update).not.toHaveBeenCalled();
+    });
+
+    it('refuses when the caller is not a manager', async () => {
+      prismaMock.mess_members.findFirst.mockResolvedValueOnce(null);
+      await rejectsWith(
+        service.handoverManager(MESS, MANAGER, TARGET),
+        ForbiddenException,
+        ErrorCode.MANAGER_ONLY,
+      );
+      expect(prismaMock.mess_members.update).not.toHaveBeenCalled();
+    });
+
+    it('swaps roles and logs both changes, in one transaction', async () => {
+      prismaMock.mess_members.findFirst
+        .mockResolvedValueOnce(actorRow)
+        .mockResolvedValueOnce(memberRow());
+      prismaMock.mess_members.update
+        .mockResolvedValueOnce(memberRow({ mess_role: 'MANAGER' }))
+        .mockResolvedValueOnce({ ...actorRow, mess_role: 'MEMBER' });
+
+      const result = await service.handoverManager(MESS, MANAGER, TARGET);
+
+      expect(result.mess_role).toBe('MANAGER');
+      expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+      expect(prismaMock.mess_members.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'member-1' },
+          data: { mess_role: 'MANAGER' },
+        }),
+      );
+      expect(prismaMock.mess_members.update).toHaveBeenCalledWith({
+        where: { id: 'member-actor' },
+        data: { mess_role: 'MEMBER' },
+      });
+      expect(prismaMock.activity_logs.createMany).toHaveBeenCalledWith({
+        data: [
+          expect.objectContaining({
+            action: 'MANAGER_ASSIGNED',
+            entity_id: 'member-1',
+          }),
+          expect.objectContaining({
+            action: 'MANAGER_REMOVED',
+            entity_id: 'member-actor',
+          }),
+        ],
+      });
     });
   });
 });

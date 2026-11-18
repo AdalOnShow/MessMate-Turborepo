@@ -18,7 +18,6 @@
     "addMembersSeeTheir": "Add members to see their live calculation summary.",
     "activeMonth": "Active month",
     "manager": "Manager",
-    "role": "Role",
     "remove": "Remove",
     "currentBalance": "Current balance",
     "fromPreviousMonth": "from previous month",
@@ -55,17 +54,5 @@
     "sureWantRemove": "Are you sure you want to remove",
     "fromMessActionCannot": "from this mess? This action cannot be undone.",
     "removing": "Removing..."
-  },
-  "roleChangeDialog": {
-    "changeRole": "Change Role",
-    "manager": "Manager",
-    "canManageMembersMeals": "Can manage members, meals, and expenses",
-    "member": "Member",
-    "canViewDataAdd": "Can view data and add meal entries",
-    "maximum2ManagersAllowed": "Maximum 2 managers allowed per mess",
-    "cannotDemoteLastManager": "Cannot demote the last manager",
-    "cancel": "Cancel",
-    "updateRole": "Update role for",
-    "updating": "Updating..."
   }
 }

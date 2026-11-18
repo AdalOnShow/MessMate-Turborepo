@@ -26,6 +26,7 @@ const SUCCESS_MESSAGES = {
   depositDeleted: "Deposit deleted",
   memberRemoved: "Member removed",
   memberRoleUpdated: "Member role updated",
+  managerHandedOver: "Manager role handed over",
   mealsSaved: "Meals saved",
   mealsUpdated: "Meals updated",
   mealEntryDeleted: "Meal entry deleted",

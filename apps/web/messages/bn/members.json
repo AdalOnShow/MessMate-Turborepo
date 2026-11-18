@@ -18,7 +18,6 @@
     "addMembersSeeTheir": "সদস্য যোগ করলে তাদের লাইভ হিসাব এখানে দেখা যাবে।",
     "activeMonth": "চলতি মাস",
     "manager": "ম্যানেজার",
-    "role": "ভূমিকা",
     "remove": "বাদ দিন",
     "currentBalance": "বর্তমান ব্যালেন্স",
     "fromPreviousMonth": "আগের মাস থেকে",
@@ -55,17 +54,5 @@
     "sureWantRemove": "আপনি কি নিশ্চিতভাবে বাদ দিতে চান",
     "fromMessActionCannot": "এই মেস থেকে? এটি আর ফেরানো যাবে না।",
     "removing": "বাদ দেওয়া হচ্ছে..."
-  },
-  "roleChangeDialog": {
-    "changeRole": "ভূমিকা পরিবর্তন",
-    "manager": "ম্যানেজার",
-    "canManageMembersMeals": "সদস্য, মিল ও খরচ পরিচালনা করতে পারবেন",
-    "member": "সদস্য",
-    "canViewDataAdd": "তথ্য দেখতে ও মিল যোগ করতে পারবেন",
-    "maximum2ManagersAllowed": "প্রতি মেসে সর্বোচ্চ ২ জন ম্যানেজার",
-    "cannotDemoteLastManager": "শেষ ম্যানেজারকে সরানো যাবে না",
-    "cancel": "বাতিল",
-    "updateRole": "ভূমিকা আপডেট করুন:",
-    "updating": "আপডেট হচ্ছে..."
   }
 }

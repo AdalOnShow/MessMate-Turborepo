@@ -2,7 +2,6 @@
 
 import type { MemberData } from "../../../hooks/use-members";
 import { AddMemberDialog } from "./AddMemberDialog";
-import { RoleChangeDialog } from "./RoleChangeDialog";
 import { RemoveMemberDialog } from "./RemoveMemberDialog";
 
 export function MembersDialogs({
@@ -10,11 +9,6 @@ export function MembersDialogs({
   onInviteMember,
   inviteMemberPending,
   onCloseAddDialog,
-  roleDialogMember,
-  managerCount,
-  onConfirmRole,
-  updateRolePending,
-  onCloseRoleDialog,
   removeDialogMember,
   onConfirmRemove,
   removeMemberPending,
@@ -24,11 +18,6 @@ export function MembersDialogs({
   onInviteMember: (userId: string) => void;
   inviteMemberPending: boolean;
   onCloseAddDialog: () => void;
-  roleDialogMember: MemberData | null;
-  managerCount: number;
-  onConfirmRole: (role: "MANAGER" | "MEMBER") => void;
-  updateRolePending: boolean;
-  onCloseRoleDialog: () => void;
   removeDialogMember: MemberData | null;
   onConfirmRemove: () => void;
   removeMemberPending: boolean;
@@ -41,16 +30,6 @@ export function MembersDialogs({
           onClose={onCloseAddDialog}
           onInvite={onInviteMember}
           isPending={inviteMemberPending}
-        />
-      )}
-
-      {roleDialogMember && (
-        <RoleChangeDialog
-          member={roleDialogMember}
-          managerCount={managerCount}
-          onClose={onCloseRoleDialog}
-          onConfirm={onConfirmRole}
-          isPending={updateRolePending}
         />
       )}
 

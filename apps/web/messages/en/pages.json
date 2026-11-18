@@ -354,6 +354,34 @@
     "summaryKept": "Everyone's real final balance stays in this month's summary either way.",
     "pendingBazaarWarning": "{count, plural, one {# bazaar entry is} other {# bazaar entries are}} still waiting for approval. Closing the month rejects {count, plural, one {it} other {them}}; approve first if they should count.",
     "lockReminderTitle": "Important:",
-    "lockReminder": "After closing, nothing in {title} can be edited or deleted: meals, deposits, expenses and bazaar are all locked. Check everything first."
+    "lockReminder": "After closing, nothing in {title} can be edited or deleted: meals, deposits, expenses and bazaar are all locked. Check everything first.",
+    "managers": {
+      "title": "Managers",
+      "desc": "Managers run the mess's accounts. A mess can have up to 2 managers, with the same permissions.",
+      "you": "You",
+      "handOver": "Hand over manager role",
+      "addCoManager": "Add co-manager",
+      "stepDown": "Step down",
+      "makeMember": "Make member",
+      "noEligible": "Every active member is already a manager. Invite or create a member first.",
+      "handoverTitle": "Hand over manager role",
+      "handoverDesc": "Pick who becomes the new manager. You'll become a normal member.",
+      "coTitle": "Add a co-manager",
+      "coDesc": "They get the same permissions as you. A mess can have at most 2 managers.",
+      "searchMembers": "Search members",
+      "noMatch": "No members match.",
+      "selectPrompt": "Select a member",
+      "handoverWarning": "You'll lose access to Mess Settings and to adding meals, expenses and deposits. Only a manager can make you manager again.",
+      "confirmHandover": "Hand over to {name}",
+      "confirmCo": "Make {name} manager",
+      "cancel": "Cancel",
+      "working": "Saving...",
+      "stepDownTitle": "Step down as manager?",
+      "stepDownDesc": "{name} stays the manager. You'll become a normal member and lose access to Mess Settings.",
+      "makeMemberTitle": "Remove {name} as manager?",
+      "makeMemberDesc": "{name} becomes a normal member. You stay the only manager.",
+      "confirmStepDown": "Step down",
+      "confirmMakeMember": "Make member"
+    }
   }
 }

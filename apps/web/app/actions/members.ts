@@ -74,6 +74,11 @@ export async function updateMemberRole(
   });
 }
 
+/** Make `userId` the manager and the caller a member (roles swap). */
+export async function handoverManager(messId: string, userId: string) {
+  return api.post<MemberData>(`/messes/${messId}/handover`, { userId });
+}
+
 export async function createMemberAccount(data: {
   name: string;
   email: string;

@@ -1,10 +1,12 @@
 import type { z } from "zod";
 import type {
   updateMemberRoleSchema,
+  handoverManagerSchema,
   memberFiltersSchema,
 } from "./members.schemas";
 
 export type UpdateMemberRoleDto = z.infer<typeof updateMemberRoleSchema>;
+export type HandoverManagerDto = z.infer<typeof handoverManagerSchema>;
 export type MemberFiltersDto = z.infer<typeof memberFiltersSchema>;
 
 export interface MessMemberWithUser {
