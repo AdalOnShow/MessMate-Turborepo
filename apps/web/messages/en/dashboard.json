@@ -71,6 +71,7 @@
     "noMonthManager": "Start a month on the Months page to begin tracking meals, deposits and expenses.",
     "noMonthMember": "Your manager hasn't started a month yet. Your meals and balance will show up here once they do.",
     "startInSettings": "Start a month",
-    "recentActivity": "Recent activity"
+    "recentActivity": "Recent activity",
+    "everyoneSummary": "Everyone's summary"
   }
 }

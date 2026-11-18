@@ -73,7 +73,11 @@ export function MySummary({
 
   return (
     <Card>
-      <CardTitle title={withBalance ? t("mySummary") : t("billBreakdown")} />
+      <CardTitle
+        title={withBalance ? t("mySummary") : t("billBreakdown")}
+        href="/dashboard/members"
+        linkLabel={t("everyoneSummary")}
+      />
       {query.isPending ? (
         <div className="space-y-3">
           {[0, 1, 2, 3].map((i) => (

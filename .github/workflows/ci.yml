@@ -16,6 +16,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history so turbo can diff against main ([origin/main]);
+          # the default shallow clone has no origin/main and fails.
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -29,11 +33,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # PRs check only packages changed against main (plus dependents);
+      # pushes to main compare with the previous commit on main.
+      - name: Choose changed-package filter
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "TURBO_FILTER=...[origin/${{ github.base_ref }}]" >> "$GITHUB_ENV"
+          else
+            echo "TURBO_FILTER=...[${{ github.event.before }}]" >> "$GITHUB_ENV"
+          fi
+
       - name: Build
-        run: pnpm turbo build --filter=[origin/main]
+        run: pnpm turbo build --filter=$TURBO_FILTER
 
       - name: Lint
-        run: pnpm turbo lint --filter=[origin/main]
+        run: pnpm turbo lint --filter=$TURBO_FILTER
 
       - name: Type check
-        run: pnpm turbo check-types --filter=[origin/main]
+        run: pnpm turbo check-types --filter=$TURBO_FILTER
