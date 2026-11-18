@@ -6,20 +6,12 @@ import { PageTips } from "../../../components/help/PageTips";
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-<<<<<<< HEAD:apps/web/app/(app)/dashboard/meals/page.tsx
 import { OfflineHint } from "../../../components/ui/offline-hint";
 import { useOnline } from "../../../hooks/use-online";
-import { useState, useMemo, useCallback } from "react";
-import { useGetMyMess } from "../../../hooks/use-messes";
-import { useGetActiveMonth } from "../../../hooks/use-months";
-=======
-import { OfflineHint } from "../../components/ui/offline-hint";
-import { useOnline } from "../../hooks/use-online";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useGetMyMess } from "../../hooks/use-messes";
-import { useGetActiveMonth } from "../../hooks/use-months";
->>>>>>> origin/main:apps/web/app/dashboard/meals/page.tsx
+import { useGetMyMess } from "../../../hooks/use-messes";
+import { useGetActiveMonth } from "../../../hooks/use-months";
 import {
   useGetMealTypes,
   useCreateMealType,

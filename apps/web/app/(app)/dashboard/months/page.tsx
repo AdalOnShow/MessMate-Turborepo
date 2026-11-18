@@ -15,14 +15,9 @@ import {
   QueriesErrorState,
   QueryErrorState,
   failedQueries,
-<<<<<<< HEAD:apps/web/app/(app)/dashboard/months/page.tsx
 } from "../../../components/feedback/QueryErrorState";
 import { MonthSettings } from "../../../components/dashboard/MonthSettings";
-=======
-} from "../../components/feedback/QueryErrorState";
-import { MonthSettings } from "../../components/dashboard/MonthSettings";
-import { formatMoneyExact } from "../../lib/format";
->>>>>>> origin/main:apps/web/app/dashboard/months/page.tsx
+import { formatMoneyExact } from "../../../lib/format";
 
 const money = formatMoneyExact;
 

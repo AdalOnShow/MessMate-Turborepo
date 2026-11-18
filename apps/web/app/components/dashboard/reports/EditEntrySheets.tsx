@@ -14,15 +14,6 @@ import {
   useDeleteDeposit,
   useUpdateDeposit,
 } from "../../../hooks/use-deposits";
-<<<<<<< HEAD
-import {
-  formatDateOnly,
-  formatMoney,
-  fromDateOnlyISO,
-  toDateOnlyISO,
-} from "../../../lib/format";
-import { showSuccess } from "../../../store/success-dialog";
-=======
 import { useMembers, type MemberData } from "../../../hooks/use-members";
 import { useGetMealTypes } from "../../../hooks/use-messes";
 import type { MealTypeInfo } from "../../../hooks/use-messes";
@@ -31,9 +22,14 @@ import {
   useUpdateMealDay,
   type MealEntryInfo,
 } from "../../../hooks/use-meals";
-import { fromDateOnlyISO, toDateOnlyISO } from "../../../lib/format";
+import {
+  formatDateOnly,
+  formatMoney,
+  fromDateOnlyISO,
+  toDateOnlyISO,
+} from "../../../lib/format";
 import { cn } from "../../../lib/utils";
->>>>>>> origin/main
+import { showSuccess } from "../../../store/success-dialog";
 
 const inputClass =
   "w-full rounded-lg border border-border-strong bg-surface px-4 py-2.5 text-base text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none sm:text-sm";

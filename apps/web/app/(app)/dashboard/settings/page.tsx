@@ -9,12 +9,8 @@ import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../../store";
 import { useGetMyMess, useUpdateMess } from "../../../hooks/use-messes";
 import { Check, Loader2, Pencil, Settings, X } from "lucide-react";
-<<<<<<< HEAD:apps/web/app/(app)/dashboard/settings/page.tsx
 import { QueryErrorState } from "../../../components/feedback/QueryErrorState";
-=======
-import { QueryErrorState } from "../../components/feedback/QueryErrorState";
-import { ManagersSection } from "../../components/dashboard/settings/ManagersSection";
->>>>>>> origin/main:apps/web/app/dashboard/settings/page.tsx
+import { ManagersSection } from "../../../components/dashboard/settings/ManagersSection";
 
 function EditableMessInfo() {
   const t = useTranslations("pages.settings");
