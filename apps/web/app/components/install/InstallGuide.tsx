@@ -31,18 +31,13 @@ import { richAccent } from "../landing/ui";
 import { PhoneScene, type SceneId } from "./PhoneScenes";
 
 type Os = "ios" | "android";
-type GuideId =
-  | "iosSafari"
-  | "iosChrome"
-  | "androidChrome"
-  | "samsung"
-  | "brave";
+type GuideId = "iosSafari" | "iosChrome" | "androidChrome" | "samsung";
 
 const GUIDES: Record<
   GuideId,
   {
     os: Os;
-    browser: "safari" | "chrome" | "samsung" | "brave";
+    browser: "safari" | "chrome" | "samsung";
     scenes: SceneId[];
   }
 > = {
@@ -82,24 +77,32 @@ const GUIDES: Record<
       "homescreen",
     ],
   },
-  brave: {
-    os: "android",
-    browser: "brave",
-    scenes: ["brave-bar", "brave-menu", "android-install", "homescreen"],
-  },
 };
 
 const GUIDES_BY_OS: Record<Os, GuideId[]> = {
   ios: ["iosSafari", "iosChrome"],
-  android: ["androidChrome", "samsung", "brave"],
+  android: ["androidChrome", "samsung"],
 };
+
+/**
+ * Browsers we guide people through. Others (Brave, Firefox, Edge, Opera,
+ * in-app browsers...) either can't install MessMate or do it unreliably, so
+ * visitors using them are asked to open the site in one of these instead.
+ */
+const SUPPORTED: Record<"ios" | "android", DeviceEnv["browser"][]> = {
+  ios: ["safari", "chrome"],
+  android: ["chrome", "samsung"],
+};
+
+export function isSupportedBrowser(env: DeviceEnv) {
+  return env.os === "desktop" || SUPPORTED[env.os].includes(env.browser);
+}
 
 /** The guide matching the visitor's own phone + browser. */
 function guideFor(env: DeviceEnv | null): GuideId {
   if (env?.os === "ios")
     return env.browser === "chrome" ? "iosChrome" : "iosSafari";
   if (env?.browser === "samsung") return "samsung";
-  if (env?.browser === "brave") return "brave";
   return "androidChrome";
 }
 
@@ -220,11 +223,14 @@ export function InstallGuide() {
                 )}
               >
                 {t(`browser.${GUIDES[id].browser}`)}
-                {env && id === detected && env.os !== "desktop" && (
-                  <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-semibold text-success">
-                    {t("recommended")}
-                  </span>
-                )}
+                {env &&
+                  id === detected &&
+                  env.os !== "desktop" &&
+                  isSupportedBrowser(env) && (
+                    <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-semibold text-success">
+                      {t("recommended")}
+                    </span>
+                  )}
               </button>
             ))}
           </div>
@@ -272,6 +278,7 @@ export function InstallGuide() {
 
 function PrimaryAction({ env }: { env: DeviceEnv }) {
   const t = useTranslations("install.action");
+  const tb = useTranslations("install");
   const install = useInstallState();
   const [busy, setBusy] = useState(false);
 
@@ -290,6 +297,55 @@ function PrimaryAction({ env }: { env: DeviceEnv }) {
           {t("openDashboard")}
           <ArrowRight size={16} aria-hidden="true" />
         </Link>
+      </Card>
+    );
+  }
+
+  // Not one of our browsers (including Facebook/Messenger's in-app
+  // browser): ask them to switch first, even if this browser offers its own
+  // install prompt.
+  if (!isSupportedBrowser(env)) {
+    const isAndroid = env.os === "android";
+    const { host, pathname } = window.location;
+    const inapp = env.browser === "inapp";
+    return (
+      <Card
+        tone="warn"
+        icon={<ExternalLink size={20} />}
+        title={
+          inapp
+            ? t("inappTitle")
+            : isAndroid
+              ? t("unsupportedTitle")
+              : t("unsupportedTitleIos")
+        }
+        desc={
+          inapp
+            ? isAndroid
+              ? t("inappDescAndroid")
+              : t("inappDescIos")
+            : isAndroid
+              ? t("unsupportedDescAndroid", {
+                  browser: tb(`browser.${env.browser}`),
+                })
+              : t("unsupportedDescIos", {
+                  browser: tb(`browser.${env.browser}`),
+                })
+        }
+      >
+        {isAndroid && (
+          <a
+            href={`intent://${host}${pathname}#Intent;scheme=https;package=com.android.chrome;end`}
+            className="bg-cta inline-flex h-11 items-center gap-2 rounded-[9px] px-5 text-sm font-bold"
+          >
+            {t("openInChrome")}
+            <ExternalLink size={16} aria-hidden="true" />
+          </a>
+        )}
+        <CopyLink />
+        <p className="w-full text-xs leading-relaxed text-foreground-muted">
+          {isAndroid ? t("copyHintAndroid") : t("copyHintIos")}
+        </p>
       </Card>
     );
   }
@@ -323,30 +379,6 @@ function PrimaryAction({ env }: { env: DeviceEnv }) {
           {t("installNowDesc")}
         </p>
       </div>
-    );
-  }
-
-  if (env.browser === "inapp") {
-    const isAndroid = env.os === "android";
-    const { host, pathname } = window.location;
-    return (
-      <Card
-        tone="warn"
-        icon={<ExternalLink size={20} />}
-        title={t("inappTitle")}
-        desc={isAndroid ? t("inappDescAndroid") : t("inappDescIos")}
-      >
-        {isAndroid && (
-          <a
-            href={`intent://${host}${pathname}#Intent;scheme=https;package=com.android.chrome;end`}
-            className="bg-cta inline-flex h-11 items-center gap-2 rounded-[9px] px-5 text-sm font-bold"
-          >
-            {t("openInChrome")}
-            <ExternalLink size={16} aria-hidden="true" />
-          </a>
-        )}
-        <CopyLink />
-      </Card>
     );
   }
 
@@ -431,7 +463,8 @@ function Card({
 function CopyLink() {
   const t = useTranslations("install.action");
   const [copied, setCopied] = useState(false);
-  const url = window.location.href;
+  // The install page itself, so the new browser opens straight on the guide.
+  const url = `${window.location.origin}/install`;
 
   return (
     <button

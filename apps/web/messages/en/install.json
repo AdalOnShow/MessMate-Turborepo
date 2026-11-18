@@ -1,6 +1,6 @@
 {
   "metaTitle": "Install MessMate on your phone",
-  "metaDescription": "Add MessMate to your iPhone or Android home screen in a few taps. Step-by-step guide for Safari, Chrome, Samsung Internet and Brave.",
+  "metaDescription": "Add MessMate to your iPhone or Android home screen in a few taps. Step-by-step guide for Safari, Chrome and Samsung Internet.",
   "eyebrow": "Install the app",
   "title": "MessMate on your <accent>home screen</accent>",
   "subtitle": "No app store needed. Install MessMate straight from your browser. It opens full screen, loads fast and sits next to your other apps.",
@@ -40,7 +40,13 @@
     "manualTitle": "Install from your browser menu",
     "manualDesc": "Follow the steps below. It only takes a few taps.",
     "desktopTitle": "Open this page on your phone",
-    "desktopDesc": "MessMate works best installed on your phone. Copy the link and open it on your phone. On a computer, Chrome and Edge also show an install icon in the address bar."
+    "desktopDesc": "MessMate works best installed on your phone. Copy the link and open it on your phone. On a computer, Chrome and Edge also show an install icon in the address bar.",
+    "unsupportedTitle": "Open in Chrome to install",
+    "unsupportedDescAndroid": "MessMate installs properly from Chrome or Samsung Internet. {browser} isn't supported, so open this page in Chrome (or Samsung Internet) to continue.",
+    "unsupportedDescIos": "On iPhone, MessMate installs from Safari or Chrome. {browser} isn't supported, so open this page in Safari to continue.",
+    "copyHintAndroid": "Or copy the link, then paste it into Chrome's address bar.",
+    "copyHintIos": "Copy the link, open Safari and paste it into the address bar.",
+    "unsupportedTitleIos": "Open in Safari to install"
   },
   "guideTitle": "Step-by-step guide",
   "guideSubtitle": "Pick your phone and browser. We've already selected the one you're using.",
@@ -121,24 +127,6 @@
       "s5": {
         "title": "Open MessMate",
         "body": "MessMate is now on your home screen. Tap the icon to open it."
-      }
-    },
-    "brave": {
-      "s1": {
-        "title": "Open the menu",
-        "body": "In Brave, tap the three-dot menu (⋮). It's at the bottom right, or at the top right if your address bar is on top."
-      },
-      "s2": {
-        "title": "Tap “Add to Home screen”",
-        "body": "Tap “Add to Home screen”. On some versions it's called “Install app”."
-      },
-      "s3": {
-        "title": "Tap “Install”",
-        "body": "Confirm by tapping “Install”."
-      },
-      "s4": {
-        "title": "Open MessMate",
-        "body": "Find MessMate on your home screen and tap to open."
       }
     }
   },

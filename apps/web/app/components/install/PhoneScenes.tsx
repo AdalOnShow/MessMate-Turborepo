@@ -27,7 +27,6 @@ import {
   Plus,
   Pointer,
   RotateCw,
-  Search,
   Settings,
   Share,
   ShieldCheck,
@@ -45,8 +44,6 @@ export type SceneId =
   | "ios-add-confirm"
   | "chrome-bar"
   | "chrome-menu"
-  | "brave-bar"
-  | "brave-menu"
   | "samsung-bar"
   | "samsung-menu"
   | "samsung-addto"
@@ -391,68 +388,6 @@ function ChromeMenu() {
   );
 }
 
-function BraveBottomBar({ target }: { target: boolean }) {
-  const dots = <MoreVertical className="size-3.5" />;
-  return (
-    <div className="flex items-center justify-between bg-[#1e2029] px-[8%] pt-[3%] pb-[7%] text-[#c2c4cf]">
-      <Home className="size-3.5" />
-      <Search className="size-3.5" />
-      <Plus className="size-3.5" />
-      <span className="grid size-3 place-items-center rounded-[3px] border-[1.5px] border-current text-[6px] font-bold">
-        2
-      </span>
-      {target ? <Target className="rounded-full p-0.5">{dots}</Target> : dots}
-    </div>
-  );
-}
-
-function BraveTop() {
-  return (
-    <div className="bg-[#1e2029]">
-      <StatusBar dark />
-      <div className="px-[4%] pt-[1%] pb-[3%]">
-        <div className="flex items-center gap-1 rounded-full bg-[#2c2f3b] px-2 py-1 text-[7px] text-[#e8e8ef]">
-          <Lock className="size-2" />
-          <span className="flex-1">messmate</span>
-          <ShieldCheck className="size-2.5 text-[#fb542b]" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BraveBar() {
-  return (
-    <>
-      <BraveTop />
-      <PageBody />
-      <BraveBottomBar target />
-    </>
-  );
-}
-
-function BraveMenu() {
-  return (
-    <>
-      <BraveTop />
-      <PageBody />
-      <BraveBottomBar target={false} />
-      <MenuCard
-        className="right-[3%] bottom-[11%] origin-bottom-right"
-        rows={[
-          "New tab",
-          "New private tab",
-          "Bookmarks",
-          "Downloads",
-          "Add to Home screen",
-          "Settings",
-        ]}
-        highlight="Add to Home screen"
-      />
-    </>
-  );
-}
-
 function SamsungTop() {
   return (
     <div className="bg-[#f7f7f9]">
@@ -673,10 +608,6 @@ function SceneContent({
       return <ChromeBar />;
     case "chrome-menu":
       return <ChromeMenu />;
-    case "brave-bar":
-      return <BraveBar />;
-    case "brave-menu":
-      return <BraveMenu />;
     case "samsung-bar":
       return <SamsungBar />;
     case "samsung-menu":
@@ -736,9 +667,7 @@ export function PhoneScene({
         <span
           className={cn(
             "absolute bottom-[1%] left-1/2 z-40 h-[3px] w-[34%] -translate-x-1/2 rounded-full",
-            scene === "homescreen" || scene.startsWith("brave")
-              ? "bg-white/80"
-              : "bg-black/70",
+            scene === "homescreen" ? "bg-white/80" : "bg-black/70",
           )}
         />
       </div>
