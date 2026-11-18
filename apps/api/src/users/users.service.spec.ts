@@ -120,6 +120,8 @@ describe('UsersService', () => {
         email: 'arif@example.com',
         phone: '01711000004',
         manager_created: true,
+        // The manager chose the password: ask the user to set their own.
+        must_change_password: true,
         email_verified: false,
       });
       expect(data.password).not.toBe(input.password);
@@ -250,6 +252,22 @@ describe('UsersService', () => {
         },
         data: { revoked_at: expect.any(Date) },
       });
+    });
+
+    it('clears the "set your password" flag', async () => {
+      prismaMock.users.findUnique.mockResolvedValue({
+        id: 'u1',
+        password: await bcrypt.hash('old-password-1', 4),
+      });
+
+      await service.changePassword('u1', 'old-password-1', 'New-password-1');
+
+      expect(prismaMock.users.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'u1' },
+          data: expect.objectContaining({ must_change_password: false }),
+        }),
+      );
     });
   });
 });

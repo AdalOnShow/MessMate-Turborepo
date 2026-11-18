@@ -18,6 +18,7 @@ export function UserSessionDisplay() {
       phone: null,
       avatar: null,
       manager_created: false,
+      must_change_password: false,
       email_verified: false,
     });
   };

@@ -57,6 +57,8 @@ export interface ProfileUser {
   phone: string | null;
   avatar: string | null;
   manager_created: boolean;
+  /** A manager chose this account's password; the user should set their own. */
+  must_change_password: boolean;
   email_verified: boolean;
 }
 
@@ -153,6 +155,7 @@ export async function signup(
         phone: payload.phone ?? null,
         avatar: null,
         manager_created: false,
+        must_change_password: false,
         email_verified: false,
       },
     },
@@ -178,6 +181,7 @@ export async function signin(
     phone: null,
     avatar: null,
     manager_created: false,
+    must_change_password: false,
     email_verified: false,
   });
 
@@ -239,6 +243,7 @@ export async function getCurrentUser(): Promise<ProfileUser | null> {
     phone: null,
     avatar: null,
     manager_created: false,
+    must_change_password: false,
     email_verified: false,
   };
 }
