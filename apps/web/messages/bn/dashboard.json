@@ -43,7 +43,8 @@
     "catMonths": "মাস",
     "noActivityOfType": "এই ধরনের কোনো কার্যক্রম এখনো নেই।",
     "by": "{name} করেছেন",
-    "newNotifications": "নতুন নোটিফিকেশন"
+    "newNotifications": "নতুন নোটিফিকেশন",
+    "membersCount": "{count} জন"
   },
   "home": {
     "goodMorning": "শুভ সকাল",

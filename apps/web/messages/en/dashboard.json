@@ -43,7 +43,8 @@
     "catMonths": "Months",
     "noActivityOfType": "No activity of this type yet.",
     "by": "by {name}",
-    "newNotifications": "New notifications"
+    "newNotifications": "New notifications",
+    "membersCount": "{count} members"
   },
   "home": {
     "goodMorning": "Good morning",

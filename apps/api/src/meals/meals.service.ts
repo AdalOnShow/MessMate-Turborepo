@@ -207,7 +207,9 @@ export class MealsService {
     const savedIds = await prisma.$transaction(
       async (tx) => {
         const ids: string[] = [];
-        const logs: Prisma.activity_logsCreateManyInput[] = [];
+        // One activity per saved day (not per member): a day's save for a
+        // 10-member mess used to write 10 rows and fill the notifications.
+        const byDay = new Map<string, { members: number; meals: number }>();
 
         for (const p of prepared) {
           const id = existingId.get(entryKey(p.memberId, p.date));
@@ -222,14 +224,6 @@ export class MealsService {
               select: { id: true },
             });
             ids.push(id);
-            logs.push({
-              mess_id: messId,
-              month_id: monthId,
-              actor_id: actorId,
-              action: 'MEAL_UPDATED',
-              entity_type: 'meal_entries',
-              entity_id: id,
-            });
           } else {
             const created = await tx.meal_entries.create({
               data: {
@@ -243,17 +237,29 @@ export class MealsService {
               select: { id: true },
             });
             ids.push(created.id);
-            logs.push({
-              mess_id: messId,
-              month_id: monthId,
-              actor_id: actorId,
-              action: 'MEAL_ADDED',
-              entity_type: 'meal_entries',
-              entity_id: created.id,
-            });
           }
+          const dayKey = p.date.toISOString();
+          const day = byDay.get(dayKey) ?? { members: 0, meals: 0 };
+          day.members += 1;
+          day.meals += p.totalMeal;
+          byDay.set(dayKey, day);
         }
 
+        const logs: Prisma.activity_logsCreateManyInput[] = [
+          ...byDay.entries(),
+        ].map(([date, day]) => ({
+          mess_id: messId,
+          month_id: monthId,
+          actor_id: actorId,
+          action: mode === 'edit' ? 'MEAL_UPDATED' : 'MEAL_ADDED',
+          entity_type: 'meal_day',
+          entity_id: null,
+          details: {
+            date,
+            members: day.members,
+            meals: Math.round(day.meals * 100) / 100,
+          },
+        }));
         await tx.activity_logs.createMany({ data: logs });
         return ids;
       },
