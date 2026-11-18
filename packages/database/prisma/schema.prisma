@@ -131,6 +131,10 @@ model user_sessions {
   id           String    @id @default(uuid())
   user_id      String
   token_hash   String
+  /// The token this one replaced. Still accepted for a short grace period
+  /// after rotation, so parallel refreshes (two tabs) don't sign out.
+  previous_token_hash String?
+  rotated_at   DateTime?
   user_agent   String?
   created_at   DateTime  @default(now())
   last_used_at DateTime  @default(now())

@@ -296,10 +296,14 @@ export async function refreshAccessToken(): Promise<string | null> {
     };
     const newAccessToken = json.data.accessToken;
 
-    // The API re-sends the refresh cookie so its 30-day lifetime slides.
+    // The API rotates the refresh token and sends the new one (with a fresh
+    // 30-day lifetime). It sends none for a parallel refresh that used the
+    // just-replaced token: then keep whatever cookie the other request set.
+    // Writing the old token back here would overwrite the new one and sign
+    // the user out once the grace period ends.
     await setAuthCookies(
       newAccessToken,
-      extractRefreshCookie(response.headers) ?? refreshToken,
+      extractRefreshCookie(response.headers),
     );
 
     return newAccessToken;

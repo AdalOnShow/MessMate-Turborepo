@@ -25,13 +25,31 @@ export type AuthUser = {
 
 export type AuthTokens = {
   accessToken: string;
-  refreshToken: string;
+  /**
+   * New refresh token after a rotation. Null when a parallel refresh within
+   * the grace period used the previous token: the client keeps the cookie
+   * the other request already set.
+   */
+  refreshToken: string | null;
 };
 
-/** Short-lived: a revoked session stops working within this window. */
-export const ACCESS_TOKEN_TTL_SECONDS = 60 * 60;
-/** Sliding: every refresh pushes a session's expiry this far out. */
+/** Tokens of a newly created session: both are always issued. */
+export type SessionTokens = { accessToken: string; refreshToken: string };
+
+/**
+ * 7 days. Long-lived is fine here: JwtStrategy checks the session on every
+ * request, so logout or a password change still cuts an access token off
+ * at once.
+ */
+export const ACCESS_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
+/**
+ * Sliding: every refresh (about weekly, when the access token runs out)
+ * rotates the refresh token and pushes the session's expiry 30 days out, so
+ * someone who opens the app at least once a month is never signed out.
+ */
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
+/** How long a just-rotated refresh token is still accepted. */
+export const ROTATION_GRACE_SECONDS = 2 * 60;
 
 /** Emails are stored and compared in lower case. */
 export function normalizeEmail(email: string): string {
@@ -240,7 +258,7 @@ export class AuthService {
       phone?: string;
     },
     userAgent?: string,
-  ): Promise<AuthTokens> {
+  ): Promise<SessionTokens> {
     this.logger.log(`📝 Registration attempt for email: ${signupDto.email}`);
 
     const email = normalizeEmail(signupDto.email);
@@ -278,7 +296,7 @@ export class AuthService {
     return tokens;
   }
 
-  async login(user: AuthUser, userAgent?: string): Promise<AuthTokens> {
+  async login(user: AuthUser, userAgent?: string): Promise<SessionTokens> {
     this.logger.log(`🔐 Login for user: ${user.id} (${user.email})`);
 
     const dbUser = await prisma.users.findUnique({ where: { id: user.id } });
@@ -303,14 +321,9 @@ export class AuthService {
   private async createSession(
     user: { id: string; email: string },
     userAgent?: string,
-  ): Promise<AuthTokens> {
+  ): Promise<SessionTokens> {
     const sessionId = randomUUID();
-    const refreshToken = await this.jwtService.signAsync(
-      { sid: sessionId },
-      // No `exp` in the token: expiry lives on the session row so it can
-      // slide forward on use and be revoked.
-      { secret: this.refreshSecret, subject: user.id },
-    );
+    const refreshToken = await this.signRefreshToken(user.id, sessionId);
 
     await prisma.user_sessions.create({
       data: {
@@ -324,6 +337,18 @@ export class AuthService {
 
     const accessToken = await this.createAccessToken(user, sessionId);
     return { accessToken, refreshToken };
+  }
+
+  /**
+   * A refresh token for a session. The random `jti` makes every token
+   * different, so a rotated one can't equal the one it replaces. No `exp`:
+   * expiry lives on the session row so it can slide and be revoked.
+   */
+  private signRefreshToken(userId: string, sessionId: string) {
+    return this.jwtService.signAsync(
+      { sid: sessionId, jti: randomUUID() },
+      { secret: this.refreshSecret, subject: userId },
+    );
   }
 
   /** Reads `{ sub, sid }` from a refresh token, or throws 401. */
@@ -348,15 +373,19 @@ export class AuthService {
   }
 
   /**
-   * Issues a new access token for a live session and extends the session.
+   * Issues a new access token, rotates the refresh token and slides the
+   * session's expiry 30 days out.
    *
-   * The refresh token itself is not rotated: several requests can hit a 401
-   * at the same moment and refresh in parallel, and with rotation all but
-   * the first would fail and sign the user out.
+   * Several requests can hit an expired access token together and refresh
+   * in parallel. Only one rotates (the update is conditional on the hash it
+   * read); the others present the token that was just replaced, which is
+   * accepted for ROTATION_GRACE_SECONDS and gets an access token only. An
+   * old token presented later is rejected.
    */
   async refreshTokens(refreshToken: string): Promise<AuthTokens> {
     const { userId, sessionId } = await this.verifyRefreshToken(refreshToken);
     const now = new Date();
+    const presented = hashToken(refreshToken);
 
     const session = await prisma.user_sessions.findFirst({
       where: {
@@ -370,28 +399,59 @@ export class AuthService {
       },
     });
 
-    if (
-      !session ||
-      session.user.deleted_at ||
-      !sameHash(hashToken(refreshToken), session.token_hash)
-    ) {
+    const reject = () => {
       this.logger.warn(`⚠️ Refresh rejected for user: ${userId}`);
-      throw new UnauthorizedException({
+      return new UnauthorizedException({
         message: 'Invalid refresh token',
         code: ErrorCode.SESSION_EXPIRED,
       });
+    };
+    if (!session || session.user.deleted_at) throw reject();
+
+    const withinGrace = (s: {
+      previous_token_hash: string | null;
+      rotated_at: Date | null;
+    }) =>
+      !!s.previous_token_hash &&
+      !!s.rotated_at &&
+      sameHash(presented, s.previous_token_hash) &&
+      now.getTime() - s.rotated_at.getTime() <= ROTATION_GRACE_SECONDS * 1000;
+
+    const graceTokens = async (): Promise<AuthTokens> => ({
+      accessToken: await this.createAccessToken(session.user, session.id),
+      refreshToken: null,
+    });
+
+    if (!sameHash(presented, session.token_hash)) {
+      if (withinGrace(session)) return graceTokens();
+      throw reject();
     }
 
-    await prisma.user_sessions.update({
-      where: { id: session.id },
+    const nextToken = await this.signRefreshToken(userId, session.id);
+    const { count } = await prisma.user_sessions.updateMany({
+      // Only if nobody rotated it since we read it.
+      where: { id: session.id, token_hash: session.token_hash },
       data: {
+        previous_token_hash: session.token_hash,
+        token_hash: hashToken(nextToken),
+        rotated_at: now,
         last_used_at: now,
         expires_at: new Date(now.getTime() + SESSION_TTL_SECONDS * 1000),
       },
     });
 
+    if (count === 0) {
+      // A parallel request rotated first; ours is now the previous token.
+      const fresh = await prisma.user_sessions.findFirst({
+        where: { id: session.id, revoked_at: null },
+        select: { previous_token_hash: true, rotated_at: true },
+      });
+      if (fresh && withinGrace(fresh)) return graceTokens();
+      throw reject();
+    }
+
     const accessToken = await this.createAccessToken(session.user, session.id);
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken: nextToken };
   }
 
   /** Ends the session the refresh token belongs to. Never throws. */

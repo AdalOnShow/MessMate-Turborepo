@@ -360,26 +360,94 @@ describe('AuthService', () => {
       await expectUnauthorized(service.refreshTokens(tokens.refreshToken));
     });
 
-    it('issues a new access token for the same session and slides its expiry', async () => {
+    const liveSession = (
+      session: { id: string; token_hash: string },
+      over: Record<string, unknown> = {},
+    ) => ({
+      id: session.id,
+      token_hash: session.token_hash,
+      previous_token_hash: null,
+      rotated_at: null,
+      user: { id: 'user-1', email: 'rakib@example.com', deleted_at: null },
+      ...over,
+    });
+
+    it('rotates the refresh token and slides the session 30 days out', async () => {
       const { tokens, session } = await issue();
-      prismaMock.user_sessions.findFirst.mockResolvedValue({
-        id: session.id,
-        token_hash: session.token_hash,
-        user: { id: 'user-1', email: 'rakib@example.com', deleted_at: null },
-      });
+      prismaMock.user_sessions.findFirst.mockResolvedValue(
+        liveSession(session),
+      );
+      prismaMock.user_sessions.updateMany.mockResolvedValue({ count: 1 });
 
       const result = await service.refreshTokens(tokens.refreshToken);
 
-      expect(result.refreshToken).toBe(tokens.refreshToken);
+      expect(result.refreshToken).toEqual(expect.any(String));
+      expect(result.refreshToken).not.toBe(tokens.refreshToken);
       const payload = jwt.verify<{ sub: string; sid: string }>(
         result.accessToken,
         { secret: ACCESS_SECRET },
       );
       expect(payload).toMatchObject({ sub: 'user-1', sid: session.id });
-      expect(prismaMock.user_sessions.update).toHaveBeenCalledWith({
-        where: { id: session.id },
-        data: expect.objectContaining({ expires_at: expect.any(Date) }),
+
+      const call = prismaMock.user_sessions.updateMany.mock.calls[0][0] as {
+        where: Record<string, unknown>;
+        data: Record<string, unknown> & { expires_at: Date };
+      };
+      // Conditional on the hash we read, so parallel rotations can't clash.
+      expect(call.where).toEqual({
+        id: session.id,
+        token_hash: session.token_hash,
       });
+      expect(call.data).toMatchObject({
+        previous_token_hash: session.token_hash,
+        token_hash: sha256(result.refreshToken!),
+      });
+      const days = (call.data.expires_at.getTime() - Date.now()) / 86_400_000;
+      expect(days).toBeGreaterThan(29.9);
+    });
+
+    it('accepts the just-replaced token for a parallel refresh, without rotating again', async () => {
+      const { tokens, session } = await issue();
+      prismaMock.user_sessions.findFirst.mockResolvedValue(
+        liveSession(session, {
+          token_hash: sha256('the-newer-token'),
+          previous_token_hash: session.token_hash,
+          rotated_at: new Date(Date.now() - 30_000),
+        }),
+      );
+
+      const result = await service.refreshTokens(tokens.refreshToken);
+
+      expect(result.refreshToken).toBeNull();
+      expect(result.accessToken).toEqual(expect.any(String));
+      expect(prismaMock.user_sessions.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('rejects a replaced token after the grace period', async () => {
+      const { tokens, session } = await issue();
+      prismaMock.user_sessions.findFirst.mockResolvedValue(
+        liveSession(session, {
+          token_hash: sha256('the-newer-token'),
+          previous_token_hash: session.token_hash,
+          rotated_at: new Date(Date.now() - 10 * 60_000),
+        }),
+      );
+      await expectUnauthorized(service.refreshTokens(tokens.refreshToken));
+    });
+
+    it('when another request rotated first, falls back to the grace path', async () => {
+      const { tokens, session } = await issue();
+      prismaMock.user_sessions.findFirst
+        .mockResolvedValueOnce(liveSession(session))
+        .mockResolvedValueOnce({
+          previous_token_hash: session.token_hash,
+          rotated_at: new Date(),
+        });
+      prismaMock.user_sessions.updateMany.mockResolvedValue({ count: 0 });
+
+      const result = await service.refreshTokens(tokens.refreshToken);
+      expect(result.refreshToken).toBeNull();
+      expect(result.accessToken).toEqual(expect.any(String));
     });
   });
 
