@@ -4,21 +4,32 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { setLocale } from "../actions/locale";
+import { useClientLocaleSwitch } from "./i18n/ClientIntlProvider";
 import { locales, type Locale } from "@/i18n/config";
 import { cn } from "../lib/utils";
 
 const LABELS: Record<Locale, string> = { en: "EN", bn: "বাং" };
 
-/** Segmented EN | বাং switch. Persists the choice in a cookie and re-renders server components. */
+/**
+ * Segmented EN | বাং switch. Saves the choice in a cookie. Public pages
+ * re-render on the server; the dashboard switches its messages in place.
+ */
 export function LanguageToggle({ className }: { className?: string }) {
   const t = useTranslations("common");
   const current = useLocale() as Locale;
   const router = useRouter();
+  const clientSwitch = useClientLocaleSwitch();
   const [pending, startTransition] = useTransition();
 
   const choose = (next: Locale) => {
     if (next === current || pending) return;
     startTransition(async () => {
+      // Dashboard: its pages are static, so swap the messages in place.
+      if (clientSwitch) {
+        await clientSwitch.setLocale(next);
+        return;
+      }
+      // Public pages are rendered on the server in the cookie's language.
       const result = await setLocale(next);
       if (result.ok) router.refresh();
     });

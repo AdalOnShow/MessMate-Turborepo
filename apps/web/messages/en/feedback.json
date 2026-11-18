@@ -189,5 +189,38 @@
     "passwordChanged": "Password changed",
     "profilePhotoUpdated": "Profile photo updated",
     "profilePhotoRemoved": "Profile photo removed"
+  },
+  "successDialog": {
+    "titles": {
+      "depositAdded": "Deposit added",
+      "expenseAdded": "Expense added",
+      "bazaarSubmitted": "Bazaar submitted",
+      "mealsSaved": "Meals saved",
+      "depositUpdated": "Deposit updated",
+      "depositDeleted": "Deposit deleted",
+      "expenseUpdated": "Expense updated",
+      "expenseDeleted": "Expense deleted",
+      "bazaarUpdated": "Bazaar updated",
+      "bazaarDeleted": "Bazaar deleted"
+    },
+    "hints": {
+      "bazaarMember": "It counts in the meal rate once a manager approves it.",
+      "bazaarManager": "It is waiting under Pending; approve it there to count it in the meal rate."
+    },
+    "labels": {
+      "member": "Member",
+      "amount": "Amount",
+      "date": "Date",
+      "title": "Title",
+      "split": "Split",
+      "sharedBetween": "Shared by {count} members",
+      "individualFor": "Only {name}",
+      "items": "Items",
+      "total": "Total",
+      "membersUpdated": "Members",
+      "totalMeals": "Meals that day"
+    },
+    "goDashboard": "Go to dashboard",
+    "stayHere": "Stay here"
   }
 }

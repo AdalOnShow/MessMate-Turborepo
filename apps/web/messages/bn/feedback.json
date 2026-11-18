@@ -189,5 +189,38 @@
     "passwordChanged": "পাসওয়ার্ড বদলানো হয়েছে",
     "profilePhotoUpdated": "প্রোফাইল ছবি আপডেট হয়েছে",
     "profilePhotoRemoved": "প্রোফাইল ছবি সরানো হয়েছে"
+  },
+  "successDialog": {
+    "titles": {
+      "depositAdded": "জমা যোগ হয়েছে",
+      "expenseAdded": "খরচ যোগ হয়েছে",
+      "bazaarSubmitted": "বাজার জমা হয়েছে",
+      "mealsSaved": "মিল সেভ হয়েছে",
+      "depositUpdated": "জমা আপডেট হয়েছে",
+      "depositDeleted": "জমা মুছে ফেলা হয়েছে",
+      "expenseUpdated": "খরচ আপডেট হয়েছে",
+      "expenseDeleted": "খরচ মুছে ফেলা হয়েছে",
+      "bazaarUpdated": "বাজার আপডেট হয়েছে",
+      "bazaarDeleted": "বাজার মুছে ফেলা হয়েছে"
+    },
+    "hints": {
+      "bazaarMember": "ম্যানেজার অনুমোদন করলে মিল রেটে যোগ হবে।",
+      "bazaarManager": "এটা “অপেক্ষমাণ” তালিকায় আছে; সেখান থেকে অনুমোদন করলে মিল রেটে যোগ হবে।"
+    },
+    "labels": {
+      "member": "সদস্য",
+      "amount": "টাকা",
+      "date": "তারিখ",
+      "title": "শিরোনাম",
+      "split": "ভাগ",
+      "sharedBetween": "{count} জনের মধ্যে ভাগ",
+      "individualFor": "শুধু {name}",
+      "items": "জিনিস",
+      "total": "মোট",
+      "membersUpdated": "সদস্য",
+      "totalMeals": "ওই দিনের মিল"
+    },
+    "goDashboard": "ড্যাশবোর্ডে যান",
+    "stayHere": "এখানেই থাকুন"
   }
 }

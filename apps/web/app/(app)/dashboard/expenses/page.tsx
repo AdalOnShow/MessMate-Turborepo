@@ -1,0 +1,492 @@
+"use client";
+
+import { PageTips } from "../../../components/help/PageTips";
+
+import { formatDateOnly, toDateOnlyISO } from "../../../lib/format";
+import { showSuccess } from "../../../store/success-dialog";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { useGetMyMess } from "../../../hooks/use-messes";
+import { useGetActiveMonth } from "../../../hooks/use-months";
+import { useMembers } from "../../../hooks/use-members";
+import { useCreateExpense } from "../../../hooks/use-expenses";
+import { DatePicker } from "../../../components/ui/date-picker";
+import { Select } from "../../../components/ui/select";
+import { Button } from "../../../components/ui/button";
+import { FieldError, invalidInput } from "../../../components/ui/field-error";
+import { OfflineHint } from "../../../components/ui/offline-hint";
+import { useOnline } from "../../../hooks/use-online";
+import { useFieldErrors } from "../../../lib/field-errors";
+import { Check, Loader2, Plus, Receipt, Users } from "lucide-react";
+import {
+  QueriesErrorState,
+  failedQueries,
+} from "../../../components/feedback/QueryErrorState";
+
+function formatMoney(n: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "BDT",
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
+function computeSplit(amount: number, count: number): number[] {
+  if (count <= 0 || amount <= 0) return [];
+  const even = Math.floor((amount / count) * 100) / 100;
+  const shares = new Array(count).fill(even);
+  const remainder = Math.round(amount * 100) - Math.round(even * 100) * count;
+  if (remainder > 0 && count > 0) {
+    shares[count - 1]! = even + remainder / 100;
+  }
+  return shares;
+}
+
+type ExpenseFormType = "SHARED" | "INDIVIDUAL";
+
+export default function AddExpensePage() {
+  const t = useTranslations("pages.expenses");
+  const messQuery = useGetMyMess();
+  const { data: myMess, isLoading: messLoading } = messQuery;
+  const messId = myMess?.id;
+  const isManager = myMess?.current_user_role === "MANAGER";
+  const monthQuery = useGetActiveMonth(messId);
+  const { data: activeMonth, isLoading: monthLoading } = monthQuery;
+  const membersQuery = useMembers(messId, {
+    status: "ACTIVE",
+  });
+  const { data: members, isLoading: membersLoading } = membersQuery;
+
+  const create = useCreateExpense(messId, activeMonth?.id);
+  const isLoading = messLoading || monthLoading || membersLoading;
+
+  const [type, setType] = useState<ExpenseFormType>("SHARED");
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
+  const [expenseDate, setExpenseDate] = useState<Date | undefined>(new Date());
+  const [selected, setSelected] = useState<string[]>([]);
+  const fieldErrors = useFieldErrors();
+  const tsd = useTranslations("feedback.successDialog");
+  const errors = fieldErrors.errors;
+  const online = useOnline();
+
+  const parsedAmount = parseFloat(amount);
+  const shares = useMemo(
+    () => computeSplit(parsedAmount || 0, selected.length),
+    [parsedAmount, selected.length],
+  );
+
+  const activeMembers = (members ?? []).filter((m) => !m.removed_at);
+
+  const toggleMember = (id: string) => {
+    setSelected((prev) => {
+      if (type === "INDIVIDUAL") {
+        return prev.includes(id) ? [] : [id];
+      }
+      return prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id];
+    });
+  };
+
+  const handleSubmit = () => {
+    const next: Record<string, string> = {};
+    if (!parsedAmount || parsedAmount <= 0) {
+      next.amount = t("amountMustGreaterThan");
+    }
+    if (!title.trim()) next.title = t("titleRequired");
+    if (selected.length === 0) {
+      next.member_ids = t("selectAtLeastOne");
+    } else if (type === "INDIVIDUAL" && selected.length !== 1) {
+      next.member_ids = t("selectExactlyOneMember");
+    }
+    fieldErrors.set(next);
+    if (Object.keys(next).length > 0) return;
+
+    const payload = {
+      type,
+      title: title.trim(),
+      amount: parsedAmount,
+      expense_date: toDateOnlyISO(expenseDate),
+      member_ids: selected,
+    };
+
+    const splitNames = selected
+      .map((id) => activeMembers.find((m) => m.id === id)?.user.name)
+      .filter(Boolean);
+    create.mutate(payload, {
+      onSuccess: () => {
+        showSuccess({
+          title: "expenseAdded",
+          rows: [
+            { label: tsd("labels.title"), value: payload.title },
+            { label: tsd("labels.amount"), value: formatMoney(parsedAmount) },
+            {
+              label: tsd("labels.split"),
+              value:
+                type === "INDIVIDUAL"
+                  ? tsd("labels.individualFor", { name: splitNames[0] ?? "" })
+                  : tsd("labels.sharedBetween", { count: splitNames.length }),
+            },
+            {
+              label: tsd("labels.date"),
+              value: formatDateOnly(payload.expense_date),
+            },
+          ],
+        });
+        setTitle("");
+        setAmount("");
+        setSelected([]);
+        setExpenseDate(new Date());
+        fieldErrors.reset();
+      },
+      onError: (err) => {
+        fieldErrors.fromServer(err);
+      },
+    });
+  };
+
+  const selectedMembers = selected
+    .map((id) => activeMembers.find((m) => m.id === id))
+    .filter((m): m is NonNullable<typeof m> => !!m);
+
+  if (isLoading) {
+    return (
+      <div className="animate-pulse">
+        <div className="mx-auto mb-6 max-w-2xl space-y-2">
+          <div className="h-3 w-20 rounded bg-surface-overlay" />
+          <div className="h-7 w-56 rounded bg-surface-overlay" />
+          <div className="h-4 w-72 max-w-full rounded bg-surface-overlay" />
+        </div>
+        <div className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border bg-surface">
+          <div className="space-y-5 p-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <div className="h-3 w-12 rounded bg-surface-overlay" />
+                <div className="h-10 w-full rounded-lg bg-surface-overlay" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 w-12 rounded bg-surface-overlay" />
+                <div className="h-10 w-full rounded-lg bg-surface-overlay" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 w-12 rounded bg-surface-overlay" />
+              <div className="h-10 w-full rounded-lg bg-surface-overlay" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 w-16 rounded bg-surface-overlay" />
+              <div className="h-10 w-full rounded-lg bg-surface-overlay" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 w-16 rounded bg-surface-overlay" />
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-9 w-full rounded-lg bg-surface-overlay"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const loadQueries = [messQuery, monthQuery, membersQuery];
+  if (failedQueries(...loadQueries).length > 0) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <QueriesErrorState queries={loadQueries} resource="expense details" />
+      </div>
+    );
+  }
+
+  if (!myMess) {
+    return (
+      <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
+        <Receipt size={32} className="mb-3 text-foreground-muted" />
+        <p className="text-sm text-foreground-muted">{t("needPartMessAdd")}</p>
+      </div>
+    );
+  }
+
+  if (!isManager) {
+    return (
+      <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-raised">
+          <Users size={26} className="text-foreground-muted" />
+        </div>
+        <p className="text-sm font-semibold text-foreground">
+          {t("onlyManagersCanAdd")}
+        </p>
+        <p className="mt-1 text-sm text-foreground-muted">
+          {t("askManagerRecordExpenses")}
+        </p>
+      </div>
+    );
+  }
+
+  if (!activeMonth) {
+    return (
+      <div className="flex flex-col items-center rounded-2xl border border-border bg-surface p-12 text-center">
+        <Receipt size={32} className="mb-3 text-foreground-muted" />
+        <p className="text-sm text-foreground-muted">
+          {t("noActiveMonthStart")}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-6">
+        <p className="label-mono text-primary">{t("expenses")}</p>
+        <div className="mt-1 flex items-start justify-between gap-3">
+          <h1 className="heading-tight text-2xl text-foreground sm:text-3xl">
+            {t("addExpense")}
+          </h1>
+          <PageTips page="expenses" />
+        </div>
+        <p className="mt-1 text-sm text-foreground-muted">
+          {t("recordSharedOrIndividual")}
+        </p>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+        <div className="flex items-center gap-2 border-b border-border bg-surface-raised px-6 py-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white">
+            <Plus size={16} />
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">
+            {t("newExpense")} {activeMonth.title ?? "this month"}
+          </h2>
+        </div>
+
+        <div className="space-y-5 px-6 py-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">
+                {t("type")}
+              </label>
+              <Select
+                value={type}
+                onValueChange={(v) => {
+                  const t = v as ExpenseFormType;
+                  setType(t);
+                  if (t === "INDIVIDUAL") {
+                    setSelected((prev) =>
+                      prev.length > 1 ? [prev[0]!] : prev,
+                    );
+                  }
+                }}
+                options={[
+                  { value: "SHARED", label: "Shared" },
+                  { value: "INDIVIDUAL", label: "Individual" },
+                ]}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">
+                {t("amount")}
+              </label>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-foreground-muted">
+                  ৳
+                </span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => {
+                    setAmount(e.target.value);
+                    fieldErrors.clear("amount");
+                  }}
+                  aria-invalid={!!errors.amount}
+                  aria-describedby={errors.amount ? "amount-error" : undefined}
+                  onWheel={(e) => e.currentTarget.blur()}
+                  placeholder="0.00"
+                  className={`w-full appearance-none rounded-lg border border-border-strong bg-surface-sunken py-2.5 pl-8 pr-3 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 ${errors.amount ? invalidInput : ""}`}
+                  disabled={create.isPending}
+                />
+              </div>
+              <FieldError id="amount-error" message={errors.amount} />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              {t("title")}
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                fieldErrors.clear("title");
+              }}
+              aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? "title-error" : undefined}
+              placeholder={type === "SHARED" ? "e.g. Gas Bill" : "e.g. Shampoo"}
+              className={`w-full rounded-lg border border-border-strong bg-surface-sunken px-3 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-2 focus:ring-primary/15 focus:outline-none ${errors.title ? invalidInput : ""}`}
+              disabled={create.isPending}
+            />
+            <FieldError id="title-error" message={errors.title} />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              {t("expenseDate")}
+            </label>
+            <DatePicker
+              date={expenseDate}
+              onSelect={setExpenseDate}
+              disabled={create.isPending}
+              maxDate={new Date()}
+            />
+          </div>
+
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="block text-sm font-medium text-foreground">
+                {type === "INDIVIDUAL" ? "Member" : "Members"}
+              </label>
+              {type === "SHARED" && activeMembers.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelected(
+                      selected.length === activeMembers.length
+                        ? []
+                        : activeMembers.map((m) => m.id),
+                    )
+                  }
+                  className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover disabled:opacity-50"
+                  disabled={create.isPending}
+                >
+                  {selected.length === activeMembers.length
+                    ? t("clearAll")
+                    : t("selectAll")}
+                </button>
+              ) : (
+                selected.length > 0 && (
+                  <span className="text-xs font-medium text-foreground-muted">
+                    {selected.length} {t("selected")}
+                  </span>
+                )
+              )}
+            </div>
+            <div className="max-h-44 space-y-1.5 overflow-y-auto rounded-lg border border-border-strong bg-background p-2">
+              {activeMembers.length === 0 ? (
+                <p className="px-2 py-3 text-center text-sm text-foreground-muted">
+                  {t("noActiveMembersFound")}
+                </p>
+              ) : (
+                activeMembers.map((member) => {
+                  const isChecked = selected.includes(member.id);
+                  return (
+                    <label
+                      key={member.id}
+                      className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                        isChecked
+                          ? "bg-primary/10 text-primary"
+                          : "text-foreground hover:bg-surface-raised"
+                      }`}
+                    >
+                      <span
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+                          isChecked
+                            ? "border-primary bg-primary text-white"
+                            : "border-border-strong bg-transparent"
+                        }`}
+                      >
+                        {isChecked && <Check size={12} strokeWidth={3} />}
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {
+                          toggleMember(member.id);
+                          fieldErrors.clear("member_ids");
+                        }}
+                        disabled={create.isPending}
+                        className="sr-only"
+                      />
+                      <span className="flex-1">{member.user.name}</span>
+                      {isChecked && type === "SHARED" && shares.length > 0 && (
+                        <span className="text-xs font-medium text-foreground-muted">
+                          {formatMoney(
+                            shares[selected.indexOf(member.id)] ?? 0,
+                          )}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })
+              )}
+            </div>
+            <FieldError message={errors.member_ids} />
+          </div>
+
+          {type === "SHARED" &&
+            selected.length > 0 &&
+            parsedAmount > 0 &&
+            create.isIdle && (
+              <div className="rounded-xl border border-primary/25 bg-primary/5 p-4">
+                <div className="mb-2 flex items-center gap-2 text-primary">
+                  <Users size={14} />
+                  <span className="text-xs font-mono font-medium uppercase tracking-[0.1em]">
+                    {t("autoSplit")} {formatMoney(parsedAmount)} ÷{" "}
+                    {selected.length}
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  {selectedMembers.map((member, index) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <span className="text-foreground">
+                        {member.user.name}
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        {formatMoney(shares[index] ?? 0)}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="mt-1 flex items-center justify-between border-t border-primary/15 pt-1.5 text-sm">
+                    <span className="text-foreground-muted">{t("total")}</span>
+                    <span className="font-bold text-primary">
+                      {formatMoney(parsedAmount)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={create.isPending || !online}
+            className="w-full"
+          >
+            {create.isPending ? (
+              <>
+                <Loader2 size={15} className="animate-spin" />
+                {t("adding")}
+              </>
+            ) : (
+              <>
+                <Plus size={15} />
+                {t("addExpense")}
+              </>
+            )}
+          </Button>
+          <OfflineHint />
+        </div>
+      </div>
+    </div>
+  );
+}
