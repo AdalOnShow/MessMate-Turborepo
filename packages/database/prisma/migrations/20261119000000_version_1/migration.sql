@@ -1,3 +1,10 @@
+-- MessMate schema, version 1: the whole database in one migration.
+-- Replaces every earlier migration. Generated from prisma/schema.prisma with:
+--   prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script
+
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
 CREATE TYPE "SystemRole" AS ENUM ('ADMIN', 'USER');
 
@@ -17,7 +24,7 @@ CREATE TYPE "BazaarStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 CREATE TYPE "CarryForwardType" AS ENUM ('PREVIOUS_DUE', 'PREVIOUS_BALANCE');
 
 -- CreateEnum
-CREATE TYPE "activity_action" AS ENUM ('MEMBER_ADDED', 'MEMBER_REMOVED', 'MANAGER_ASSIGNED', 'MEAL_ADDED', 'MEAL_UPDATED', 'MEAL_DELETED', 'EXPENSE_ADDED', 'EXPENSE_UPDATED', 'DEPOSIT_ADDED', 'DEPOSIT_UPDATED', 'MONTH_OPENED', 'MONTH_CLOSED', 'MEMBER_BALANCE_CREATED');
+CREATE TYPE "activity_action" AS ENUM ('MEMBER_ADDED', 'MEMBER_REMOVED', 'MANAGER_ASSIGNED', 'MANAGER_REMOVED', 'MEAL_ADDED', 'MEAL_UPDATED', 'MEAL_DELETED', 'EXPENSE_ADDED', 'EXPENSE_UPDATED', 'EXPENSE_DELETED', 'DEPOSIT_ADDED', 'DEPOSIT_UPDATED', 'DEPOSIT_DELETED', 'MONTH_OPENED', 'MONTH_CLOSED', 'MEMBER_BALANCE_CREATED', 'DEFAULT_MEALS_UPDATED', 'BAZAAR_SUBMITTED', 'BAZAAR_UPDATED', 'BAZAAR_APPROVED', 'BAZAAR_REJECTED', 'BAZAAR_DELETED');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -25,10 +32,12 @@ CREATE TABLE "users" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT,
+    "refresh_token" TEXT,
     "phone" TEXT,
     "avatar" TEXT,
     "system_role" "SystemRole" NOT NULL DEFAULT 'USER',
     "manager_created" BOOLEAN NOT NULL DEFAULT false,
+    "must_change_password" BOOLEAN NOT NULL DEFAULT false,
     "email_verified" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -46,6 +55,22 @@ CREATE TABLE "oauth_accounts" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "oauth_accounts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "user_sessions" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "token_hash" TEXT NOT NULL,
+    "previous_token_hash" TEXT,
+    "rotated_at" TIMESTAMP(3),
+    "user_agent" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "last_used_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "revoked_at" TIMESTAMP(3),
+
+    CONSTRAINT "user_sessions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -124,17 +149,6 @@ CREATE TABLE "meal_entries" (
 );
 
 -- CreateTable
-CREATE TABLE "meal_entry_items" (
-    "id" TEXT NOT NULL,
-    "meal_entry_id" TEXT NOT NULL,
-    "meal_type_id" TEXT NOT NULL,
-    "meal_value" DECIMAL(5,2) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "meal_entry_items_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "bazaar_submissions" (
     "id" TEXT NOT NULL,
     "mess_id" TEXT NOT NULL,
@@ -188,7 +202,6 @@ CREATE TABLE "deposits" (
     "month_id" TEXT NOT NULL,
     "member_id" TEXT NOT NULL,
     "amount" DECIMAL(12,2) NOT NULL,
-    "note" TEXT,
     "deposit_date" TIMESTAMP(3) NOT NULL,
     "created_by" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -203,7 +216,7 @@ CREATE TABLE "member_month_summaries" (
     "id" TEXT NOT NULL,
     "month_id" TEXT NOT NULL,
     "member_id" TEXT NOT NULL,
-    "total_meals" INTEGER NOT NULL DEFAULT 0,
+    "total_meals" DECIMAL(10,2) NOT NULL DEFAULT 0,
     "meal_cost" DECIMAL(12,2) NOT NULL DEFAULT 0,
     "shared_cost" DECIMAL(12,2) NOT NULL DEFAULT 0,
     "individual_cost" DECIMAL(12,2) NOT NULL DEFAULT 0,
@@ -237,6 +250,7 @@ CREATE TABLE "activity_logs" (
     "action" "activity_action" NOT NULL,
     "entity_type" TEXT,
     "entity_id" TEXT,
+    "details" JSONB,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "activity_logs_pkey" PRIMARY KEY ("id")
@@ -259,9 +273,6 @@ CREATE TABLE "join_requests" (
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
-CREATE INDEX "idx_users_email" ON "users"("email");
-
--- CreateIndex
 CREATE INDEX "idx_users_system_role" ON "users"("system_role");
 
 -- CreateIndex
@@ -271,13 +282,16 @@ CREATE INDEX "idx_oauth_accounts_provider" ON "oauth_accounts"("provider", "prov
 CREATE UNIQUE INDEX "idx_oauth_accounts_user_provider" ON "oauth_accounts"("user_id", "provider");
 
 -- CreateIndex
+CREATE INDEX "idx_user_sessions_user" ON "user_sessions"("user_id");
+
+-- CreateIndex
+CREATE INDEX "idx_user_sessions_expires" ON "user_sessions"("expires_at");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "messes_slug_key" ON "messes"("slug");
 
 -- CreateIndex
 CREATE INDEX "idx_messes_created_by" ON "messes"("created_by");
-
--- CreateIndex
-CREATE INDEX "idx_messes_slug" ON "messes"("slug") WHERE (deleted_at IS NULL);
 
 -- CreateIndex
 CREATE INDEX "idx_mess_members_mess_active" ON "mess_members"("mess_id", "removed_at") WHERE (deleted_at IS NULL);
@@ -286,7 +300,7 @@ CREATE INDEX "idx_mess_members_mess_active" ON "mess_members"("mess_id", "remove
 CREATE INDEX "idx_mess_members_user" ON "mess_members"("user_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "idx_mess_members_mess_user" ON "mess_members"("mess_id", "user_id") WHERE (deleted_at IS NULL);
+CREATE UNIQUE INDEX "mess_members_user_id_key" ON "mess_members"("user_id") WHERE (removed_at IS NULL);
 
 -- CreateIndex
 CREATE INDEX "idx_months_mess" ON "months"("mess_id");
@@ -310,13 +324,7 @@ CREATE INDEX "idx_meal_entries_month_date" ON "meal_entries"("month_id", "date")
 CREATE INDEX "idx_meal_entries_member" ON "meal_entries"("member_id");
 
 -- CreateIndex
-CREATE INDEX "idx_meal_entries_total_meal" ON "meal_entries"("total_meal");
-
--- CreateIndex
 CREATE UNIQUE INDEX "idx_meal_entries_unique" ON "meal_entries"("month_id", "member_id", "date") WHERE (deleted_at IS NULL);
-
--- CreateIndex
-CREATE UNIQUE INDEX "idx_meal_entry_items_entry" ON "meal_entry_items"("meal_entry_id", "meal_type_id");
 
 -- CreateIndex
 CREATE INDEX "idx_bazaar_submissions_mess_month" ON "bazaar_submissions"("mess_id", "month_id");
@@ -379,12 +387,6 @@ CREATE INDEX "idx_activity_logs_mess_created" ON "activity_logs"("mess_id", "cre
 CREATE INDEX "idx_activity_logs_actor" ON "activity_logs"("actor_id");
 
 -- CreateIndex
-CREATE INDEX "idx_activity_logs_entity" ON "activity_logs"("entity_type", "entity_id");
-
--- CreateIndex
-CREATE INDEX "idx_activity_logs_action" ON "activity_logs"("action");
-
--- CreateIndex
 CREATE INDEX "idx_join_requests_user" ON "join_requests"("user_id");
 
 -- CreateIndex
@@ -392,6 +394,9 @@ CREATE UNIQUE INDEX "idx_join_requests_mess_user" ON "join_requests"("mess_id", 
 
 -- AddForeignKey
 ALTER TABLE "oauth_accounts" ADD CONSTRAINT "oauth_accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "messes" ADD CONSTRAINT "messes_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -419,12 +424,6 @@ ALTER TABLE "meal_entries" ADD CONSTRAINT "meal_entries_member_id_fkey" FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE "meal_entries" ADD CONSTRAINT "meal_entries_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "meal_entry_items" ADD CONSTRAINT "meal_entry_items_meal_entry_id_fkey" FOREIGN KEY ("meal_entry_id") REFERENCES "meal_entries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "meal_entry_items" ADD CONSTRAINT "meal_entry_items_meal_type_id_fkey" FOREIGN KEY ("meal_type_id") REFERENCES "meal_types"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "bazaar_submissions" ADD CONSTRAINT "bazaar_submissions_mess_id_fkey" FOREIGN KEY ("mess_id") REFERENCES "messes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -497,3 +496,4 @@ ALTER TABLE "join_requests" ADD CONSTRAINT "join_requests_requested_by_fkey" FOR
 
 -- AddForeignKey
 ALTER TABLE "join_requests" ADD CONSTRAINT "join_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
