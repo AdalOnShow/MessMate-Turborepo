@@ -4,6 +4,7 @@ import {
   BookOpen,
   Calendar,
   Home,
+  Info,
   ReceiptText,
   Settings,
   ShoppingCart,
@@ -21,12 +22,15 @@ export type NavLabel =
   | "members"
   | "months"
   | "meals"
+  | "addMeals"
   | "bazaar"
   | "expenses"
+  | "addExpense"
   | "deposits"
   | "reports"
   | "notifications"
   | "guide"
+  | "about"
   | "profile"
   | "settings"
   | "messSettings"
@@ -45,15 +49,31 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "dashboard", icon: Home },
   { href: "/dashboard/members", label: "members", icon: Users },
   { href: "/dashboard/months", label: "months", icon: Calendar },
-  { href: "/dashboard/meals", label: "meals", icon: Utensils },
+  {
+    href: "/dashboard/meals",
+    label: "addMeals",
+    icon: Utensils,
+    managerOnly: true,
+  },
   { href: "/dashboard/bazaar", label: "bazaar", icon: ShoppingCart },
-  { href: "/dashboard/expenses", label: "expenses", icon: ReceiptText },
-  { href: "/dashboard/deposits", label: "deposits", icon: WalletCards },
+  {
+    href: "/dashboard/expenses",
+    label: "addExpense",
+    icon: ReceiptText,
+    managerOnly: true,
+  },
+  {
+    href: "/dashboard/deposits",
+    label: "deposits",
+    icon: WalletCards,
+    managerOnly: true,
+  },
   { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
   { href: "/dashboard/activity", label: "notifications", icon: Bell },
   { href: "/dashboard/profile", label: "profile", icon: User },
   // Leaves the dashboard for the public guide page.
   { href: "/guide", label: "guide", icon: BookOpen },
+  { href: "/about", label: "about", icon: Info },
 ];
 
 /**
@@ -72,6 +92,7 @@ const SIDEBAR_ORDER = [
   "/dashboard/activity",
   "/dashboard/profile",
   "/guide",
+  "/about",
 ];
 
 export const SIDEBAR_ITEMS: NavItem[] = SIDEBAR_ORDER.map(
@@ -90,7 +111,12 @@ export const MANAGER_NAV_ITEMS: NavItem[] = [
 /** Mobile bottom bar (a fifth "More" tab is added by BottomNav). */
 export const PRIMARY_TABS: NavItem[] = [
   { href: "/dashboard", label: "home", icon: Home },
-  { href: "/dashboard/meals", label: "meals", icon: Utensils },
+  {
+    href: "/dashboard/meals",
+    label: "addMeals",
+    icon: Utensils,
+    managerOnly: true,
+  },
   { href: "/dashboard/bazaar", label: "bazaar", icon: ShoppingCart },
   { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
 ];

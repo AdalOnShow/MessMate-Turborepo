@@ -4,11 +4,24 @@ import { ErrorCode } from '@repo/shared';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * How far outside the month a meal date may be. Managers often start a month
- * a few days late and back-fill, or record a day or two ahead, so allow a
- * month either side; anything further is almost certainly a mistake.
+ * How far before the month a meal date may be. Managers often start a month
+ * a few days late and back-fill; anything further is almost certainly a
+ * mistake.
  */
 export const MEAL_DATE_GRACE_DAYS = 31;
+
+/** Bangladesh is UTC+6 all year (no DST). */
+const DHAKA_OFFSET_MS = 6 * 60 * 60 * 1000;
+
+/** UTC midnight of today's calendar date in Bangladesh. */
+export function dhakaToday(now: Date): number {
+  const local = new Date(now.getTime() + DHAKA_OFFSET_MS);
+  return Date.UTC(
+    local.getUTCFullYear(),
+    local.getUTCMonth(),
+    local.getUTCDate(),
+  );
+}
 
 export interface MealEntryInput {
   memberId: string;
@@ -52,6 +65,8 @@ function invalid(message: string): never {
  * - A date must be a calendar day (UTC midnight). Entries are unique per
  *   exact timestamp, so two times on the same day would create two rows and
  *   bill the member twice.
+ * - Only days that have ended (yesterday or earlier, Bangladesh time) can be
+ *   saved, so nobody bills meals that haven't been eaten yet.
  * - Every meal counts as 1 toward the bill; the meal type's `value` is only
  *   the default count the grid is pre-filled with.
  * - A deleted meal type may only appear with the count already saved for that
@@ -63,7 +78,7 @@ export function prepareMealEntries(
 ): PreparedMealEntry[] {
   const earliest =
     startOfUtcDay(ctx.monthStartedAt) - MEAL_DATE_GRACE_DAYS * DAY_MS;
-  const latest = startOfUtcDay(ctx.now) + MEAL_DATE_GRACE_DAYS * DAY_MS;
+  const latest = dhakaToday(ctx.now) - DAY_MS;
 
   const seen = new Set<string>();
 
@@ -73,7 +88,13 @@ export function prepareMealEntries(
     if (Number.isNaN(time) || time !== startOfUtcDay(date)) {
       invalid('Meal dates must be a calendar day (YYYY-MM-DDT00:00:00Z)');
     }
-    if (time < earliest || time > latest) {
+    if (time > latest) {
+      throw new BadRequestException({
+        message: 'Meals can only be saved for past days',
+        code: ErrorCode.MEAL_DATE_NOT_PAST,
+      });
+    }
+    if (time < earliest) {
       invalid('Meal date is too far outside this month');
     }
 

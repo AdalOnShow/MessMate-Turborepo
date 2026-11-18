@@ -15,11 +15,16 @@ import {
   QueriesErrorState,
   QueryErrorState,
   failedQueries,
+<<<<<<< HEAD:apps/web/app/(app)/dashboard/months/page.tsx
 } from "../../../components/feedback/QueryErrorState";
 import { MonthSettings } from "../../../components/dashboard/MonthSettings";
+=======
+} from "../../components/feedback/QueryErrorState";
+import { MonthSettings } from "../../components/dashboard/MonthSettings";
+import { formatMoneyExact } from "../../lib/format";
+>>>>>>> origin/main:apps/web/app/dashboard/months/page.tsx
 
-const money = (n: number) =>
-  `৳${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+const money = formatMoneyExact;
 
 const signedMoney = (n: number) =>
   (n > 0 ? "+" : n < 0 ? "-" : "") + money(Math.abs(n));

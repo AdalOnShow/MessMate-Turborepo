@@ -23,17 +23,12 @@ import {
   UserRound,
   ReceiptText,
   Crown,
-  UserCog,
   UserMinus,
 } from "lucide-react";
+import { formatMoneyExact } from "../../../lib/format";
 
-const moneyFmt = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 0,
-});
-
-function formatMoney(n: number) {
-  return `৳${moneyFmt.format(n)}`;
-}
+// Paisa precision: the bill breakdown must visibly add up to the bill.
+const formatMoney = formatMoneyExact;
 
 function formatCompact(n: number) {
   return new Intl.NumberFormat("en-US", {
@@ -130,7 +125,6 @@ export function MemberCards({
   monthTitle,
   isManager,
   currentUserId,
-  onRoleClick,
   onRemoveClick,
 }: {
   items: MemberCardItem[];
@@ -138,7 +132,6 @@ export function MemberCards({
   monthTitle?: string;
   isManager: boolean;
   currentUserId?: string;
-  onRoleClick: (member: MemberData) => void;
   onRemoveClick: (member: MemberData) => void;
 }) {
   const t = useTranslations("members.memberCards");
@@ -249,14 +242,6 @@ export function MemberCards({
 
                 {isManager && !m.removed_at && m.user_id !== currentUserId && (
                   <div className="flex shrink-0 flex-col items-end gap-1.5 sm:flex-row">
-                    <button
-                      type="button"
-                      onClick={() => onRoleClick(toMemberData(m))}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-xs font-semibold text-foreground-muted opacity-0 transition-all duration-200 hover:border-border-strong hover:bg-surface-raised hover:text-foreground group-hover:opacity-100"
-                    >
-                      <UserCog size={14} />
-                      {t("role")}
-                    </button>
                     <button
                       type="button"
                       onClick={() => onRemoveClick(toMemberData(m))}

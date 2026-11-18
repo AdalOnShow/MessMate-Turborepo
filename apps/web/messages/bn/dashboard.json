@@ -67,12 +67,13 @@
     "mealRate": "মিল রেট",
     "days": "দিন",
     "quickActions": "দ্রুত কাজ",
-    "actionMeals": "মিল",
-    "actionExpense": "খরচ",
+    "actionMeals": "মিল যোগ",
+    "actionExpense": "খরচ যোগ",
     "actionDeposit": "জমা",
     "actionMembers": "সদস্য",
     "actionBazaar": "বাজার",
     "actionReports": "রিপোর্ট",
+    "actionNotifications": "নোটিফিকেশন",
     "bazaarApprovals": "বাজার অনুমোদন",
     "items": "{count}টি আইটেম",
     "approve": "অনুমোদন",
@@ -91,6 +92,8 @@
     "noMonthMember": "ম্যানেজার এখনো মাস শুরু করেননি। শুরু হলে আপনার মিল আর ব্যালেন্স এখানে দেখা যাবে।",
     "startInSettings": "মাস শুরু করুন",
     "recentActivity": "সাম্প্রতিক কার্যক্রম",
-    "everyoneSummary": "সবার হিসাব"
+    "everyoneSummary": "সবার হিসাব",
+    "billCovered": "জমা দিয়ে বিলের {percent}% পরিশোধ হয়েছে",
+    "depositsSpent": "জমার {percent}% খরচ হয়েছে"
   }
 }

@@ -4,8 +4,10 @@
   "members": "Members",
   "months": "Months",
   "meals": "Meals",
+  "addMeals": "Add meals",
   "bazaar": "Bazaar",
   "expenses": "Expenses",
+  "addExpense": "Add expense",
   "deposits": "Deposits",
   "reports": "Reports",
   "profile": "Profile",
@@ -28,5 +30,6 @@
   "account": "Account",
   "installGuideDesc": "Step-by-step guide for your phone",
   "notifications": "Notifications",
-  "guide": "Guide"
+  "guide": "Guide",
+  "about": "About"
 }

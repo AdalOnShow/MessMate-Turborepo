@@ -6,6 +6,21 @@ export function formatMoney(n: number) {
   return `৳${moneyFmt.format(n)}`;
 }
 
+/**
+ * Money to the paisa, for bill breakdowns where the parts must visibly add
+ * up to the total: ৳145.42 + ৳533.34 = ৳678.76. (Whole-taka rounding of each
+ * part made the bill look ৳1 higher than its parts.) Whole amounts stay short:
+ * ৳500, never ৳500.00; others always show two decimals: ৳333.30, not ৳333.3.
+ */
+export function formatMoneyExact(n: number) {
+  const paisa = Math.round(n * 100);
+  const digits = paisa % 100 === 0 ? 0 : 2;
+  return `৳${(paisa / 100).toLocaleString("en-US", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  })}`;
+}
+
 export function formatCompact(n: number) {
   return new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 1,

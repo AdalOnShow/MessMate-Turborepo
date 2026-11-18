@@ -1,4 +1,8 @@
-import { computeMemberSummaries, roundMoney } from './month-summary';
+import {
+  allocateByMeals,
+  computeMemberSummaries,
+  roundMoney,
+} from './month-summary';
 
 const M = 'month-1';
 
@@ -87,6 +91,55 @@ describe('computeMemberSummaries', () => {
     });
     expect(mealRate).toBe(0);
     expect(rows[0]!.final_balance).toBe(100.1);
+  });
+
+  it('meal costs add up to the bazaar total exactly (no paisa drift)', () => {
+    // ৳715 over 29.5 meals: rounding each share separately gave ৳714.99.
+    const { rows } = computeMemberSummaries(M, {
+      activeMemberIds: ['a', 'b', 'c', 'd'],
+      mealEntries: [
+        { member_id: 'a', total_meal: 6 },
+        { member_id: 'b', total_meal: 5.5 },
+        { member_id: 'c', total_meal: 9 },
+        { member_id: 'd', total_meal: 9 },
+      ],
+      expenses: [
+        { type: 'BAZAAR', amount: 715, members: [] },
+        {
+          type: 'SHARED',
+          amount: 1000,
+          members: [
+            { member_id: 'a', allocated_amount: 333.33 },
+            { member_id: 'b', allocated_amount: 333.33 },
+            { member_id: 'c', allocated_amount: 333.34 },
+          ],
+        },
+      ],
+      deposits: [],
+    });
+    const paisa = (k: 'meal_cost' | 'final_bill') =>
+      rows.reduce((s, r) => s + Math.round(r[k] * 100), 0);
+    expect(paisa('meal_cost')).toBe(71500);
+    expect(paisa('final_bill')).toBe(171500);
+    for (const r of rows) {
+      expect(r.meal_cost).toBe(roundMoney(r.meal_cost));
+    }
+  });
+
+  it('allocateByMeals hands leftover paisa to the largest remainders', () => {
+    // ৳100 over 3 equal eaters: 33.34 + 33.33 + 33.33, stable by id.
+    const shares = allocateByMeals(
+      100,
+      new Map([
+        ['c', 1],
+        ['a', 1],
+        ['b', 1],
+      ]),
+    );
+    expect(shares.get('a')).toBe(33.34);
+    expect(shares.get('b')).toBe(33.33);
+    expect(shares.get('c')).toBe(33.33);
+    expect(allocateByMeals(100, new Map([['a', 0]])).size).toBe(0);
   });
 
   it('rounds to paisa', () => {

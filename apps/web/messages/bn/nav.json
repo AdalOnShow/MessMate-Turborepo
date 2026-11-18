@@ -4,8 +4,10 @@
   "members": "সদস্য",
   "months": "মাস",
   "meals": "মিল",
+  "addMeals": "মিল যোগ",
   "bazaar": "বাজার",
   "expenses": "খরচ",
+  "addExpense": "খরচ যোগ",
   "deposits": "জমা",
   "reports": "রিপোর্ট",
   "profile": "প্রোফাইল",
@@ -28,5 +30,6 @@
   "account": "অ্যাকাউন্ট",
   "installGuideDesc": "আপনার ফোনের জন্য ধাপে ধাপে গাইড",
   "notifications": "নোটিফিকেশন",
-  "guide": "ব্যবহার নির্দেশিকা"
+  "guide": "ব্যবহার নির্দেশিকা",
+  "about": "পরিচিতি"
 }

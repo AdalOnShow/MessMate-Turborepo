@@ -1,6 +1,7 @@
 import { ErrorCode, ValidationMessage } from '@repo/shared';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -9,6 +10,7 @@ import {
 import { Prisma, prisma } from '@repo/database';
 import type {
   BulkMealEntriesDto,
+  UpdateMealDayDto,
   MealDaysPage,
   MealDaysQuery,
   MealEntryWithMember,
@@ -41,11 +43,35 @@ export class MealsService {
 
   constructor(private readonly cache: CacheService = new CacheService()) {}
 
-  async bulkSaveMealEntries(
+  /**
+   * First save of a day. A day that already has meals is never overwritten
+   * here: it is edited one day at a time from Reports (updateMealDay).
+   */
+  bulkSaveMealEntries(
     messId: string,
     monthId: string,
     actorId: string,
     data: BulkMealEntriesDto,
+  ): Promise<MealEntryWithMember[]> {
+    return this.saveEntries(messId, monthId, actorId, data, 'create');
+  }
+
+  /** Edit a day that was already saved (Reports). One day per request. */
+  updateMealDay(
+    messId: string,
+    monthId: string,
+    actorId: string,
+    data: UpdateMealDayDto,
+  ): Promise<MealEntryWithMember[]> {
+    return this.saveEntries(messId, monthId, actorId, data, 'edit');
+  }
+
+  private async saveEntries(
+    messId: string,
+    monthId: string,
+    actorId: string,
+    data: BulkMealEntriesDto,
+    mode: 'create' | 'edit',
   ): Promise<MealEntryWithMember[]> {
     const membership = await prisma.mess_members.findFirst({
       where: {
@@ -116,9 +142,32 @@ export class MealsService {
           member_id: { in: memberIds },
           date: { in: dates },
         },
-        select: { id: true, member_id: true, date: true, meals: true },
+        select: {
+          id: true,
+          member_id: true,
+          date: true,
+          meals: true,
+          total_meal: true,
+        },
       }),
     ]);
+
+    // A row cleared to 0 counts as "nothing saved", so it can be filled in
+    // again. Anything with meals must go through the Reports edit instead.
+    const hasSavedMeals = existing.some((e) => Number(e.total_meal) > 0);
+    if (mode === 'create' && hasSavedMeals) {
+      throw new ConflictException({
+        message:
+          'Meals for this day are already saved. Edit them from Reports.',
+        code: ErrorCode.MEAL_ALREADY_SAVED,
+      });
+    }
+    if (mode === 'edit' && !hasSavedMeals) {
+      throw new NotFoundException({
+        message: 'No saved meals for this day',
+        code: ErrorCode.MEAL_ENTRY_NOT_FOUND,
+      });
+    }
 
     // Every member must belong to this mess, or a manager could write meals
     // for someone in another mess.

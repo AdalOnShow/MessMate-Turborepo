@@ -63,7 +63,7 @@
       "title": "Record daily meals",
       "summary": "Pick a day and set how many meals each member had.",
       "steps": [
-        "Open Meals and choose the date (arrows or the calendar).",
+        "Open Meals and choose a past date (arrows or the calendar). Today's meals are saved from tomorrow.",
         "Use + and − for each member and meal type. Half meals (0.5) work too.",
         "Use the “everyone” row to set a meal for all members at once.",
         "Tap Save. You can come back and change any day of the active month."
@@ -131,7 +131,7 @@
       "title": "Managers and mess settings",
       "summary": "Share the work with a second manager and keep the member list tidy.",
       "steps": [
-        "Members → Role on a member's card makes them a manager (at most 2 per mess).",
+        "Mess Settings → Managers: hand over your role, add a co-manager (at most 2 per mess) or step down.",
         "Members → Remove takes someone out of the mess; their past months stay in the records.",
         "Mess Settings lets you change the mess name and description."
       ],

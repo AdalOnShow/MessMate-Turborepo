@@ -59,7 +59,7 @@ const SECTION_META: Record<SectionId, { icon: LucideIcon; href: string }> = {
   deposits: { icon: WalletCards, href: "/dashboard/deposits" },
   fixMistakes: { icon: PencilLine, href: "/dashboard/reports" },
   closeMonth: { icon: CalendarCheck, href: "/dashboard/months" },
-  manageMess: { icon: Crown, href: "/dashboard/members" },
+  manageMess: { icon: Crown, href: "/dashboard/settings" },
   joinMess: { icon: UserPlus, href: "/signup" },
   myBalance: { icon: BarChart3, href: "/dashboard" },
   submitBazaar: { icon: ShoppingCart, href: "/dashboard/bazaar" },

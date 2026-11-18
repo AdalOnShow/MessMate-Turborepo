@@ -48,29 +48,31 @@ export function Sidebar() {
         <p className="label-mono mb-2 px-3 text-[10px] text-foreground-muted">
           {t("workspace")}
         </p>
-        {SIDEBAR_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const active = isActivePath(pathname, item.href);
+        {SIDEBAR_ITEMS.filter((item) => !item.managerOnly || isManager).map(
+          (item) => {
+            const Icon = item.icon;
+            const active = isActivePath(pathname, item.href);
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`relative flex h-10 items-center gap-3 rounded-lg border px-3 text-sm font-medium transition-colors ${
-                active
-                  ? "border-primary/25 bg-primary/10 text-foreground before:absolute before:inset-y-2 before:-left-3 before:w-0.5 before:rounded-full before:bg-primary [&_svg]:text-primary"
-                  : "border-transparent text-foreground-muted hover:bg-surface-raised hover:text-foreground"
-              }`}
-            >
-              <Icon size={18} aria-hidden="true" />
-              {t(item.label)}
-              {item.href === "/dashboard/activity" ? (
-                <UnreadBadge className="ml-auto" />
-              ) : null}
-              <LinkPendingDot className="ml-auto" />
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`relative flex h-10 items-center gap-3 rounded-lg border px-3 text-sm font-medium transition-colors ${
+                  active
+                    ? "border-primary/25 bg-primary/10 text-foreground before:absolute before:inset-y-2 before:-left-3 before:w-0.5 before:rounded-full before:bg-primary [&_svg]:text-primary"
+                    : "border-transparent text-foreground-muted hover:bg-surface-raised hover:text-foreground"
+                }`}
+              >
+                <Icon size={18} aria-hidden="true" />
+                {t(item.label)}
+                {item.href === "/dashboard/activity" ? (
+                  <UnreadBadge className="ml-auto" />
+                ) : null}
+                <LinkPendingDot className="ml-auto" />
+              </Link>
+            );
+          },
+        )}
 
         {isManager && (
           <>

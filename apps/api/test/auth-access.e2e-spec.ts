@@ -276,6 +276,24 @@ describe('Authentication & authorization (HTTP)', () => {
       expect(prismaMock.mess_members.update).not.toHaveBeenCalled();
     });
 
+    it('403 for a plain member handing over the manager role', async () => {
+      await http()
+        .post(`/messes/${MESS_A}/handover`)
+        .set(as(BOB))
+        .send({ userId: BOB })
+        .expect(403);
+      expect(prismaMock.mess_members.update).not.toHaveBeenCalled();
+    });
+
+    it('403 for a manager of another mess handing over', async () => {
+      await http()
+        .post(`/messes/${MESS_B}/handover`)
+        .set(as(ALICE))
+        .send({ userId: BOB })
+        .expect(403);
+      expect(prismaMock.mess_members.update).not.toHaveBeenCalled();
+    });
+
     it('403 for a plain member previewing the month close', async () => {
       await http()
         .get(`/months/${MESS_A}/close-preview`)

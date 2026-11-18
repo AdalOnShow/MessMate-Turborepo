@@ -50,6 +50,52 @@ export function roundMoney(n: number): number {
 
 const num = (v: Numeric) => Number(v);
 
+/**
+ * Splits `total` taka across members in proportion to their meals, in whole
+ * paisa, so the shares always add up to exactly `total`.
+ *
+ * Rounding each share on its own (meals x rate) drifted by a paisa or more:
+ * ৳715 of bazaar came out as ৳714.99 of meal costs. Here every member gets
+ * the floor of their exact share, and the paisa left over go one each to the
+ * members with the largest remainders (largest remainder method). Ties go to
+ * the lower member id so the result is stable across recomputations.
+ *
+ * Integer arithmetic only: meals are DECIMAL(10,2), so meals x 100 is a whole
+ * number and `paisa * units` stays exact.
+ */
+export function allocateByMeals(
+  total: number,
+  meals: Map<string, number>,
+): Map<string, number> {
+  const out = new Map<string, number>();
+  const totalPaisa = Math.round(total * 100);
+  const units = [...meals.entries()]
+    .map(([id, m]) => ({ id, units: Math.round(m * 100) }))
+    .filter((u) => u.units > 0);
+  const totalUnits = units.reduce((s, u) => s + u.units, 0);
+  if (totalUnits === 0 || totalPaisa === 0) return out;
+
+  const shares = units.map((u) => {
+    const exact = totalPaisa * u.units;
+    return {
+      id: u.id,
+      paisa: Math.floor(exact / totalUnits),
+      rest: exact % totalUnits,
+    };
+  });
+  let left = totalPaisa - shares.reduce((s, x) => s + x.paisa, 0);
+  const byRemainder = [...shares].sort(
+    (a, b) => b.rest - a.rest || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+  );
+  for (const s of byRemainder) {
+    if (left <= 0) break;
+    s.paisa += 1;
+    left -= 1;
+  }
+  for (const s of shares) out.set(s.id, s.paisa / 100);
+  return out;
+}
+
 export function computeMemberSummaries(
   monthId: string,
   input: SummaryInputs,
@@ -110,10 +156,11 @@ export function computeMemberSummaries(
   }
 
   const mealRate = totalMeals > 0 ? bazaarTotal / totalMeals : 0;
+  const mealCosts = allocateByMeals(bazaarTotal, meals);
 
   const rows = [...memberIds].map((memberId) => {
     const memberMeals = meals.get(memberId) ?? 0;
-    const mealCost = roundMoney(memberMeals * mealRate);
+    const mealCost = mealCosts.get(memberId) ?? 0;
     const sharedCost = roundMoney(shared.get(memberId) ?? 0);
     const individualCost = roundMoney(individual.get(memberId) ?? 0);
     const depositAmount = roundMoney(deposits.get(memberId) ?? 0);

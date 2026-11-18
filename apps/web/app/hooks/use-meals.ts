@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   bulkSaveMealEntries,
   deleteMealEntry,
+  updateMealDay,
   type MealEntryInfo,
   type BulkMealEntriesPayload,
   type MonthMealSummary,
@@ -44,6 +45,24 @@ export function useBulkSaveMealEntries(
         bulkSaveMealEntries(messId, monthId, payload),
       );
       return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meal-entries"] });
+    },
+  });
+}
+
+export function useUpdateMealDay(
+  messId: string | undefined,
+  monthId: string | undefined,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    meta: { successMessage: "mealsUpdated" },
+    mutationFn: async (payload: BulkMealEntriesPayload) => {
+      if (!messId || !monthId) throw new Error("No mess or month ID");
+      return unwrap(updateMealDay(messId, monthId, payload));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meal-entries"] });

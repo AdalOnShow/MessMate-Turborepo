@@ -249,7 +249,8 @@
     "faq": "FAQ",
     "logoAlt": "MessMate logo",
     "install": "Install App",
-    "guide": "Guide"
+    "guide": "Guide",
+    "about": "About"
   },
   "hero": {
     "badge": "Mess management, simplified",

@@ -4,12 +4,22 @@ import { formatDateOnly } from "../../../lib/format";
 import { showSuccess } from "../../../store/success-dialog";
 import { PageTips } from "../../../components/help/PageTips";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
+<<<<<<< HEAD:apps/web/app/(app)/dashboard/meals/page.tsx
 import { OfflineHint } from "../../../components/ui/offline-hint";
 import { useOnline } from "../../../hooks/use-online";
 import { useState, useMemo, useCallback } from "react";
 import { useGetMyMess } from "../../../hooks/use-messes";
 import { useGetActiveMonth } from "../../../hooks/use-months";
+=======
+import { OfflineHint } from "../../components/ui/offline-hint";
+import { useOnline } from "../../hooks/use-online";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useGetMyMess } from "../../hooks/use-messes";
+import { useGetActiveMonth } from "../../hooks/use-months";
+>>>>>>> origin/main:apps/web/app/dashboard/meals/page.tsx
 import {
   useGetMealTypes,
   useCreateMealType,
@@ -24,6 +34,7 @@ import {
 } from "../../../hooks/use-meals";
 import {
   Check,
+  Lock,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -60,6 +71,17 @@ function parseDate(ymd: string): Date {
 function shiftDate(ymd: string, days: number): string {
   const [y, m, d] = ymd.split("-").map(Number);
   return formatDate(new Date(y!, m! - 1, d! + days));
+}
+
+/**
+ * The latest day meals can be saved for: yesterday in Bangladesh. The API
+ * rejects today and later (MEAL_DATE_NOT_PAST), so the picker stops here.
+ */
+function latestMealDate(): string {
+  const todayDhaka = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Dhaka",
+  }).format(new Date());
+  return shiftDate(todayDhaka, -1);
 }
 
 // Every +/− press changes a meal count by half a meal.
@@ -126,6 +148,14 @@ export default function MealsPage() {
   const messId = myMess?.id;
   const isManager = myMess?.current_user_role === "MANAGER";
 
+  // The meal sheet is a manager tool; members see their meals on the
+  // dashboard and in Reports. Covers typed URLs and the PWA shortcut.
+  const router = useRouter();
+  const isMember = !!myMess && !isManager;
+  useEffect(() => {
+    if (isMember) router.replace("/dashboard");
+  }, [isMember, router]);
+
   const monthQuery = useGetActiveMonth(messId);
   const { data: activeMonth, isLoading: monthLoading } = monthQuery;
   const monthId = activeMonth?.id;
@@ -137,16 +167,17 @@ export default function MealsPage() {
     [mealTypes],
   );
 
-  const [selectedDate, setSelectedDate] = useState(() =>
-    formatDate(new Date()),
-  );
-  // When a month closes and the next one opens, start again from today
-  // instead of keeping a date the user had navigated to in the old month.
+  const [selectedDate, setSelectedDate] = useState(latestMealDate);
+  // When a month closes and the next one opens, start again from the latest
+  // day instead of keeping a date the user had navigated to in the old month.
   const [dateMonthId, setDateMonthId] = useState(monthId);
   if (monthId !== dateMonthId) {
     setDateMonthId(monthId);
-    if (dateMonthId !== undefined) setSelectedDate(formatDate(new Date()));
+    if (dateMonthId !== undefined) setSelectedDate(latestMealDate());
   }
+  // Recomputed each render so a page left open past midnight moves on too.
+  const latestDate = latestMealDate();
+  const atLatest = selectedDate >= latestDate;
 
   const entriesQuery = useGetMealEntries(
     messId,
@@ -177,9 +208,16 @@ export default function MealsPage() {
   // count as unsaved changes until the manager presses Save. Only managers
   // see them, and only once the day's entries have loaded, so a slow or
   // failed load never shows defaults over real data.
+  // A day with meals is saved once. Changing it later happens one day at a
+  // time in Reports, so this grid is read-only for it.
+  const dayLocked = useMemo(
+    () => (entries ?? []).some((e) => e.total_meal > 0),
+    [entries],
+  );
+
   const defaultRows = useMemo(() => {
     const map: Record<string, Record<string, number>> = {};
-    if (!isManager || !entries) return map;
+    if (!isManager || !entries || dayLocked) return map;
     const row: Record<string, number> = {};
     for (const mt of activeMealTypes) {
       if (mt.value > 0) row[mt.id] = Math.min(10, mt.value);
@@ -189,7 +227,7 @@ export default function MealsPage() {
       if (!entryMap[member.id]) map[member.id] = row;
     }
     return map;
-  }, [isManager, entries, activeMealTypes, activeMembers, entryMap]);
+  }, [isManager, entries, dayLocked, activeMealTypes, activeMembers, entryMap]);
 
   // What the grid starts from for a member: their saved row, else defaults.
   const baseRow = useCallback(
@@ -268,6 +306,7 @@ export default function MealsPage() {
   const members = activeMembers ?? [];
   const showBulk =
     isManager &&
+    !dayLocked &&
     !entriesLoading &&
     members.length > 0 &&
     activeMealTypes.length > 0;
@@ -415,6 +454,7 @@ export default function MealsPage() {
             <div className="min-w-0 flex-1">
               <DatePicker
                 date={parseDate(selectedDate)}
+                maxDate={parseDate(latestDate)}
                 onSelect={(d) => {
                   if (!d) return;
                   setSelectedDate(formatDate(d));
@@ -429,8 +469,9 @@ export default function MealsPage() {
                 setSelectedDate((d) => shiftDate(d, 1));
                 setLocalGrid({});
               }}
+              disabled={atLatest}
               aria-label="Next day"
-              className="flex size-11 shrink-0 items-center justify-center text-foreground-muted active:text-foreground sm:size-9"
+              className="flex size-11 shrink-0 items-center justify-center text-foreground-muted active:text-foreground disabled:opacity-30 sm:size-9"
             >
               <ChevronRight size={18} />
             </button>
@@ -449,7 +490,29 @@ export default function MealsPage() {
         />
       ) : (
         <>
-          {isManager && (
+          {dayLocked && (
+            <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
+              <Lock size={18} className="shrink-0 text-primary" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">
+                  {t("daySavedTitle")}
+                </p>
+                <p className="text-sm text-foreground-muted">
+                  {t("daySavedHint")}
+                </p>
+              </div>
+              {isManager && (
+                <Link
+                  href="/dashboard/reports"
+                  className="flex h-11 shrink-0 items-center justify-center rounded-xl border border-border-strong px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-raised sm:h-auto sm:rounded-lg sm:py-2"
+                >
+                  {t("openReports")}
+                </Link>
+              )}
+            </div>
+          )}
+
+          {isManager && !dayLocked && (
             <div
               className={`bottom-above-nav fixed inset-x-4 z-40 items-center gap-3 rounded-2xl border border-border bg-surface-raised/95 p-2 pl-4 shadow-panel backdrop-blur-xl md:static md:mb-4 md:flex md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none ${
                 hasChanges ? "animate-pop-in flex" : "hidden"
@@ -570,7 +633,7 @@ export default function MealsPage() {
                               onDecrement={() =>
                                 updateValue(member.id, mt.id, -MEAL_STEP)
                               }
-                              disabled={!isManager}
+                              disabled={!isManager || dayLocked}
                             />
                           </div>
                         ))}
@@ -679,7 +742,7 @@ export default function MealsPage() {
                                   onDecrement={() =>
                                     updateValue(member.id, mt.id, -MEAL_STEP)
                                   }
-                                  disabled={!isManager}
+                                  disabled={!isManager || dayLocked}
                                 />
                               </div>
                             </td>

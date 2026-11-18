@@ -4,7 +4,15 @@ import { cookies } from "next/headers";
 const ACCESS_TOKEN_MAX_AGE = 60 * 60; // 1 hour
 const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60; // 30 days, renewed on use
 
+// Google sign-in sets these cookies from the API (api.example.com), so in
+// production they carry the shared parent domain (COOKIE_DOMAIN=.example.com).
+// The web app must write them with the same domain, or a refresh would create
+// a second host-only cookie next to the API's and requests could send the
+// stale one.
+const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
+
 const base = {
+  ...(cookieDomain ? { domain: cookieDomain } : {}),
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   // Lax, not strict: strict cookies are not sent when the user arrives from

@@ -21,6 +21,7 @@ import {
   createMealTypeSchema,
   updateMealTypeSchema,
   updateMemberRoleSchema,
+  handoverManagerSchema,
   memberFiltersSchema,
   activityHistoryQuerySchema,
   formatZodError,
@@ -336,6 +337,49 @@ export class MessesController {
     return {
       success: true,
       message: 'Member role updated successfully',
+      data,
+    };
+  }
+
+  /**
+   * Hand the caller's manager role to another active member: they become
+   * manager and the caller becomes a member, in one transaction.
+   */
+  @Post(':messId/handover')
+  @InvalidatesCache(['live', 'closed'])
+  @UseGuards(RolesGuard)
+  @Roles('MANAGER')
+  async handoverManager(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Body() body: unknown,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').MessMemberWithUser;
+  }> {
+    validateUuid(messId, 'messId');
+
+    const parsed = handoverManagerSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
+
+    const actorId = req.user!.id;
+    this.logger.log(`📮 POST /messes/${messId}/handover - actor: ${actorId}`);
+
+    const data = await this.messesService.handoverManager(
+      messId,
+      actorId,
+      parsed.data.userId,
+    );
+
+    return {
+      success: true,
+      message: 'Manager role handed over successfully',
       data,
     };
   }

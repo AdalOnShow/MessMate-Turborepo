@@ -9,7 +9,12 @@ import { useRouter } from "next/navigation";
 import { useSessionStore } from "../../../store";
 import { useGetMyMess, useUpdateMess } from "../../../hooks/use-messes";
 import { Check, Loader2, Pencil, Settings, X } from "lucide-react";
+<<<<<<< HEAD:apps/web/app/(app)/dashboard/settings/page.tsx
 import { QueryErrorState } from "../../../components/feedback/QueryErrorState";
+=======
+import { QueryErrorState } from "../../components/feedback/QueryErrorState";
+import { ManagersSection } from "../../components/dashboard/settings/ManagersSection";
+>>>>>>> origin/main:apps/web/app/dashboard/settings/page.tsx
 
 function EditableMessInfo() {
   const t = useTranslations("pages.settings");
@@ -297,8 +302,11 @@ function SettingsContent() {
         </div>
       </div>
 
-      <div className="max-w-2xl rounded-xl border border-border bg-surface p-6">
-        <EditableMessInfo />
+      <div className="space-y-5">
+        <div className="max-w-2xl rounded-xl border border-border bg-surface p-6">
+          <EditableMessInfo />
+        </div>
+        <ManagersSection messId={myMess.id} />
       </div>
     </>
   );

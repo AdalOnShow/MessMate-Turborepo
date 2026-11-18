@@ -399,10 +399,10 @@ export class MessesService {
       meal_rate: calculations.meal_rate,
       total_members: calculations.items.length,
       total_meals: totalMeals,
-      total_deposits: totalDeposits,
-      total_expenses: totalBill,
-      total_bill: totalBill,
-      total_balance: totalBalance,
+      total_deposits: roundMoney(totalDeposits),
+      total_expenses: roundMoney(totalBill),
+      total_bill: roundMoney(totalBill),
+      total_balance: roundMoney(totalBalance),
     };
   }
 
@@ -670,6 +670,112 @@ export class MessesService {
 
     this.logger.log(
       `✅ Role updated: ${userId} -> ${newRole} in mess ${messId}`,
+    );
+
+    return {
+      id: updated.id,
+      mess_id: updated.mess_id,
+      user_id: updated.user_id,
+      mess_role: updated.mess_role as 'MANAGER' | 'MEMBER',
+      joined_at: updated.joined_at.toISOString(),
+      removed_at: updated.removed_at?.toISOString() ?? null,
+      user: updated.user,
+    };
+  }
+
+  /**
+   * Swap roles: `targetUserId` becomes manager and the acting manager becomes
+   * a member. The manager count is unchanged, so the 2-manager limit and the
+   * last-manager rule both hold without a separate promote/demote step.
+   */
+  async handoverManager(
+    messId: string,
+    actorId: string,
+    targetUserId: string,
+  ): Promise<MessMemberWithUser> {
+    if (targetUserId === actorId) {
+      throw new BadRequestException({
+        message: 'Choose another member to hand over to',
+      });
+    }
+
+    const include = {
+      user: {
+        select: { id: true, name: true, email: true, avatar: true },
+      },
+    } as const;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const actor = await tx.mess_members.findFirst({
+        where: {
+          mess_id: messId,
+          user_id: actorId,
+          mess_role: 'MANAGER',
+          removed_at: null,
+          deleted_at: null,
+        },
+      });
+      if (!actor) {
+        throw new ForbiddenException({
+          message: 'Only managers can hand over the manager role',
+          code: ErrorCode.MANAGER_ONLY,
+        });
+      }
+
+      const target = await tx.mess_members.findFirst({
+        where: {
+          mess_id: messId,
+          user_id: targetUserId,
+          removed_at: null,
+          deleted_at: null,
+        },
+      });
+      if (!target) {
+        throw new NotFoundException({
+          message: 'Member not found',
+          code: ErrorCode.MEMBER_NOT_FOUND,
+        });
+      }
+      if (target.mess_role === 'MANAGER') {
+        throw new BadRequestException({
+          message: 'This member is already a manager',
+        });
+      }
+
+      const row = await tx.mess_members.update({
+        where: { id: target.id },
+        data: { mess_role: 'MANAGER' },
+        include,
+      });
+      await tx.mess_members.update({
+        where: { id: actor.id },
+        data: { mess_role: 'MEMBER' },
+      });
+
+      await tx.activity_logs.createMany({
+        data: [
+          {
+            mess_id: messId,
+            actor_id: actorId,
+            action: 'MANAGER_ASSIGNED',
+            entity_type: 'mess_members',
+            entity_id: target.id,
+          },
+          {
+            mess_id: messId,
+            actor_id: actorId,
+            action: 'MANAGER_REMOVED',
+            entity_type: 'mess_members',
+            entity_id: actor.id,
+          },
+        ],
+      });
+
+      return row;
+    });
+
+    this.logger.log(
+      `✅ Manager handed over: ${actorId} -> ${targetUserId} in mess ${messId}`,
     );
 
     return {

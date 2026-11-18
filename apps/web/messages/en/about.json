@@ -1,0 +1,37 @@
+{
+  "metaTitle": "About MessMate",
+  "metaDescription": "Why MessMate exists, how it is built, and the developer behind it.",
+  "eyebrow": "About",
+  "title": "The story behind <accent>MessMate</accent>",
+  "subtitle": "MessMate is a free app for shared bachelor messes in Bangladesh. It keeps meals, bazaar, bills and deposits in one ledger that every member can see, so the month ends with a bill everyone trusts.",
+  "project": {
+    "heading": "The project",
+    "problem": {
+      "title": "The problem",
+      "body": "In a mess, everyone eats a different number of meals, takes turns at the bazaar and splits rent and bills. Doing the month-end maths by hand takes hours, and someone always finds a mistake."
+    },
+    "solution": {
+      "title": "What MessMate does",
+      "body": "Managers record meals and approve bazaar receipts; members see the meal rate, their bill and their balance at any time. Closing the month produces every final bill and carries balances forward automatically."
+    },
+    "stack": {
+      "title": "How it is built",
+      "body": "A Turborepo monorepo: Next.js 16 and React 19 on the front, a NestJS 11 API, PostgreSQL on Neon with Prisma, and shared Zod schemas so both sides agree on every request."
+    },
+    "sourceCode": "View the source on GitHub"
+  },
+  "me": {
+    "heading": "About me",
+    "photoAlt": "Sharif Hossain Adal",
+    "role": "Full-stack developer · CSE student · Bangladesh",
+    "bio": "I'm a full-stack web developer who loves building modern web applications with Next.js, TypeScript, NestJS, PostgreSQL and Prisma. I worked as a Full Stack Developer Intern at Rise Together (Feb – Jun 2026) on production apps with authentication, payments, real-time features and caching.",
+    "why": "I live in a bachelor mess myself. MessMate started as a way to stop our monthly arguments over the numbers, and grew into the app my whole mess now runs on.",
+    "skills": "Skills",
+    "links": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "portfolio": "Portfolio",
+      "email": "Email"
+    }
+  }
+}

@@ -7,6 +7,7 @@ import {
   Logger,
   Param,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -15,6 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
 import {
   bulkMealEntriesSchema,
+  updateMealDaySchema,
   formatZodError,
   type DailyMealReport,
   type MemberMealReport,
@@ -108,6 +110,44 @@ export class MealsController {
       message: 'Meal entries saved successfully',
       data,
     };
+  }
+
+  /** Edit a day that is already saved. Used by Reports, one day at a time. */
+  @Put(':messId/:monthId/day')
+  async updateMealDay(
+    @Req() req: AuthenticatedRequest,
+    @Param('messId') messId: string,
+    @Param('monthId') monthId: string,
+    @Body() body: unknown,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').MealEntryWithMember[];
+  }> {
+    validateUuid(messId, 'messId');
+    validateUuid(monthId, 'monthId');
+
+    const parsed = updateMealDaySchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
+
+    const actorId = req.user!.id;
+    this.logger.log(
+      `📮 PUT /meals/${messId}/${monthId}/day - actor: ${actorId}`,
+    );
+
+    const data = await this.mealsService.updateMealDay(
+      messId,
+      monthId,
+      actorId,
+      parsed.data,
+    );
+
+    return { success: true, message: 'Meals updated successfully', data };
   }
 
   @Get(':messId/:monthId')
