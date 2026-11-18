@@ -172,7 +172,7 @@ export function useSubmitBazaar(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "bazaarSubmittedForApproval" },
+    // No toast: the page shows a SuccessDialog with what was saved.
     mutationFn: async (payload: CreateBazaarPayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
       return unwrap(submitBazaar(messId, monthId, payload));

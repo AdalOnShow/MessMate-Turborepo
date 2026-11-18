@@ -24,7 +24,7 @@ export function ErrorScreen({
   reference,
   onRetry,
   homeHref = "/dashboard",
-  homeLabel = "goDashboard",
+  homeLabel,
   fullScreen,
 }: ErrorScreenProps) {
   const t = useTranslations("feedback.errorScreen");
@@ -64,7 +64,7 @@ export function ErrorScreen({
             href={homeHref}
             className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-border-strong px-5 text-sm font-semibold text-foreground transition-colors hover:bg-surface-raised sm:w-auto"
           >
-            {homeLabel}
+            {homeLabel ?? t("goDashboard")}
           </Link>
         </div>
 

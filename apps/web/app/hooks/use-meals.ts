@@ -37,7 +37,7 @@ export function useBulkSaveMealEntries(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "mealsSaved" },
+    // No toast: the page shows a SuccessDialog with what was saved.
     mutationFn: async (payload: BulkMealEntriesPayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
       const result = await unwrap(

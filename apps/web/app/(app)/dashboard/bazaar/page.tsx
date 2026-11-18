@@ -7,6 +7,10 @@ import {
   fromDateOnlyISO,
   toDateOnlyISO,
 } from "../../../lib/format";
+import {
+  SuccessDialog,
+  type SuccessSummary,
+} from "../../../components/feedback/SuccessDialog";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useSessionStore } from "../../../store";
@@ -81,6 +85,10 @@ function BazaarForm({
   onDone?: () => void;
 }) {
   const t = useTranslations("pages.bazaar");
+  const tsd = useTranslations("feedback.successDialog");
+  const { data: myMess } = useGetMyMess();
+  const isManager = myMess?.current_user_role === "MANAGER";
+  const [success, setSuccess] = useState<SuccessSummary | null>(null);
   const submit = useSubmitBazaar(messId, monthId);
   const update = useUpdateBazaar(messId, monthId);
 
@@ -146,7 +154,29 @@ function BazaarForm({
     if (editing) {
       update.mutate({ submissionId: editing.id, data: payload }, { onSuccess });
     } else {
-      submit.mutate(payload, { onSuccess });
+      const total = cleanedItems.reduce((sum, i) => sum + i.amount, 0);
+      submit.mutate(payload, {
+        onSuccess: () => {
+          onSuccess();
+          setSuccess({
+            title: "bazaarSubmitted",
+            rows: [
+              {
+                label: tsd("labels.items"),
+                value: cleanedItems.map((i) => i.name).join(", "),
+              },
+              { label: tsd("labels.total"), value: formatMoney(total) },
+              {
+                label: tsd("labels.date"),
+                value: formatDateOnly(payload.expense_date),
+              },
+            ],
+            hint: isManager
+              ? tsd("hints.bazaarManager")
+              : tsd("hints.bazaarMember"),
+          });
+        },
+      });
     }
   };
 
@@ -306,6 +336,7 @@ function BazaarForm({
         </h2>
       </div>
       <div className="px-4 py-5 sm:px-6 sm:py-6">{fields}</div>
+      <SuccessDialog summary={success} onClose={() => setSuccess(null)} />
     </div>
   );
 }

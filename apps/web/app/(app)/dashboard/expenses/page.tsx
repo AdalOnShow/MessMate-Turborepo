@@ -2,7 +2,11 @@
 
 import { PageTips } from "../../../components/help/PageTips";
 
-import { toDateOnlyISO } from "../../../lib/format";
+import { formatDateOnly, toDateOnlyISO } from "../../../lib/format";
+import {
+  SuccessDialog,
+  type SuccessSummary,
+} from "../../../components/feedback/SuccessDialog";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useGetMyMess } from "../../../hooks/use-messes";
@@ -65,6 +69,8 @@ export default function AddExpensePage() {
   const [expenseDate, setExpenseDate] = useState<Date | undefined>(new Date());
   const [selected, setSelected] = useState<string[]>([]);
   const fieldErrors = useFieldErrors();
+  const tsd = useTranslations("feedback.successDialog");
+  const [success, setSuccess] = useState<SuccessSummary | null>(null);
   const errors = fieldErrors.errors;
   const online = useOnline();
 
@@ -107,8 +113,29 @@ export default function AddExpensePage() {
       member_ids: selected,
     };
 
+    const splitNames = selected
+      .map((id) => activeMembers.find((m) => m.id === id)?.user.name)
+      .filter(Boolean);
     create.mutate(payload, {
       onSuccess: () => {
+        setSuccess({
+          title: "expenseAdded",
+          rows: [
+            { label: tsd("labels.title"), value: payload.title },
+            { label: tsd("labels.amount"), value: formatMoney(parsedAmount) },
+            {
+              label: tsd("labels.split"),
+              value:
+                type === "INDIVIDUAL"
+                  ? tsd("labels.individualFor", { name: splitNames[0] ?? "" })
+                  : tsd("labels.sharedBetween", { count: splitNames.length }),
+            },
+            {
+              label: tsd("labels.date"),
+              value: formatDateOnly(payload.expense_date),
+            },
+          ],
+        });
         setTitle("");
         setAmount("");
         setSelected([]);
@@ -215,6 +242,7 @@ export default function AddExpensePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <SuccessDialog summary={success} onClose={() => setSuccess(null)} />
       <div className="mb-6">
         <p className="label-mono text-primary">{t("expenses")}</p>
         <div className="mt-1 flex items-start justify-between gap-3">

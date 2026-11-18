@@ -53,7 +53,7 @@ export function useCreateDeposit(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "depositAdded" },
+    // No toast: the page shows a SuccessDialog with what was saved.
     mutationFn: async (payload: CreateDepositPayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
       return unwrap(createDeposit(messId, monthId, payload));

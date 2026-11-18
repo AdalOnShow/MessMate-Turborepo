@@ -1,5 +1,10 @@
 "use client";
 
+import { formatDateOnly } from "../../../lib/format";
+import {
+  SuccessDialog,
+  type SuccessSummary,
+} from "../../../components/feedback/SuccessDialog";
 import { PageTips } from "../../../components/help/PageTips";
 
 import { useTranslations } from "next-intl";
@@ -287,6 +292,8 @@ export default function MealsPage() {
   };
 
   const saveMutation = useBulkSaveMealEntries(messId, monthId);
+  const tsd = useTranslations("feedback.successDialog");
+  const [success, setSuccess] = useState<SuccessSummary | null>(null);
   const online = useOnline();
   // Until the saved day is re-read, the old entries would make the default
   // rows look unsaved again for a moment, so keep Save disabled meanwhile.
@@ -302,10 +309,38 @@ export default function MealsPage() {
 
     if (payload.length === 0) return;
 
+    const savedDate = selectedDate;
+    const mealsThatDay = Object.values(pendingRows).reduce(
+      (sum, meals) =>
+        sum + Object.values(meals).reduce((a, b) => a + Number(b || 0), 0),
+      0,
+    );
+
     saveMutation.mutate(
       { entries: payload },
       {
         onSuccess: async () => {
+          setSuccess({
+            title: "mealsSaved",
+            rows: [
+              {
+                label: tsd("labels.date"),
+                value: formatDateOnly(new Date(savedDate).toISOString(), {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                }),
+              },
+              {
+                label: tsd("labels.membersUpdated"),
+                value: String(payload.length),
+              },
+              {
+                label: tsd("labels.totalMeals"),
+                value: mealsThatDay.toLocaleString("en-US"),
+              },
+            ],
+          });
           setRefreshing(true);
           try {
             await entriesQuery.refetch();
@@ -357,6 +392,7 @@ export default function MealsPage() {
 
   return (
     <>
+      <SuccessDialog summary={success} onClose={() => setSuccess(null)} />
       <div className="mb-5 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="label-mono text-primary">{t("meals")}</p>

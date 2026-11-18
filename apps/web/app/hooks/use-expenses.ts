@@ -69,7 +69,7 @@ export function useCreateExpense(
   const queryClient = useQueryClient();
 
   return useMutation({
-    meta: { successMessage: "expenseAdded" },
+    // No toast: the page shows a SuccessDialog with what was saved.
     mutationFn: async (payload: CreateExpensePayload) => {
       if (!messId || !monthId) throw new Error("No mess or month ID");
       return unwrap(createExpense(messId, monthId, payload));
