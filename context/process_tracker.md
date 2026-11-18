@@ -661,7 +661,7 @@ A task can be marked complete only if:
 
 ## Security Improvements
 
-- [x] Rate limiting configured (5 req/min on auth, 10 req/min global)
+- [x] Rate limiting configured (5 req/min on auth, 120 req/min per user global)
 - [x] Rate limit guard actually enforced (ThrottlerGuard registered as APP_GUARD)
 - [x] JWT tokens stored in httpOnly cookies only (removed from Zustand)
 - [x] CORS hardened (explicit methods/headers, CORS_ORIGIN validated, no fallback)
@@ -672,6 +672,26 @@ A task can be marked complete only if:
 - [x] Environment variables documented (.env.example files)
 - [x] Cloudinary configured for avatar uploads
 - [x] Multer configured with file size/type limits for avatar uploads
+- [x] Sign-in throttle keyed on email even with an Authorization header (QA S1)
+- [x] Google OAuth `state` (login CSRF), revoked sessions rejected immediately
+- [x] Manager-created accounts flagged `must_change_password`; dashboard
+      notice asks the user to set their own password (cleared on change)
+
+### Security TODO (open)
+
+- [ ] **Email verification** — needs an email-sending service first (e.g.
+      Resend, Postmark, SES). Then: send a signed link on sign-up, mark
+      `users.email_verified`, and decide what an unverified account may do
+      (e.g. no creating/joining a mess). Also unlocks "forgot password" and
+      letting a Google sign-in claim an unverified password account.
+- [ ] Forgot-password / reset flow (same email service)
+- [ ] Force a password change on first sign-in for manager-created accounts
+      (today it is a reminder, not a block)
+- [ ] Refresh-token rotation with reuse detection and an absolute session
+      cap (today: one refresh token per session, 30-day sliding expiry)
+- [ ] Rate limits stored in Redis instead of memory (needed once the API
+      runs on more than one instance)
+- [ ] Content-Security-Policy header on the web app (start in Report-Only)
 
 ## CI/CD Pipeline
 

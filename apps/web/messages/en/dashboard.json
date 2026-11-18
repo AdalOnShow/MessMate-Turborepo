@@ -95,5 +95,11 @@
     "everyoneSummary": "Everyone's summary",
     "billCovered": "Deposits cover {percent}% of your bill",
     "depositsSpent": "{percent}% of deposits spent"
+  },
+  "setPasswordNotice": {
+    "title": "Set your own password",
+    "body": "Your manager created this account, so they know its password. Set a new one that only you know.",
+    "hint": "In “Current password”, type the password your manager gave you.",
+    "action": "Set password"
   }
 }

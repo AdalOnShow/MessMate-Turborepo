@@ -392,8 +392,9 @@ function ProfileContent() {
             </section>
 
             <form
+              id="password"
               onSubmit={handlePasswordSubmit}
-              className="rounded-xl border border-border bg-surface p-6"
+              className="scroll-mt-20 rounded-xl border border-border bg-surface p-6"
             >
               <h2 className="text-xl font-semibold text-foreground">
                 {t("changePassword")}

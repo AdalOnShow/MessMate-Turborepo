@@ -1,5 +1,6 @@
 "use client";
 
+import { SetPasswordNotice } from "../../components/dashboard/home/SetPasswordNotice";
 import { PageTips } from "../../components/help/PageTips";
 
 import { useTranslations } from "next-intl";
@@ -221,6 +222,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
+      <SetPasswordNotice />
       <InviteBanner />
 
       {messQuery.isPending ? (

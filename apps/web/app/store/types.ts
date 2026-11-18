@@ -6,6 +6,7 @@ export interface SessionState {
     phone: string | null;
     avatar: string | null;
     manager_created: boolean;
+    must_change_password?: boolean;
     email_verified: boolean;
   } | null;
   isAuthenticated: boolean;

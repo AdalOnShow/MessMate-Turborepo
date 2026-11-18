@@ -24,6 +24,8 @@ export type UserProfile = {
   phone: string | null;
   avatar: string | null;
   manager_created: boolean;
+  /** Created by a manager and the user hasn't set their own password yet. */
+  must_change_password: boolean;
   email_verified: boolean;
 };
 
@@ -61,6 +63,7 @@ export class UsersService {
         phone: true,
         avatar: true,
         manager_created: true,
+        must_change_password: true,
         email_verified: true,
       },
     });
@@ -111,6 +114,7 @@ export class UsersService {
         phone: true,
         avatar: true,
         manager_created: true,
+        must_change_password: true,
         email_verified: true,
       },
     });
@@ -180,7 +184,8 @@ export class UsersService {
     await prisma.$transaction([
       prisma.users.update({
         where: { id: user.id },
-        data: { password, updated_at: new Date() },
+        // Their own password now, so the "set your password" notice goes.
+        data: { password, must_change_password: false, updated_at: new Date() },
       }),
       prisma.user_sessions.updateMany({
         where: {
@@ -228,6 +233,7 @@ export class UsersService {
           phone: true,
           avatar: true,
           manager_created: true,
+          must_change_password: true,
           email_verified: true,
         },
       });
@@ -367,6 +373,7 @@ export class UsersService {
           password: hashedPassword,
           phone: data.phone?.trim() || null,
           manager_created: true,
+          must_change_password: true,
           email_verified: false,
         },
         select: {
@@ -376,6 +383,7 @@ export class UsersService {
           phone: true,
           avatar: true,
           manager_created: true,
+          must_change_password: true,
           email_verified: true,
         },
       });
@@ -427,6 +435,7 @@ export class UsersService {
         phone: true,
         avatar: true,
         manager_created: true,
+        must_change_password: true,
         email_verified: true,
       },
     });
