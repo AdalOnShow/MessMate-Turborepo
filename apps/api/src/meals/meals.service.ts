@@ -626,7 +626,8 @@ export class MealsService {
     for (const entry of entries) {
       const meals = entry.meals as Record<string, number>;
       const dateKey = entry.date.toISOString().split('T')[0]!;
-      activeDays.add(dateKey);
+      // A day whose meals were all cleared back to 0 is not a meal day.
+      if (Number(entry.total_meal) > 0) activeDays.add(dateKey);
 
       let entryTotal = 0;
       for (const [key, val] of Object.entries(meals)) {

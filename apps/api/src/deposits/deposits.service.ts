@@ -24,6 +24,7 @@ import type {
   DepositWithRelations,
   UpdateDepositDto,
 } from '@repo/shared';
+import { assertMoneyDateInMonth } from '../common/dates/money-date';
 import { CacheService } from '../common/cache/cache.service';
 
 const userSelect = {
@@ -152,6 +153,7 @@ export class DepositsService {
   ): Promise<DepositWithRelations> {
     await this.requireManager(messId, actorId);
     const month = await this.findActiveMonth(messId, monthId);
+    await assertMoneyDateInMonth(new Date(data.deposit_date), month);
     await this.resolveMember(messId, data.member_id);
 
     const created = await prisma.$transaction(async (tx) => {
@@ -394,7 +396,16 @@ export class DepositsService {
 
     const existing = await prisma.deposits.findFirst({
       where: { id: depositId, mess_id: messId, deleted_at: null },
-      include: { month: { select: { month_status: true } } },
+      include: {
+        month: {
+          select: {
+            id: true,
+            mess_id: true,
+            started_at: true,
+            month_status: true,
+          },
+        },
+      },
     });
 
     if (!existing) {
@@ -411,6 +422,10 @@ export class DepositsService {
         message: 'This month is closed. Its deposits can no longer be changed.',
         code: ErrorCode.MONTH_ALREADY_CLOSED,
       });
+    }
+
+    if (data.deposit_date) {
+      await assertMoneyDateInMonth(new Date(data.deposit_date), existing.month);
     }
 
     if (data.member_id && data.member_id !== existing.member_id) {

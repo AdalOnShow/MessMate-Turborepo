@@ -30,7 +30,11 @@
     "totalBill": "Total bill",
     "carried": "Carried",
     "surplus": "In surplus",
-    "owesMoney": "Owes money"
+    "owesMoney": "Owes money",
+    "settled": "Settled",
+    "removed": "Removed",
+    "removedNoBalances": "Removed from the mess. Past months' figures are on the Months page.",
+    "noMonthBalances": "Balances will appear once a month is started."
   },
   "memberFiltersBar": {
     "searchByNameOr": "Search by name or email..."

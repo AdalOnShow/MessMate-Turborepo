@@ -30,7 +30,11 @@
     "totalBill": "মোট বিল",
     "carried": "আগের মাসের",
     "surplus": "টাকা বেশি আছে",
-    "owesMoney": "টাকা বাকি"
+    "owesMoney": "টাকা বাকি",
+    "settled": "হিসাব মিটে গেছে",
+    "removed": "বাদ দেওয়া হয়েছে",
+    "removedNoBalances": "মেস থেকে বাদ দেওয়া হয়েছে। আগের মাসের হিসাব মাসসমূহ পেজে আছে।",
+    "noMonthBalances": "মাস শুরু হলে ব্যালেন্স দেখা যাবে।"
   },
   "memberFiltersBar": {
     "searchByNameOr": "নাম বা ইমেইল দিয়ে খুঁজুন..."

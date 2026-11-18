@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  formatDateOnly,
+  fromDateOnlyISO,
+  toDateOnlyISO,
+} from "../../lib/format";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useSessionStore } from "../../store";
@@ -37,11 +42,7 @@ import {
 } from "../../components/feedback/QueryErrorState";
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return formatDateOnly(iso);
 }
 
 function formatMoney(n: number) {
@@ -88,7 +89,7 @@ function BazaarForm({
   );
   const [description, setDescription] = useState(editing?.description || "");
   const [expenseDate, setExpenseDate] = useState<Date | undefined>(
-    editing?.expense_date ? new Date(editing.expense_date) : new Date(),
+    editing?.expense_date ? fromDateOnlyISO(editing.expense_date) : new Date(),
   );
   const [error, setError] = useState("");
   const online = useOnline();
@@ -130,11 +131,7 @@ function BazaarForm({
     const payload = {
       items: cleanedItems,
       description: description.trim() || undefined,
-      expense_date: expenseDate
-        ? new Date(
-            expenseDate.getTime() - expenseDate.getTimezoneOffset() * 60000,
-          ).toISOString()
-        : new Date().toISOString(),
+      expense_date: toDateOnlyISO(expenseDate),
     };
 
     const onSuccess = () => {
@@ -243,6 +240,7 @@ function BazaarForm({
             date={expenseDate}
             onSelect={setExpenseDate}
             disabled={isPending}
+            maxDate={new Date()}
           />
         </div>
 

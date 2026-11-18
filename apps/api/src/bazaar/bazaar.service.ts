@@ -25,6 +25,7 @@ import type {
   ListBazaarQueryDto,
   UpdateBazaarDto,
 } from '@repo/shared';
+import { assertMoneyDateInMonth } from '../common/dates/money-date';
 
 const submitterSelect = {
   id: true,
@@ -136,6 +137,7 @@ export class BazaarService {
     }
 
     const month = await this.findActiveMonth(messId, monthId);
+    await assertMoneyDateInMonth(new Date(data.expense_date), month);
     const totalAmount = this.computeTotalAmount(data.items);
 
     if (totalAmount <= 0) {
@@ -317,6 +319,14 @@ export class BazaarService {
       });
     }
 
+    if (data.expense_date) {
+      const month = await prisma.months.findUniqueOrThrow({
+        where: { id: submission.month_id },
+        select: { id: true, mess_id: true, started_at: true },
+      });
+      await assertMoneyDateInMonth(new Date(data.expense_date), month);
+    }
+
     const items = data.items ?? (submission.items as unknown as BazaarItem[]);
     const totalAmount = this.computeTotalAmount(items);
 
@@ -331,7 +341,7 @@ export class BazaarService {
       // Fails if it was approved/rejected meanwhile, so an approved amount
       // can never be edited after its expense was created.
       await this.claimPending(tx, messId, submissionId, {
-        items: items as Prisma.InputJsonValue,
+        items: items as unknown as Prisma.InputJsonValue,
         total_amount: totalAmount,
         description:
           data.description !== undefined

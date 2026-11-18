@@ -24,6 +24,7 @@ import type {
   ExpenseWithRelations,
   UpdateExpenseDto,
 } from '@repo/shared';
+import { assertMoneyDateInMonth } from '../common/dates/money-date';
 import { CacheService } from '../common/cache/cache.service';
 
 const userSelect = {
@@ -194,6 +195,7 @@ export class ExpensesService {
   ): Promise<ExpenseWithRelations> {
     await this.requireManager(messId, actorId);
     const month = await this.findActiveMonth(messId, monthId);
+    await assertMoneyDateInMonth(new Date(data.expense_date), month);
     const members = await this.resolveMembers(messId, data.member_ids);
     const allocations = this.buildAllocations(
       data.type,
@@ -490,7 +492,16 @@ export class ExpensesService {
 
     const expense = await prisma.expenses.findFirst({
       where: { id: expenseId, mess_id: messId },
-      include: { month: { select: { month_status: true } } },
+      include: {
+        month: {
+          select: {
+            id: true,
+            mess_id: true,
+            started_at: true,
+            month_status: true,
+          },
+        },
+      },
     });
 
     if (!expense) {
@@ -514,6 +525,10 @@ export class ExpensesService {
         message: 'Bazaar expenses are locked and cannot be edited',
         code: ErrorCode.EXPENSE_LOCKED,
       });
+    }
+
+    if (data.expense_date) {
+      await assertMoneyDateInMonth(new Date(data.expense_date), expense.month);
     }
 
     const type = data.type ?? expense.type;

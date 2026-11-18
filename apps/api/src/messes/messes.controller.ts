@@ -21,6 +21,7 @@ import {
   createMealTypeSchema,
   updateMealTypeSchema,
   updateMemberRoleSchema,
+  memberFiltersSchema,
   formatZodError,
   type MemberFilters,
 } from '@repo/shared';
@@ -109,9 +110,7 @@ export class MessesController {
   async getMembers(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
-    @Query('search') search?: string,
-    @Query('role') role?: 'MANAGER' | 'MEMBER',
-    @Query('status') status?: 'ACTIVE' | 'REMOVED',
+    @Query() query: unknown,
   ): Promise<{
     success: true;
     message: string;
@@ -122,10 +121,17 @@ export class MessesController {
     const userId = req.user!.id;
     this.logger.log(`📮 GET /messes/${messId}/members - user: ${userId}`);
 
+    const parsed = memberFiltersSchema.safeParse(query ?? {});
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
     const filters: MemberFilters = {};
-    if (search) filters.search = search;
-    if (role) filters.role = role;
-    if (status) filters.status = status;
+    if (parsed.data.search) filters.search = parsed.data.search;
+    if (parsed.data.role) filters.role = parsed.data.role;
+    if (parsed.data.status) filters.status = parsed.data.status;
 
     const data = await this.messesService.getMembers(messId, filters);
 

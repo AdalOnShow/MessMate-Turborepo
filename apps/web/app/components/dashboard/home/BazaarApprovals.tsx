@@ -7,7 +7,7 @@ import {
   useBazaarSubmissions,
   useRejectBazaar,
 } from "@/app/hooks/use-bazaar";
-import { formatMoney } from "@/app/lib/format";
+import { formatDateOnly, formatMoney } from "@/app/lib/format";
 import { QueryErrorState } from "../../feedback/QueryErrorState";
 import { UserAvatar } from "../UserAvatar";
 import { Card, CardTitle } from "./shared";
@@ -78,10 +78,10 @@ export function BazaarApprovals({
                 </p>
                 <p className="truncate text-xs text-foreground-muted">
                   {t("items", { count: submission.items.length })} ·{" "}
-                  {new Date(submission.expense_date).toLocaleDateString(
-                    "en-US",
-                    { month: "short", day: "numeric" },
-                  )}
+                  {formatDateOnly(submission.expense_date, {
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </p>
               </div>
               <span className="shrink-0 text-sm font-bold text-foreground tabular-nums">

@@ -13,8 +13,35 @@ import { QueryErrorState } from "../feedback/QueryErrorState";
 import { Sheet, SheetActions } from "../ui/sheet";
 import { Skeleton } from "../ui/skeleton";
 
-const defaultTitle = () =>
-  new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
+const monthTitle = (d: Date) =>
+  d.toLocaleString("en-US", { month: "long", year: "numeric" });
+
+const MONTH_NAMES = Array.from({ length: 12 }, (_, i) =>
+  new Date(2000, i, 1).toLocaleString("en-US", { month: "long" }),
+);
+
+/**
+ * Suggested name for the month being opened. When closing a month, it is the
+ * month after the one closing (by its "November 2026"-style title, or else
+ * the calendar month after today's), never the closing month's own name.
+ */
+const defaultTitle = (closingTitle?: string | null) => {
+  const now = new Date();
+  if (!closingTitle) return monthTitle(now);
+
+  const match = /^([A-Za-z]+)\s+(\d{4})$/.exec(closingTitle.trim());
+  const index = match
+    ? MONTH_NAMES.findIndex((n) => n.toLowerCase() === match[1]!.toLowerCase())
+    : -1;
+  if (match && index >= 0) {
+    return monthTitle(new Date(Number(match[2]), index + 1, 1));
+  }
+
+  const current = monthTitle(now);
+  return current === closingTitle.trim()
+    ? monthTitle(new Date(now.getFullYear(), now.getMonth() + 1, 1))
+    : current;
+};
 
 /** Months-page card that opens the first month or closes the active one and opens the next. */
 export function MonthSettings({ messId }: { messId: string }) {
@@ -44,7 +71,7 @@ export function MonthSettings({ messId }: { messId: string }) {
 
   const openSheet = () => {
     createMonth.reset();
-    setTitle(defaultTitle());
+    setTitle(defaultTitle(month?.title));
     setCarry({ enabled: true, excluded: new Set() });
     setOpen(true);
   };
@@ -53,7 +80,7 @@ export function MonthSettings({ messId }: { messId: string }) {
     if (!reviewReady) return;
     createMonth.mutate(
       {
-        title: title.trim() || defaultTitle(),
+        title: title.trim() || defaultTitle(month?.title),
         carryForward: month
           ? { enabled: carry.enabled, excludeMemberIds: [...carry.excluded] }
           : undefined,

@@ -15,7 +15,7 @@ import {
 } from "../../../hooks/use-members";
 import { useInviteUser } from "../../../hooks/use-invites";
 import { MemberFiltersBar } from "./MemberFiltersBar";
-import { MemberCards } from "./MemberCards";
+import { MemberCards, type MemberCardItem } from "./MemberCards";
 import { MembersDialogs } from "./MembersDialogs";
 import {
   QueriesErrorState,
@@ -28,7 +28,8 @@ export function MembersContent() {
   const messQuery = useGetMyMess(isAuthenticated);
   const { data: myMess, isLoading: messLoading } = messQuery;
 
-  const [filters, setFilters] = useState<MemberFilters>({});
+  // Removed members stay listed under the "Removed" filter only.
+  const [filters, setFilters] = useState<MemberFilters>({ status: "ACTIVE" });
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [roleDialogMember, setRoleDialogMember] = useState<MemberData | null>(
     null,
@@ -40,23 +41,50 @@ export function MembersContent() {
   const isManager = myMess?.current_user_role === "MANAGER";
 
   const membersQuery = useMembers(messId, filters);
-  const { data: members = [], isLoading: membersLoading } = membersQuery;
+  const { data: members = [], isPending: membersPending } = membersQuery;
+
+  // Unfiltered active list for the 2-manager rule (same query as the
+  // default view, so usually no extra request).
+  const activeMembersQuery = useMembers(messId, { status: "ACTIVE" });
 
   const calcQuery = useMemberCalculations(messId);
-  const { data: calculations, isLoading: calcLoading } = calcQuery;
+  const { data: calculations, isPending: calcPending } = calcQuery;
   const pageQueries = [messQuery, membersQuery, calcQuery];
 
-  // The cards are built from the calculations list, which the API returns
-  // unfiltered, so apply the search/role/status result to it here.
-  const visibleCalculations = useMemo(() => {
-    if (!calculations) return calculations;
-    const visibleUserIds = new Set(members.map((m) => m.user_id));
-    return {
-      ...calculations,
-      items: calculations.items.filter((item) =>
-        visibleUserIds.has(item.user_id),
-      ),
-    };
+  // Cards come from the members list: it is filtered by the API (search,
+  // role, status) and includes members the calculations leave out (removed
+  // members, and everyone before the first month starts). Role and removal
+  // status come from it too. Balances are joined in from the calculations.
+  const cardItems = useMemo<MemberCardItem[]>(() => {
+    const calcByMember = new Map(
+      (calculations?.items ?? []).map((c) => [c.member_id, c]),
+    );
+    return members.map((m) => {
+      const calc = calcByMember.get(m.id);
+      const identity = {
+        member_id: m.id,
+        user_id: m.user_id,
+        mess_role: m.mess_role,
+        removed_at: m.removed_at,
+        user: m.user,
+      };
+      if (calc && !m.removed_at) {
+        return { ...calc, ...identity, has_balances: true };
+      }
+      return {
+        ...identity,
+        total_meals: 0,
+        meal_cost: 0,
+        shared_cost: 0,
+        individual_cost: 0,
+        deposit_amount: 0,
+        final_bill: 0,
+        final_balance: 0,
+        previous_balance: 0,
+        current_balance: 0,
+        has_balances: false,
+      };
+    });
   }, [calculations, members]);
 
   const inviteUser = useInviteUser();
@@ -105,7 +133,8 @@ export function MembersContent() {
         )}
       </div>
 
-      {messLoading || membersLoading || calcLoading ? (
+      {messLoading ||
+      (!!messId && (membersPending || calcPending) && !membersQuery.isError) ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-40 animate-pulse rounded-lg bg-surface" />
@@ -113,24 +142,27 @@ export function MembersContent() {
         </div>
       ) : failedQueries(...pageQueries).length > 0 ? (
         <QueriesErrorState queries={pageQueries} resource="members" />
-      ) : members.length === 0 ? (
+      ) : (
         <div className="space-y-4">
-          {isManager && (
-            <>
-              <MemberFiltersBar
-                onSearchChange={handleSearchChange}
-                filters={filters}
-                onFilterChange={handleFilterChange}
-              />
-              <div className="rounded-xl border border-border bg-surface p-8 text-center sm:p-12">
-                <p className="text-lg font-semibold text-foreground">
-                  {t("noMembersFound")}
-                </p>
-                <p className="mt-2 text-sm text-foreground-muted">
-                  {filters.search || filters.role || filters.status
-                    ? t("noMembersMatchFilters")
-                    : t("addMembersMessGet")}
-                </p>
+          <MemberFiltersBar
+            onSearchChange={handleSearchChange}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+          />
+
+          {members.length === 0 ? (
+            <div className="rounded-xl border border-border bg-surface p-8 text-center sm:p-12">
+              <p className="text-lg font-semibold text-foreground">
+                {t("noMembersFound")}
+              </p>
+              <p className="mt-2 text-sm text-foreground-muted">
+                {filters.search || filters.role || filters.status === "REMOVED"
+                  ? t("noMembersMatchFilters")
+                  : isManager
+                    ? t("addMembersMessGet")
+                    : t("noMembersMessYet")}
+              </p>
+              {isManager && (
                 <div className="mt-4 flex justify-center gap-3">
                   <button
                     type="button"
@@ -146,36 +178,19 @@ export function MembersContent() {
                     {t("createMember")}
                   </Link>
                 </div>
-              </div>
-            </>
-          )}
-
-          {!isManager && (
-            <div className="rounded-xl border border-border bg-surface p-8 text-center sm:p-12">
-              <p className="text-lg font-semibold text-foreground">
-                {t("noMembersFound")}
-              </p>
-              <p className="mt-2 text-sm text-foreground-muted">
-                {t("noMembersMessYet")}
-              </p>
+              )}
             </div>
+          ) : (
+            <MemberCards
+              items={cardItems}
+              monthId={calculations?.month_id || undefined}
+              monthTitle={calculations?.month_title}
+              isManager={isManager}
+              currentUserId={user?.id}
+              onRoleClick={setRoleDialogMember}
+              onRemoveClick={setRemoveDialogMember}
+            />
           )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <MemberFiltersBar
-            onSearchChange={handleSearchChange}
-            filters={filters}
-            onFilterChange={handleFilterChange}
-          />
-
-          <MemberCards
-            data={visibleCalculations}
-            isManager={isManager}
-            currentUserId={user?.id}
-            onRoleClick={setRoleDialogMember}
-            onRemoveClick={setRemoveDialogMember}
-          />
         </div>
       )}
 
@@ -192,8 +207,9 @@ export function MembersContent() {
         onCloseAddDialog={() => setAddDialogOpen(false)}
         roleDialogMember={roleDialogMember}
         managerCount={
-          members.filter((m) => m.mess_role === "MANAGER" && !m.removed_at)
-            .length
+          (activeMembersQuery.data ?? []).filter(
+            (m) => m.mess_role === "MANAGER",
+          ).length
         }
         onConfirmRole={(role) =>
           updateMemberRole.mutate(

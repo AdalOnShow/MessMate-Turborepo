@@ -106,7 +106,11 @@ function makeQueryClient() {
             client.removeQueries({ queryKey: query.queryKey, exact: true });
           }
         }
-        void client.invalidateQueries({
+        // Returned so the mutation stays pending until the screen's data
+        // has been refetched: dialogs close and buttons re-enable only once
+        // the new numbers are on screen, instead of briefly (or, if the
+        // refetch is slow, for a long time) showing the old ones.
+        return client.invalidateQueries({
           predicate: (query) => !query.meta?.manualCacheUpdate,
         });
       },

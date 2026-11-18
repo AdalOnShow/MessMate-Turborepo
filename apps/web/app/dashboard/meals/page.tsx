@@ -136,6 +136,13 @@ export default function MealsPage() {
   const [selectedDate, setSelectedDate] = useState(() =>
     formatDate(new Date()),
   );
+  // When a month closes and the next one opens, start again from today
+  // instead of keeping a date the user had navigated to in the old month.
+  const [dateMonthId, setDateMonthId] = useState(monthId);
+  if (monthId !== dateMonthId) {
+    setDateMonthId(monthId);
+    if (dateMonthId !== undefined) setSelectedDate(formatDate(new Date()));
+  }
 
   const entriesQuery = useGetMealEntries(
     messId,

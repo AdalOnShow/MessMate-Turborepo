@@ -30,4 +30,46 @@ describe('trackerFor', () => {
   it('falls back to IP', () => {
     expect(trackerFor({ ip })).toBe(`ip:${ip}`);
   });
+
+  it('ignores a forged Bearer header on sign-in (per-email bucket)', () => {
+    const plain = trackerFor({
+      ip,
+      path: '/auth/signin',
+      body: { email: 'victim@x.com' },
+    });
+    const forged1 = trackerFor({
+      ip,
+      path: '/auth/signin',
+      headers: { authorization: 'Bearer random-1' },
+      body: { email: 'victim@x.com' },
+    });
+    const forged2 = trackerFor({
+      ip,
+      path: '/auth/signin/',
+      headers: { authorization: 'Bearer random-2' },
+      body: { email: 'Victim@x.com' },
+    });
+    expect(plain).toMatch(/^email:/);
+    expect(forged1).toBe(plain);
+    expect(forged2).toBe(plain);
+  });
+
+  it('ignores a forged Bearer header on sign-up', () => {
+    const t = trackerFor({
+      ip,
+      path: '/auth/signup',
+      headers: { authorization: 'Bearer x' },
+      body: { email: 'a@x.com' },
+    });
+    expect(t).toMatch(/^email:/);
+  });
+
+  it('uses the refresh cookie on refresh even with a Bearer header', () => {
+    const t = trackerFor({
+      ip,
+      path: '/auth/refresh',
+      headers: { authorization: 'Bearer x', cookie: 'refresh_token=abc' },
+    });
+    expect(t).toMatch(/^session:/);
+  });
 });

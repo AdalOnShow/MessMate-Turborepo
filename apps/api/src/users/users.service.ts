@@ -258,7 +258,7 @@ export class UsersService {
     actorId: string,
     query: string,
   ): Promise<UserSearchResult[]> {
-    const q = query.trim();
+    const q = query.trim().replace(/\s+/g, ' ').slice(0, 100);
     if (q.length < 3) {
       return [];
     }
@@ -284,7 +284,16 @@ export class UsersService {
         deleted_at: null,
         id: { not: actorId },
         OR: [
-          { name: { contains: q, mode: 'insensitive' } },
+          // Every word must appear in the name, so "Rahim Uddin" still
+          // matches with extra spaces or the words in another order.
+          {
+            AND: q
+              .split(/\s+/)
+              .filter(Boolean)
+              .map((word) => ({
+                name: { contains: word, mode: 'insensitive' as const },
+              })),
+          },
           { email: { contains: q, mode: 'insensitive' } },
         ],
       },

@@ -250,11 +250,15 @@ function SettingsContent() {
   useEffect(() => {
     if (!messLoading && myMess && myMess.current_user_role !== "MANAGER") {
       startNavigationProgress();
-      router.push("/dashboard");
+      router.replace("/dashboard");
     }
   }, [messLoading, myMess, router]);
 
-  if (messLoading) {
+  // Members are sent back to the dashboard; never render the settings for
+  // them, not even for the moment before the redirect lands.
+  const isNonManager = !!myMess && myMess.current_user_role !== "MANAGER";
+
+  if (messLoading || isNonManager) {
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />

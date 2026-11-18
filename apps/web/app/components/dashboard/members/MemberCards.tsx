@@ -6,6 +6,15 @@ import type {
   MemberCalculationListInfo,
   MemberData,
 } from "../../../hooks/use-members";
+
+/**
+ * One card. `has_balances` is false for members with no row in the active
+ * month's calculations: removed members, or every member before the first
+ * month starts. Those cards show who the member is, without fake zeros.
+ */
+export type MemberCardItem = MemberCalculationListInfo["items"][number] & {
+  has_balances: boolean;
+};
 import {
   ChefHat,
   WalletCards,
@@ -116,24 +125,24 @@ function BalanceChip({
 }
 
 export function MemberCards({
-  data,
+  items,
+  monthId,
+  monthTitle,
   isManager,
   currentUserId,
   onRoleClick,
   onRemoveClick,
 }: {
-  data: MemberCalculationListInfo | null | undefined;
+  items: MemberCardItem[];
+  monthId?: string;
+  monthTitle?: string;
   isManager: boolean;
   currentUserId?: string;
   onRoleClick: (member: MemberData) => void;
   onRemoveClick: (member: MemberData) => void;
 }) {
   const t = useTranslations("members.memberCards");
-  const items = data?.items ?? [];
-
-  const toMemberData = (
-    m: MemberCalculationListInfo["items"][number],
-  ): MemberData => ({
+  const toMemberData = (m: MemberCardItem): MemberData => ({
     id: m.member_id,
     mess_id: "",
     user_id: m.user_id,
@@ -161,7 +170,7 @@ export function MemberCards({
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {data?.month_id && (
+      {monthId && (
         <div className="rounded-2xl border border-border bg-surface px-4 py-3 sm:col-span-2">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
@@ -172,7 +181,7 @@ export function MemberCards({
                 {t("activeMonth")}
               </p>
               <p className="text-sm font-semibold text-foreground">
-                {data.month_title}
+                {monthTitle}
               </p>
             </div>
           </div>
@@ -220,6 +229,11 @@ export function MemberCards({
                       <p className="truncate font-semibold text-foreground">
                         {m.user.name}
                       </p>
+                      {m.removed_at && (
+                        <span className="inline-flex shrink-0 items-center rounded-[5px] border border-border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-foreground-muted">
+                          {t("removed")}
+                        </span>
+                      )}
                       {m.mess_role === "MANAGER" && (
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-[5px] border border-accent-warm/25 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] bg-accent-warm/10 text-accent-warm">
                           <Crown size={9} strokeWidth={2.5} />
@@ -255,98 +269,106 @@ export function MemberCards({
                 )}
               </div>
 
-              {/* Net balance strip */}
-              <div
-                className={`mt-4 flex items-center justify-between gap-4 rounded-xl border px-4 py-3 ${
-                  tone === "surplus"
-                    ? "border-success/15 bg-success/[0.06]"
-                    : tone === "due"
-                      ? "border-destructive/15 bg-destructive/[0.06]"
-                      : "border-primary/15 bg-primary/[0.06]"
-                }`}
-              >
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
-                    {t("currentBalance")}
-                  </span>
-                  <span
-                    className={`mt-0.5 text-2xl font-bold tracking-tight ${
+              {!m.has_balances ? (
+                <p className="mt-4 rounded-xl border border-border bg-background/40 px-4 py-3 text-sm text-foreground-muted">
+                  {m.removed_at ? t("removedNoBalances") : t("noMonthBalances")}
+                </p>
+              ) : (
+                <>
+                  {/* Net balance strip */}
+                  <div
+                    className={`mt-4 flex items-center justify-between gap-4 rounded-xl border px-4 py-3 ${
                       tone === "surplus"
-                        ? "text-success"
+                        ? "border-success/15 bg-success/[0.06]"
                         : tone === "due"
-                          ? "text-destructive"
-                          : "text-foreground"
+                          ? "border-destructive/15 bg-destructive/[0.06]"
+                          : "border-primary/15 bg-primary/[0.06]"
                     }`}
                   >
-                    {balance > 0 ? "+" : balance < 0 ? "−" : ""}
-                    {formatMoney(Math.abs(balance))}
-                  </span>
-                </div>
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-mono font-medium uppercase tracking-[0.1em] ${
-                    tone === "surplus"
-                      ? "bg-success/15 text-success"
-                      : tone === "due"
-                        ? "bg-destructive/15 text-destructive"
-                        : "bg-primary/15 text-primary"
-                  }`}
-                >
-                  {tone === "surplus"
-                    ? t("surplus")
-                    : tone === "due"
-                      ? t("owesMoney")
-                      : "Settled"}
-                </span>
-              </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-mono font-medium uppercase tracking-[0.1em] text-foreground-muted">
+                        {t("currentBalance")}
+                      </span>
+                      <span
+                        className={`mt-0.5 text-2xl font-bold tracking-tight ${
+                          tone === "surplus"
+                            ? "text-success"
+                            : tone === "due"
+                              ? "text-destructive"
+                              : "text-foreground"
+                        }`}
+                      >
+                        {balance > 0 ? "+" : balance < 0 ? "−" : ""}
+                        {formatMoney(Math.abs(balance))}
+                      </span>
+                    </div>
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-mono font-medium uppercase tracking-[0.1em] ${
+                        tone === "surplus"
+                          ? "bg-success/15 text-success"
+                          : tone === "due"
+                            ? "bg-destructive/15 text-destructive"
+                            : "bg-primary/15 text-primary"
+                      }`}
+                    >
+                      {tone === "surplus"
+                        ? t("surplus")
+                        : tone === "due"
+                          ? t("owesMoney")
+                          : t("settled")}
+                    </span>
+                  </div>
 
-              {/* Stats grid */}
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                <Stat
-                  icon={<ChefHat size={15} />}
-                  label={t("meals")}
-                  value={`${formatCompact(m.total_meals)}`}
-                />
-                <Stat
-                  icon={<WalletCards size={15} />}
-                  label={t("deposits")}
-                  value={formatMoney(m.deposit_amount)}
-                  highlight
-                />
-                <Stat
-                  icon={<Utensils size={15} />}
-                  label={t("mealCost")}
-                  value={formatMoney(m.meal_cost)}
-                />
-                <Stat
-                  icon={<Users size={15} />}
-                  label={t("shared")}
-                  value={formatMoney(m.shared_cost)}
-                />
-                <Stat
-                  icon={<UserRound size={15} />}
-                  label={t("individual")}
-                  value={formatMoney(m.individual_cost)}
-                />
-                <Stat
-                  icon={<ReceiptText size={15} />}
-                  label={t("totalBill")}
-                  value={formatMoney(m.final_bill)}
-                />
-              </div>
+                  {/* Stats grid */}
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    <Stat
+                      icon={<ChefHat size={15} />}
+                      label={t("meals")}
+                      value={`${formatCompact(m.total_meals)}`}
+                    />
+                    <Stat
+                      icon={<WalletCards size={15} />}
+                      label={t("deposits")}
+                      value={formatMoney(m.deposit_amount)}
+                      highlight
+                    />
+                    <Stat
+                      icon={<Utensils size={15} />}
+                      label={t("mealCost")}
+                      value={formatMoney(m.meal_cost)}
+                    />
+                    <Stat
+                      icon={<Users size={15} />}
+                      label={t("shared")}
+                      value={formatMoney(m.shared_cost)}
+                    />
+                    <Stat
+                      icon={<UserRound size={15} />}
+                      label={t("individual")}
+                      value={formatMoney(m.individual_cost)}
+                    />
+                    <Stat
+                      icon={<ReceiptText size={15} />}
+                      label={t("totalBill")}
+                      value={formatMoney(m.final_bill)}
+                    />
+                  </div>
 
-              {/* Carried balance */}
-              {m.previous_balance !== 0 && (
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-background/40 px-3.5 py-2">
-                  <BalanceChip
-                    label={t("carried")}
-                    value={m.previous_balance}
-                    positive={m.previous_balance >= 0}
-                  />
-                  <span className="text-foreground-muted/40">·</span>
-                  <span className="text-[10px] uppercase tracking-wider text-foreground-muted">
-                    {t("fromPreviousMonth")}
-                  </span>
-                </div>
+                  {/* Carried balance */}
+                  {m.previous_balance !== 0 && (
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-background/40 px-3.5 py-2">
+                      <BalanceChip
+                        label={t("carried")}
+                        value={m.previous_balance}
+                        positive={m.previous_balance >= 0}
+                      />
+                      <span className="text-foreground-muted/40">·</span>
+                      <span className="text-[10px] uppercase tracking-wider text-foreground-muted">
+                        {t("fromPreviousMonth")}
+                      </span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

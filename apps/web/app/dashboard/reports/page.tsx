@@ -202,10 +202,17 @@ function DayDateCell({ iso }: { iso: string }) {
   return (
     <div className="whitespace-nowrap leading-tight">
       <p className="font-medium text-foreground">
-        {date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+        {date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          timeZone: "UTC",
+        })}
       </p>
       <p className="mt-0.5 text-xs text-foreground-muted">
-        {date.toLocaleDateString("en-US", { weekday: "short" })}
+        {date.toLocaleDateString("en-US", {
+          weekday: "short",
+          timeZone: "UTC",
+        })}
       </p>
     </div>
   );
