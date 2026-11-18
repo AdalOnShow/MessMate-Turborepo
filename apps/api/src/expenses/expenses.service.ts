@@ -658,6 +658,13 @@ export class ExpensesService {
           action: 'EXPENSE_DELETED',
           entity_type: 'expenses',
           entity_id: expenseId,
+          // The expense row is deleted outright; keep what it was for the
+          // activity list.
+          details: {
+            title: expense.title,
+            amount: Number(expense.amount),
+            date: expense.expense_date.toISOString(),
+          },
         },
       });
     });

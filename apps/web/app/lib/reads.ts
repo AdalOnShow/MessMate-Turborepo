@@ -3,6 +3,7 @@
 // would queue them one after another. Writes stay in app/actions.
 
 import type {
+  ActivityHistoryPage,
   BazaarHistoryPage,
   DepositHistoryPage,
   ExpenseHistoryPage,
@@ -189,6 +190,16 @@ export function getDepositHistoryPage(
 ) {
   return apiGet<DepositHistoryPage>(
     `/deposits/${messId}/${monthId}/history${pageQuery({ memberId, cursor })}`,
+  );
+}
+
+export function getActivityHistoryPage(
+  messId: string,
+  category?: string,
+  cursor?: string,
+) {
+  return apiGet<ActivityHistoryPage>(
+    `/messes/${messId}/activities/history${pageQuery({ category, cursor })}`,
   );
 }
 

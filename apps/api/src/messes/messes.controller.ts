@@ -22,6 +22,7 @@ import {
   updateMealTypeSchema,
   updateMemberRoleSchema,
   memberFiltersSchema,
+  activityHistoryQuerySchema,
   formatZodError,
   type MemberFilters,
 } from '@repo/shared';
@@ -214,6 +215,32 @@ export class MessesController {
       message: 'Member dashboard retrieved successfully',
       data,
     };
+  }
+
+  /** Every activity of the mess, a page at a time (Activity page). */
+  @Get(':messId/activities/history')
+  @UseGuards(MembershipGuard)
+  async getActivityHistory(
+    @Param('messId') messId: string,
+    @Query() query: unknown,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').ActivityHistoryPage;
+  }> {
+    validateUuid(messId, 'messId');
+    const parsed = activityHistoryQuerySchema.safeParse(query ?? {});
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
+    const data = await this.messesService.getActivityHistory(
+      messId,
+      parsed.data,
+    );
+    return { success: true, message: 'Request completed successfully', data };
   }
 
   @Get(':messId/activities')

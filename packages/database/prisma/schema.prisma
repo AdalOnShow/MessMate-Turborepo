@@ -385,6 +385,9 @@ model activity_logs {
   action      activity_action
   entity_type String?
   entity_id   String?
+  /// Snapshot of what the entry was about, for records that are deleted
+  /// outright (expenses). Other entries are described from their record.
+  details     Json?
   created_at  DateTime        @default(now())
 
   mess  messes  @relation(fields: [mess_id], references: [id], onDelete: Cascade)
