@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { OfflineHint } from "../../components/ui/offline-hint";
 import { useOnline } from "../../hooks/use-online";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useGetActiveMonth } from "../../hooks/use-months";
 import {
@@ -125,6 +126,14 @@ export default function MealsPage() {
   const { data: myMess, isLoading: messLoading } = messQuery;
   const messId = myMess?.id;
   const isManager = myMess?.current_user_role === "MANAGER";
+
+  // The meal sheet is a manager tool; members see their meals on the
+  // dashboard and in Reports. Covers typed URLs and the PWA shortcut.
+  const router = useRouter();
+  const isMember = !!myMess && !isManager;
+  useEffect(() => {
+    if (isMember) router.replace("/dashboard");
+  }, [isMember, router]);
 
   const monthQuery = useGetActiveMonth(messId);
   const { data: activeMonth, isLoading: monthLoading } = monthQuery;

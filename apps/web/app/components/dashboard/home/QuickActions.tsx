@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   BarChart3,
+  Bell,
   ChefHat,
   Landmark,
   Receipt,
@@ -22,7 +23,8 @@ type Action = {
     | "actionDeposit"
     | "actionMembers"
     | "actionBazaar"
-    | "actionReports";
+    | "actionReports"
+    | "actionNotifications";
 };
 
 const MANAGER_ACTIONS: Action[] = [
@@ -33,10 +35,10 @@ const MANAGER_ACTIONS: Action[] = [
 ];
 
 const MEMBER_ACTIONS: Action[] = [
-  { href: "/dashboard/meals", icon: ChefHat, label: "actionMeals" },
   { href: "/dashboard/bazaar", icon: ShoppingCart, label: "actionBazaar" },
   { href: "/dashboard/reports", icon: BarChart3, label: "actionReports" },
   { href: "/dashboard/members", icon: Users, label: "actionMembers" },
+  { href: "/dashboard/activity", icon: Bell, label: "actionNotifications" },
 ];
 
 /** Row of round shortcut buttons, like a banking app. */

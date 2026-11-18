@@ -21,8 +21,10 @@ export type NavLabel =
   | "members"
   | "months"
   | "meals"
+  | "addMeals"
   | "bazaar"
   | "expenses"
+  | "addExpense"
   | "deposits"
   | "reports"
   | "notifications"
@@ -45,9 +47,19 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "dashboard", icon: Home },
   { href: "/dashboard/members", label: "members", icon: Users },
   { href: "/dashboard/months", label: "months", icon: Calendar },
-  { href: "/dashboard/meals", label: "meals", icon: Utensils },
+  {
+    href: "/dashboard/meals",
+    label: "addMeals",
+    icon: Utensils,
+    managerOnly: true,
+  },
   { href: "/dashboard/bazaar", label: "bazaar", icon: ShoppingCart },
-  { href: "/dashboard/expenses", label: "expenses", icon: ReceiptText },
+  {
+    href: "/dashboard/expenses",
+    label: "addExpense",
+    icon: ReceiptText,
+    managerOnly: true,
+  },
   {
     href: "/dashboard/deposits",
     label: "deposits",
@@ -95,7 +107,12 @@ export const MANAGER_NAV_ITEMS: NavItem[] = [
 /** Mobile bottom bar (a fifth "More" tab is added by BottomNav). */
 export const PRIMARY_TABS: NavItem[] = [
   { href: "/dashboard", label: "home", icon: Home },
-  { href: "/dashboard/meals", label: "meals", icon: Utensils },
+  {
+    href: "/dashboard/meals",
+    label: "addMeals",
+    icon: Utensils,
+    managerOnly: true,
+  },
   { href: "/dashboard/bazaar", label: "bazaar", icon: ShoppingCart },
   { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
 ];

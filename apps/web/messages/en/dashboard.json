@@ -67,12 +67,13 @@
     "mealRate": "Meal rate",
     "days": "Days",
     "quickActions": "Quick actions",
-    "actionMeals": "Meals",
-    "actionExpense": "Expense",
+    "actionMeals": "Add meals",
+    "actionExpense": "Add expense",
     "actionDeposit": "Deposit",
     "actionMembers": "Members",
     "actionBazaar": "Bazaar",
     "actionReports": "Reports",
+    "actionNotifications": "Notifications",
     "bazaarApprovals": "Bazaar approvals",
     "items": "{count, plural, one {# item} other {# items}}",
     "approve": "Approve",
@@ -91,6 +92,8 @@
     "noMonthMember": "Your manager hasn't started a month yet. Your meals and balance will show up here once they do.",
     "startInSettings": "Start a month",
     "recentActivity": "Recent activity",
-    "everyoneSummary": "Everyone's summary"
+    "everyoneSummary": "Everyone's summary",
+    "billCovered": "Deposits cover {percent}% of your bill",
+    "depositsSpent": "{percent}% of deposits spent"
   }
 }

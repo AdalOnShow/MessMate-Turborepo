@@ -9,6 +9,7 @@ import { cn } from "../../lib/utils";
 import { MORE_ITEMS, PRIMARY_TABS, isActivePath } from "./nav-items";
 import { MoreSheet } from "./MoreSheet";
 import { LinkPendingDot } from "../ui/link-pending";
+import { useGetMyMess } from "../../hooks/use-messes";
 
 const tabClass =
   "group flex min-w-0 flex-1 flex-col items-center justify-center gap-1 pb-1 pt-2 text-[11px] font-medium leading-none transition-colors";
@@ -37,6 +38,9 @@ export function BottomNav() {
   const t = useTranslations("nav");
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  const { data: myMess } = useGetMyMess();
+  const isManager = myMess?.current_user_role === "MANAGER";
+  const tabs = PRIMARY_TABS.filter((item) => !item.managerOnly || isManager);
 
   const moreActive =
     moreOpen || MORE_ITEMS.some((item) => isActivePath(pathname, item.href));
@@ -48,7 +52,7 @@ export function BottomNav() {
         className="pb-safe fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface-sunken/90 backdrop-blur-xl lg:hidden"
       >
         <div className="mx-auto flex h-16 max-w-lg items-stretch px-1">
-          {PRIMARY_TABS.map((item) => {
+          {tabs.map((item) => {
             const Icon = item.icon;
             const active = !moreOpen && isActivePath(pathname, item.href);
             return (
