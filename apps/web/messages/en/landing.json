@@ -32,27 +32,73 @@
   },
   "howItWorks": {
     "eyebrow": "How It Works",
-    "title": "Four Steps. <accent>No Spreadsheets.</accent>",
-    "subtitle": "From an empty flat to a fully accounted mess month in under ten minutes.",
-    "cta": "Start Your First Month",
-    "steps": {
-      "create": {
-        "title": "Create Your Mess",
-        "description": "Set up your mess profile, choose your meal types, and decide your monthly rules."
+    "title": "Up and running <accent>in three stages.</accent>",
+    "subtitle": "Set up once, record as you go, close at month end. MessMate does all the maths.",
+    "cta": "Create your mess",
+    "manager": "Manager",
+    "everyone": "Everyone",
+    "where": "Where",
+    "phases": {
+      "setup": {
+        "label": "Day 1 · Setup",
+        "hint": "About 5 minutes"
       },
-      "invite": {
-        "title": "Invite Members",
-        "description": "Share a unique join code. Roommates sign up and join instantly."
+      "daily": {
+        "label": "Every day",
+        "hint": "A minute or two"
       },
-      "record": {
-        "title": "Record Meals & Expenses",
-        "description": "Log daily meals, add bazaar and utility costs, collect deposits."
-      },
-      "auto": {
-        "title": "Auto-Calculate Accounting",
-        "description": "Meal rate, bills, and balances are computed for you every month."
+      "close": {
+        "label": "Month end",
+        "hint": "One tap"
       }
-    }
+    },
+    "steps": {
+      "account": {
+        "title": "Sign up and create your mess",
+        "description": "Sign up with email or Google and give your mess a name. Whoever creates it becomes its manager.",
+        "where": "Sign up → Create mess"
+      },
+      "members": {
+        "title": "Add your members",
+        "description": "Invite flatmates by name or email; they accept from their own dashboard. No smartphone? Create an account for them.",
+        "where": "Members → Invite"
+      },
+      "month": {
+        "title": "Start the month",
+        "description": "Open the month, e.g. \"December 2026\". Every meal and expense from now on goes into it.",
+        "where": "Months → Start month"
+      },
+      "meals": {
+        "title": "Record the day's meals",
+        "description": "Pick the date and tap each member's meals. Half meals (0.5) work too.",
+        "where": "Meals"
+      },
+      "money": {
+        "title": "Add bazaar, bills and deposits",
+        "description": "Members submit what they bought and the manager approves it. Add shared bills like gas or internet, personal costs, and each deposit.",
+        "where": "Bazaar · Expenses · Deposits"
+      },
+      "closeMonth": {
+        "title": "Close the month",
+        "description": "Check everyone's final balance and close. Extra money and dues carry into the next month automatically.",
+        "where": "Months → Close month"
+      }
+    },
+    "math": {
+      "title": "The maths is done for you",
+      "rate": "Meal rate = total bazaar ÷ total meals",
+      "bill": "Your bill = your meals × meal rate + your share of shared bills + your personal costs",
+      "balance": "Balance = what you deposited − your bill"
+    },
+    "member": {
+      "title": "Joining as a member?",
+      "items": {
+        "join": "Sign up with the email your manager invites, then accept the invite on your dashboard.",
+        "bazaar": "Did the shopping? Add it on the Bazaar page so the manager can approve it.",
+        "balance": "See your meals, bill and balance any time; nothing to calculate."
+      }
+    },
+    "install": "Install the app"
   },
   "faq": {
     "eyebrow": "FAQ",
@@ -69,11 +115,11 @@
       },
       "accounting": {
         "q": "Do I need to know accounting to use it?",
-        "a": "Not at all. MessMate computes the meal rate, each member's bill, and final balances automatically using total expenses divided by total meals. You just log what happened; the math is done for you."
+        "a": "Not at all. MessMate works out the meal rate (total bazaar ÷ total meals), each member's bill, and final balances automatically. You just log what happened; the maths is done for you."
       },
       "join": {
         "q": "How do members join my mess?",
-        "a": "Create a mess and you get a unique, secure join code. Each flatmate signs up, enters the code, and is in — no approvals, no spreadsheets, no delays."
+        "a": "The manager invites each flatmate by name or email from the Members page, and they accept from their own dashboard. For someone without a smartphone, the manager can create the account for them."
       },
       "months": {
         "q": "How do months work?",

@@ -1,11 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Activity, Loader2 } from "lucide-react";
 import type { ActivityCategory } from "@repo/shared";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useActivityHistory } from "../../hooks/use-reports";
+import { useUnreadNotifications } from "../../hooks/use-notifications";
 import { ActivityItem } from "../../components/dashboard/activity/ActivityItem";
 import {
   FilterChips,
@@ -111,11 +112,20 @@ function ActivityList({ messId }: { messId: string }) {
   );
 }
 
-/** Every activity of the mess, 10 per page, filterable by category. */
+/**
+ * Notifications: every activity of the mess, 10 per page, filterable by
+ * category. Opening it clears the unread badge on the bell.
+ */
 export default function ActivityPage() {
   const t = useTranslations("dashboard.recentActivity");
   const messQuery = useGetMyMess();
   const { data: myMess, isLoading } = messQuery;
+  const { markSeen } = useUnreadNotifications();
+
+  // Opening the page reads every notification.
+  useEffect(() => {
+    markSeen();
+  }, [markSeen]);
 
   return (
     <>

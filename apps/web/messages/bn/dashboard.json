@@ -25,9 +25,9 @@
     "bazaarApproved": "বাজার অনুমোদিত",
     "bazaarRejected": "বাজার বাতিল",
     "bazaarDeleted": "বাজার মুছে ফেলা হয়েছে",
-    "viewAll": "সব দেখুন",
-    "allActivity": "সব কার্যক্রম",
-    "activity": "কার্যক্রম",
+    "viewAll": "সব নোটিফিকেশন",
+    "allActivity": "নোটিফিকেশন",
+    "activity": "নোটিফিকেশন",
     "activityHint": "মেসে যা যা হয়েছে, নতুনগুলো আগে।",
     "justNow": "এইমাত্র",
     "minutesAgo": "{count} মিনিট আগে",
@@ -42,7 +42,8 @@
     "catMembers": "সদস্য",
     "catMonths": "মাস",
     "noActivityOfType": "এই ধরনের কোনো কার্যক্রম এখনো নেই।",
-    "by": "{name} করেছেন"
+    "by": "{name} করেছেন",
+    "newNotifications": "নতুন নোটিফিকেশন"
   },
   "home": {
     "goodMorning": "শুভ সকাল",

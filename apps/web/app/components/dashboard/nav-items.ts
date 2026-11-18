@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Bell,
   Calendar,
   Home,
   ReceiptText,
@@ -23,6 +24,7 @@ export type NavLabel =
   | "expenses"
   | "deposits"
   | "reports"
+  | "notifications"
   | "profile"
   | "settings"
   | "messSettings"
@@ -46,6 +48,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/expenses", label: "expenses", icon: ReceiptText },
   { href: "/dashboard/deposits", label: "deposits", icon: WalletCards },
   { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
+  { href: "/dashboard/activity", label: "notifications", icon: Bell },
   { href: "/dashboard/profile", label: "profile", icon: User },
 ];
 
@@ -62,6 +65,7 @@ const SIDEBAR_ORDER = [
   "/dashboard/deposits",
   "/dashboard/months",
   "/dashboard/reports",
+  "/dashboard/activity",
   "/dashboard/profile",
 ];
 
@@ -105,6 +109,12 @@ const NESTED_PAGES: { href: string; label: NavLabel; parent: string }[] = [
     href: "/dashboard/members/create-account",
     label: "createAccount",
     parent: "/dashboard/members",
+  },
+  // Opened from the bell or the dashboard: back goes home.
+  {
+    href: "/dashboard/activity",
+    label: "notifications",
+    parent: "/dashboard",
   },
 ];
 

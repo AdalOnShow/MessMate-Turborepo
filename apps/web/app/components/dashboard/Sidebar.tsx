@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { LanguageToggle } from "../LanguageToggle";
 import { UserAvatar } from "./UserAvatar";
 import { LinkPendingDot } from "../ui/link-pending";
+import { UnreadBadge } from "./activity/NotificationBell";
 import { MANAGER_NAV_ITEMS, SIDEBAR_ITEMS, isActivePath } from "./nav-items";
 
 export function Sidebar() {
@@ -63,6 +64,9 @@ export function Sidebar() {
             >
               <Icon size={18} aria-hidden="true" />
               {t(item.label)}
+              {item.href === "/dashboard/activity" ? (
+                <UnreadBadge className="ml-auto" />
+              ) : null}
               <LinkPendingDot className="ml-auto" />
             </Link>
           );
