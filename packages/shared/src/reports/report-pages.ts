@@ -6,6 +6,7 @@ import type {
 import type { DepositWithRelations } from "../deposits/interfaces/deposit.interface";
 import type { ExpenseWithRelations } from "../expenses/interfaces/expense.interface";
 import { ValidationMessage } from "../validation/messages";
+import type { ActivityLog } from "../messes/interfaces/activity.interface";
 
 /** Rows per "Load more" on the Reports page. */
 export const REPORT_PAGE_SIZE = 8;
@@ -41,6 +42,34 @@ export const bazaarHistoryQuerySchema = z.object({
     .enum(["PENDING", "APPROVED", "REJECTED"], ValidationMessage.STATUS_INVALID)
     .default("APPROVED"),
 });
+
+/** Rows per page of the full activity list. */
+export const ACTIVITY_PAGE_SIZE = 10;
+
+export const ACTIVITY_CATEGORIES = [
+  "meals",
+  "expenses",
+  "deposits",
+  "bazaar",
+  "members",
+  "months",
+] as const;
+export type ActivityCategory = (typeof ACTIVITY_CATEGORIES)[number];
+
+export const activityHistoryQuerySchema = z.object({
+  cursor: pageFields.cursor,
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1, ValidationMessage.LIMIT_MIN)
+    .max(50, ValidationMessage.LIMIT_MAX)
+    .default(ACTIVITY_PAGE_SIZE),
+  category: z
+    .enum(ACTIVITY_CATEGORIES, ValidationMessage.STATUS_INVALID)
+    .optional(),
+});
+
+export type ActivityHistoryQuery = z.infer<typeof activityHistoryQuerySchema>;
 
 export type ExpenseHistoryQuery = z.infer<typeof expenseHistoryQuerySchema>;
 export type DepositHistoryQuery = z.infer<typeof depositHistoryQuerySchema>;
@@ -102,4 +131,14 @@ export interface MealDaysPage {
   next_cursor: string | null;
   /** Days with meals in the month, across all pages. */
   total_days: number;
+}
+
+/** One page of the mess's activity, newest first. */
+export interface ActivityHistoryPage {
+  items: ActivityLog[];
+  next_cursor: string | null;
+  /** Rows matching the current filter, across all pages. */
+  total: number;
+  /** For the filter chips; independent of the current filter. */
+  category_counts: Record<"all" | ActivityCategory, number>;
 }

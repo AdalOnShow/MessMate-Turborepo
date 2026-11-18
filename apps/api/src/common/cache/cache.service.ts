@@ -12,8 +12,9 @@ import Redis from 'ioredis';
 export type CacheBucket = 'live' | 'closed';
 
 const TTL_SECONDS: Record<CacheBucket, number> = {
-  // Safety net only: every write clears the bucket straight away.
-  live: 6 * 60 * 60,
+  // Safety net only: every write clears the bucket straight away. Kept
+  // short so a lost invalidation can't serve old balances for long.
+  live: 15 * 60,
   closed: 7 * 24 * 60 * 60,
 };
 // Version counters outlive every cached entry, so an expired counter can
@@ -21,6 +22,9 @@ const TTL_SECONDS: Record<CacheBucket, number> = {
 const VERSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 // Redis must never make a request slower than skipping the cache would.
 const COMMAND_TIMEOUT_MS = 400;
+// A lost invalidation leaves old balances visible, so it is retried.
+const INVALIDATE_ATTEMPTS = 3;
+const INVALIDATE_RETRY_DELAY_MS = 100;
 
 type Entry<T> = { v: string; d: T };
 type Lookup<T> =
@@ -48,15 +52,29 @@ export class CacheService implements OnModuleDestroy {
 
   constructor() {
     const url = process.env.REDIS_URL;
-    this.redis = url
-      ? new Redis(url, {
+    let redis: Redis | null = null;
+    if (url) {
+      try {
+        redis = new Redis(url, {
           maxRetriesPerRequest: 1,
           connectTimeout: 5000,
           commandTimeout: COMMAND_TIMEOUT_MS,
           // Retry the connection in the background, at most every 5s.
           retryStrategy: (times) => Math.min(times * 500, 5000),
-        })
-      : null;
+        });
+      } catch (err) {
+        // A malformed REDIS_URL must not take the API down: run uncached.
+        console.error(
+          JSON.stringify({
+            level: 'error',
+            source: 'cache',
+            op: 'init',
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+      }
+    }
+    this.redis = redis;
     this.redis?.on('error', (err) => this.logError('connection', err));
   }
 
@@ -184,23 +202,42 @@ export class CacheService implements OnModuleDestroy {
     buckets: readonly CacheBucket[] = ['live'],
   ): Promise<void> {
     if (!this.redis) return;
-    const tx = this.redis.multi();
-    let any = false;
+    const pairs: Array<[string, CacheBucket]> = [];
     for (const messId of new Set(messIds)) {
-      for (const bucket of buckets) {
-        any = true;
+      for (const bucket of buckets) pairs.push([messId, bucket]);
+    }
+    if (pairs.length === 0) return;
+
+    for (let attempt = 1; attempt <= INVALIDATE_ATTEMPTS; attempt++) {
+      const tx = this.redis.multi();
+      for (const [messId, bucket] of pairs) {
         tx.incr(versionKey(bucket, messId))
           .expire(versionKey(bucket, messId), VERSION_TTL_SECONDS)
           .del(hashKey(bucket, messId));
       }
-    }
-    if (!any) return;
-    try {
-      await tx.exec();
-    } catch (err) {
-      // The version bump failed, so readers may see old data until the
-      // entry's TTL. Logged loudly; the write itself already succeeded.
-      this.logError('invalidate', err);
+      try {
+        const res = await tx.exec();
+        if (res && res.every(([err]) => !err)) return;
+        throw new Error('invalidate transaction failed');
+      } catch (err) {
+        if (attempt === INVALIDATE_ATTEMPTS) {
+          // Readers may see old data until the entry's TTL (kept short).
+          // Always logged: unlike read failures this can show stale money.
+          console.error(
+            JSON.stringify({
+              level: 'error',
+              source: 'cache',
+              op: 'invalidate',
+              messIds: pairs.map(([id]) => id),
+              error: err instanceof Error ? err.message : String(err),
+            }),
+          );
+          return;
+        }
+        await new Promise((r) =>
+          setTimeout(r, INVALIDATE_RETRY_DELAY_MS * attempt),
+        );
+      }
     }
   }
 

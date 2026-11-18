@@ -60,7 +60,11 @@ describe('ExpensesService', () => {
 
     it('rejects members who are not active in this mess', async () => {
       asManager();
-      prismaMock.months.findFirst.mockResolvedValue({ id: MONTH });
+      prismaMock.months.findFirst.mockResolvedValue({
+        id: MONTH,
+        mess_id: MESS,
+        started_at: new Date('2026-11-01T00:00:00Z'),
+      });
       prismaMock.mess_members.findMany.mockResolvedValue([{ id: 'a' }]);
       await rejectsWith(
         service.createExpense(MESS, MONTH, MANAGER, {
@@ -77,7 +81,11 @@ describe('ExpensesService', () => {
 
     it('splits a shared expense so the parts add up exactly', async () => {
       asManager();
-      prismaMock.months.findFirst.mockResolvedValue({ id: MONTH });
+      prismaMock.months.findFirst.mockResolvedValue({
+        id: MONTH,
+        mess_id: MESS,
+        started_at: new Date('2026-11-01T00:00:00Z'),
+      });
       prismaMock.mess_members.findMany.mockResolvedValue([
         { id: 'a' },
         { id: 'b' },
@@ -159,7 +167,11 @@ describe('ExpensesService', () => {
 
   describe('getExpenseHistory (Reports "Load more")', () => {
     beforeEach(() => {
-      prismaMock.months.findFirst.mockResolvedValue({ id: MONTH });
+      prismaMock.months.findFirst.mockResolvedValue({
+        id: MONTH,
+        mess_id: MESS,
+        started_at: new Date('2026-11-01T00:00:00Z'),
+      });
       prismaMock.expenses.groupBy.mockResolvedValue([
         { type: 'SHARED', _count: { _all: 4 } },
         { type: 'BAZAAR', _count: { _all: 6 } },

@@ -24,7 +24,25 @@
     "bazaarUpdated": "Bazaar updated",
     "bazaarApproved": "Bazaar approved",
     "bazaarRejected": "Bazaar rejected",
-    "bazaarDeleted": "Bazaar deleted"
+    "bazaarDeleted": "Bazaar deleted",
+    "viewAll": "View all",
+    "allActivity": "All activity",
+    "activity": "Activity",
+    "activityHint": "Everything that has happened in your mess, newest first.",
+    "justNow": "just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago",
+    "mealsCount": "{count} meals",
+    "catAll": "All",
+    "catMeals": "Meals",
+    "catExpenses": "Expenses",
+    "catDeposits": "Deposits",
+    "catBazaar": "Bazaar",
+    "catMembers": "Members",
+    "catMonths": "Months",
+    "noActivityOfType": "No activity of this type yet.",
+    "by": "by {name}"
   },
   "home": {
     "goodMorning": "Good morning",
@@ -71,6 +89,7 @@
     "noMonthManager": "Start a month on the Months page to begin tracking meals, deposits and expenses.",
     "noMonthMember": "Your manager hasn't started a month yet. Your meals and balance will show up here once they do.",
     "startInSettings": "Start a month",
-    "recentActivity": "Recent activity"
+    "recentActivity": "Recent activity",
+    "everyoneSummary": "Everyone's summary"
   }
 }

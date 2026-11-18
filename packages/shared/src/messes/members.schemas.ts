@@ -5,7 +5,7 @@ export const updateMemberRoleSchema = z.object({
 });
 
 export const memberFiltersSchema = z.object({
-  search: z.string().optional(),
+  search: z.string().trim().max(100).optional(),
   role: z.enum(["MANAGER", "MEMBER"]).optional(),
   status: z.enum(["ACTIVE", "REMOVED"]).optional(),
 });

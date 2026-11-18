@@ -1,3 +1,22 @@
+export type ActivityAction = ActivityLog["action"];
+
+/**
+ * What an activity was about, for a one-line description ("Gas Bill ·
+ * ৳1,000"). Every field is optional: older entries, or ones whose record
+ * no longer exists, have fewer details.
+ */
+export interface ActivityDetails {
+  /** Expense title, month title, meal type name, bazaar description. */
+  title?: string;
+  amount?: number;
+  /** The person it was about (deposit member, meal member, new member...). */
+  member?: string;
+  /** Calendar date (UTC midnight ISO) of a meal, expense or deposit. */
+  date?: string;
+  /** Meals of a meal entry. */
+  meals?: number;
+}
+
 export interface ActivityLog {
   id: string;
   action:
@@ -27,7 +46,7 @@ export interface ActivityLog {
   actor: {
     id: string;
     name: string;
-    email: string;
     avatar: string | null;
   };
+  details: ActivityDetails | null;
 }

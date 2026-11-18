@@ -280,7 +280,22 @@
     "bazaarTotal": "{status} total",
     "purchases": "Purchases",
     "purchasedBy": "Purchased by",
-    "noBazaarOfStatus": "No bazaar in this list this month."
+    "noBazaarOfStatus": "No bazaar in this list this month.",
+    "actions": "Actions",
+    "edit": "Edit",
+    "editExpense": "Edit expense",
+    "editDeposit": "Edit deposit",
+    "title": "Title",
+    "save": "Save",
+    "saving": "Saving...",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "cancel": "Cancel",
+    "deleteExpenseConfirm": "Delete this expense? Every member's bill is recalculated.",
+    "deleteDepositConfirm": "Delete this deposit? The member's balance is recalculated.",
+    "titleRequired": "Enter a title",
+    "amountPositive": "Amount must be greater than 0",
+    "bazaarLockedHint": "Bazaar expenses come from approved bazaar entries and can't be edited here."
   },
   "settings": {
     "messName": "Mess Name",

@@ -24,6 +24,17 @@ import type {
 } from '@repo/shared';
 import { computeMemberSummaries, roundMoney } from '../months/month-summary';
 import { CacheService } from '../common/cache/cache.service';
+import { decodeKeysetCursor, toPage } from '../common/pagination/keyset';
+import {
+  ACTIVITY_CATEGORIES,
+  type ActivityHistoryPage,
+  type ActivityHistoryQuery,
+} from '@repo/shared';
+import {
+  CATEGORY_ACTIONS,
+  activityInclude,
+  describeActivities,
+} from './activity-details';
 
 export type MessWithMembership = {
   id: string;
@@ -418,7 +429,8 @@ export class MessesService {
   }
 
   getRecentActivities(messId: string, limit = 10): Promise<ActivityLog[]> {
-    return this.cache.remember(messId, 'live', `activities:${limit}`, () =>
+    // v2: entries carry `details` and no actor email.
+    return this.cache.remember(messId, 'live', `activities:v2:${limit}`, () =>
       this.loadRecentActivities(messId, limit),
     );
   }
@@ -427,23 +439,79 @@ export class MessesService {
     messId: string,
     limit: number,
   ): Promise<ActivityLog[]> {
-    const logs = await prisma.activity_logs.findMany({
+    const rows = await prisma.activity_logs.findMany({
       where: { mess_id: messId },
-      orderBy: { created_at: 'desc' },
+      orderBy: [{ created_at: 'desc' }, { id: 'desc' }],
       take: limit,
-      include: {
-        actor: {
-          select: { id: true, name: true, email: true, avatar: true },
-        },
-      },
+      include: activityInclude,
     });
+    return describeActivities(messId, rows);
+  }
 
-    return logs.map((log) => ({
-      id: log.id,
-      action: log.action,
-      created_at: log.created_at.toISOString(),
-      actor: log.actor,
+  /**
+   * The full activity list, newest first, a page at a time ("Load more"),
+   * optionally one category. Keyset paging on (created_at, id), so new
+   * activity arriving meanwhile never shifts or repeats rows.
+   */
+  async getActivityHistory(
+    messId: string,
+    query: ActivityHistoryQuery,
+  ): Promise<ActivityHistoryPage> {
+    const base: Prisma.activity_logsWhereInput = { mess_id: messId };
+    const filtered: Prisma.activity_logsWhereInput = query.category
+      ? { ...base, action: { in: CATEGORY_ACTIONS[query.category] } }
+      : base;
+    const after = query.cursor ? decodeKeysetCursor(query.cursor) : null;
+
+    const [rows, byAction] = await Promise.all([
+      prisma.activity_logs.findMany({
+        where: after
+          ? {
+              AND: [
+                filtered,
+                {
+                  OR: [
+                    { created_at: { lt: after.createdAt } },
+                    { created_at: after.createdAt, id: { lt: after.id } },
+                  ],
+                },
+              ],
+            }
+          : filtered,
+        orderBy: [{ created_at: 'desc' }, { id: 'desc' }],
+        take: query.limit + 1,
+        include: activityInclude,
+      }),
+      prisma.activity_logs.groupBy({
+        by: ['action'],
+        where: base,
+        _count: { _all: true },
+      }),
+    ]);
+
+    const countOf = new Map(byAction.map((g) => [g.action, g._count._all]));
+    const sum = (actions: readonly string[]) =>
+      actions.reduce((n, a) => n + (countOf.get(a as never) ?? 0), 0);
+    const all = byAction.reduce((n, g) => n + g._count._all, 0);
+    const category_counts = {
+      all,
+      ...Object.fromEntries(
+        ACTIVITY_CATEGORIES.map((c) => [c, sum(CATEGORY_ACTIONS[c])]),
+      ),
+    } as ActivityHistoryPage['category_counts'];
+
+    const page = toPage(rows, query.limit, (r) => ({
+      date: r.created_at,
+      createdAt: r.created_at,
+      id: r.id,
     }));
+
+    return {
+      items: await describeActivities(messId, page.rows),
+      next_cursor: page.nextCursor,
+      total: query.category ? category_counts[query.category] : all,
+      category_counts,
+    };
   }
 
   async removeMember(

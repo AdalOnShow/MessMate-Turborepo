@@ -21,6 +21,8 @@ import {
   createMealTypeSchema,
   updateMealTypeSchema,
   updateMemberRoleSchema,
+  memberFiltersSchema,
+  activityHistoryQuerySchema,
   formatZodError,
   type MemberFilters,
 } from '@repo/shared';
@@ -109,9 +111,7 @@ export class MessesController {
   async getMembers(
     @Req() req: AuthenticatedRequest,
     @Param('messId') messId: string,
-    @Query('search') search?: string,
-    @Query('role') role?: 'MANAGER' | 'MEMBER',
-    @Query('status') status?: 'ACTIVE' | 'REMOVED',
+    @Query() query: unknown,
   ): Promise<{
     success: true;
     message: string;
@@ -122,10 +122,17 @@ export class MessesController {
     const userId = req.user!.id;
     this.logger.log(`📮 GET /messes/${messId}/members - user: ${userId}`);
 
+    const parsed = memberFiltersSchema.safeParse(query ?? {});
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
     const filters: MemberFilters = {};
-    if (search) filters.search = search;
-    if (role) filters.role = role;
-    if (status) filters.status = status;
+    if (parsed.data.search) filters.search = parsed.data.search;
+    if (parsed.data.role) filters.role = parsed.data.role;
+    if (parsed.data.status) filters.status = parsed.data.status;
 
     const data = await this.messesService.getMembers(messId, filters);
 
@@ -208,6 +215,32 @@ export class MessesController {
       message: 'Member dashboard retrieved successfully',
       data,
     };
+  }
+
+  /** Every activity of the mess, a page at a time (Activity page). */
+  @Get(':messId/activities/history')
+  @UseGuards(MembershipGuard)
+  async getActivityHistory(
+    @Param('messId') messId: string,
+    @Query() query: unknown,
+  ): Promise<{
+    success: true;
+    message: string;
+    data: import('@repo/shared').ActivityHistoryPage;
+  }> {
+    validateUuid(messId, 'messId');
+    const parsed = activityHistoryQuerySchema.safeParse(query ?? {});
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        details: formatZodError(parsed.error),
+      });
+    }
+    const data = await this.messesService.getActivityHistory(
+      messId,
+      parsed.data,
+    );
+    return { success: true, message: 'Request completed successfully', data };
   }
 
   @Get(':messId/activities')

@@ -1,5 +1,6 @@
 "use client";
 
+import { toDateOnlyISO } from "../../lib/format";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
@@ -67,11 +68,7 @@ export default function AddDepositPage() {
     const payload = {
       member_id: memberId,
       amount: parsedAmount,
-      deposit_date: depositDate
-        ? new Date(
-            depositDate.getTime() - depositDate.getTimezoneOffset() * 60000,
-          ).toISOString()
-        : new Date().toISOString(),
+      deposit_date: toDateOnlyISO(depositDate),
     };
 
     create.mutate(payload, {
@@ -239,6 +236,7 @@ export default function AddDepositPage() {
               date={depositDate}
               onSelect={setDepositDate}
               disabled={create.isPending}
+              maxDate={new Date()}
             />
           </div>
 

@@ -1,3 +1,4 @@
+import { Throttle } from '@nestjs/throttler';
 import {
   BadRequestException,
   Body,
@@ -53,6 +54,8 @@ export class UsersController {
     return this.usersService.updateProfile(req.user!.id, body);
   }
 
+  // Limits current-password guessing with a stolen access token.
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Patch('me/password')
   changePassword(
     @Req() req: AuthenticatedRequest,

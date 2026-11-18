@@ -2,6 +2,7 @@
 
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import type {
+  ActivityHistoryPage,
   BazaarHistoryPage,
   DepositHistoryPage,
   ExpenseHistoryPage,
@@ -10,6 +11,7 @@ import type {
 import { unwrap } from "../lib/action-result";
 import { useOpenAtFirstPage } from "../lib/infinite-pages";
 import {
+  getActivityHistoryPage,
   getBazaarHistoryPage,
   getDepositHistoryPage,
   getExpenseHistoryPage,
@@ -80,5 +82,14 @@ export function useBazaarHistory(
     ["report-bazaar", messId, monthId, status],
     !!messId && !!monthId,
     (cursor) => unwrap(getBazaarHistoryPage(messId, monthId, status, cursor)),
+  );
+}
+
+/** The mess's full activity list, 10 per page, optionally one category. */
+export function useActivityHistory(messId: string, category?: string) {
+  return useReportPages<ActivityHistoryPage>(
+    ["activity-history", messId, category ?? "all"],
+    !!messId,
+    (cursor) => unwrap(getActivityHistoryPage(messId, category, cursor)),
   );
 }

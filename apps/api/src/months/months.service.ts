@@ -534,7 +534,7 @@ export class MonthsService {
         id: s.id,
         member_id: s.member_id,
         user: s.member.user,
-        total_meals: s.total_meals,
+        total_meals: Number(s.total_meals),
         meal_cost: Number(s.meal_cost),
         shared_cost: Number(s.shared_cost),
         individual_cost: Number(s.individual_cost),

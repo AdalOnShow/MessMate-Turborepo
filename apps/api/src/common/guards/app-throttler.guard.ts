@@ -32,24 +32,53 @@ export class AppThrottlerGuard extends ThrottlerGuard {
   }
 }
 
-export function trackerFor(req: ThrottleRequest): string {
-  const headers = req.headers ?? {};
+const CREDENTIAL_ROUTES = new Set(['/auth/signin', '/auth/signup']);
+const SESSION_ROUTES = new Set(['/auth/refresh', '/auth/logout']);
 
-  const auth = headers.authorization;
-  if (typeof auth === 'string' && auth.startsWith('Bearer ')) {
-    return `token:${digest(auth.slice(7))}`;
-  }
+function normalizePath(path: unknown): string {
+  if (typeof path !== 'string') return '';
+  const clean = path.split('?')[0] ?? '';
+  return clean.length > 1 ? clean.replace(/\/+$/, '') : clean;
+}
 
+function emailTracker(req: ThrottleRequest): string | null {
   const body = req.body as { email?: unknown } | undefined;
   if (body && typeof body.email === 'string' && body.email.trim()) {
     return `email:${digest(body.email.trim().toLowerCase())}`;
   }
+  return null;
+}
 
-  const cookie = headers.cookie;
+function sessionTracker(req: ThrottleRequest): string | null {
+  const cookie = req.headers?.cookie;
   if (typeof cookie === 'string') {
     const match = /(?:^|;\s*)refresh_token=([^;]+)/.exec(cookie);
     if (match?.[1]) return `session:${digest(match[1])}`;
   }
+  return null;
+}
 
+function ipTracker(req: ThrottleRequest): string {
   return typeof req.ip === 'string' ? `ip:${req.ip}` : 'ip:unknown';
+}
+
+export function trackerFor(req: ThrottleRequest): string {
+  const path = normalizePath(req.path);
+
+  // Sign-in/sign-up must never be keyed on a client-supplied header:
+  // a random `Authorization: Bearer <x>` per attempt would otherwise give
+  // every password guess a fresh bucket.
+  if (CREDENTIAL_ROUTES.has(path)) {
+    return emailTracker(req) ?? ipTracker(req);
+  }
+  if (SESSION_ROUTES.has(path)) {
+    return sessionTracker(req) ?? ipTracker(req);
+  }
+
+  const auth = req.headers?.authorization;
+  if (typeof auth === 'string' && auth.startsWith('Bearer ')) {
+    return `token:${digest(auth.slice(7))}`;
+  }
+
+  return emailTracker(req) ?? sessionTracker(req) ?? ipTracker(req);
 }

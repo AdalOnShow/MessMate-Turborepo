@@ -46,6 +46,10 @@ const corsOptions = {
 function configureApp(app: INestApplication) {
   const http = app.getHttpAdapter().getInstance() as express.Express;
   http.disable('x-powered-by');
+  // Behind Render/Vercel's proxy: trust one hop so req.ip is the real client
+  // IP (from X-Forwarded-For) instead of the proxy's, for the IP throttle
+  // fallback.
+  http.set('trust proxy', 1);
   // Basic security headers for a JSON API (what helmet would set that
   // matters here), without another dependency.
   http.use((_req: express.Request, res: express.Response, next: () => void) => {

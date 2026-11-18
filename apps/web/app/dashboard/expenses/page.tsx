@@ -1,5 +1,6 @@
 "use client";
 
+import { toDateOnlyISO } from "../../lib/format";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
@@ -100,11 +101,7 @@ export default function AddExpensePage() {
       type,
       title: title.trim(),
       amount: parsedAmount,
-      expense_date: expenseDate
-        ? new Date(
-            expenseDate.getTime() - expenseDate.getTimezoneOffset() * 60000,
-          ).toISOString()
-        : new Date().toISOString(),
+      expense_date: toDateOnlyISO(expenseDate),
       member_ids: selected,
     };
 
@@ -319,6 +316,7 @@ export default function AddExpensePage() {
               date={expenseDate}
               onSelect={setExpenseDate}
               disabled={create.isPending}
+              maxDate={new Date()}
             />
           </div>
 

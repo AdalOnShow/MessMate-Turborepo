@@ -25,6 +25,22 @@ const securityHeaders = [
 
 const nextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    // The install guide lives at /install; send likely guesses there.
+    return [
+      { source: "/install-guide", destination: "/install", permanent: true },
+      {
+        source: "/dashboard/install-guide",
+        destination: "/install",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/install",
+        destination: "/install",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

@@ -8,7 +8,12 @@ import {
   getRecentActivities,
   searchUsers,
 } from "../lib/reads";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   removeMember,
   updateMemberRole,
@@ -40,6 +45,8 @@ export function useMembers(
       return result;
     },
     enabled: !!messId,
+    // Keep the current list on screen while a new search/filter loads.
+    placeholderData: keepPreviousData,
   });
 }
 
