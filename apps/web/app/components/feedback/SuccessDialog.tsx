@@ -93,6 +93,7 @@ export function SuccessDialog({
       <div className="mt-6 flex shrink-0 flex-col gap-2.5 sm:flex-row-reverse">
         <Link
           href="/dashboard"
+          onClick={onClose}
           className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary sm:flex-1 px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
         >
           <LayoutDashboard size={16} aria-hidden="true" />
