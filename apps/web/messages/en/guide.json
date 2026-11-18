@@ -1,0 +1,221 @@
+{
+  "metaTitle": "User guide — MessMate",
+  "metaDescription": "Step-by-step guide to running your mess with MessMate: members, meals, bazaar, expenses, deposits and closing the month.",
+  "eyebrow": "User guide",
+  "title": "Learn MessMate <accent>in 10 minutes.</accent>",
+  "subtitle": "Pick your role and follow the steps. Every step tells you exactly where to tap in the app.",
+  "iAm": "I am a",
+  "roles": {
+    "manager": {
+      "label": "Manager",
+      "hint": "I run the mess's accounts"
+    },
+    "member": {
+      "label": "Member",
+      "hint": "I live in the mess"
+    }
+  },
+  "searchPlaceholder": "Search the guide, e.g. deposit, half meal",
+  "noResults": "Nothing matches “{query}”. Try another word.",
+  "clearSearch": "Clear search",
+  "onThisPage": "On this page",
+  "where": "Where",
+  "tip": "Tip",
+  "openInApp": "Open in app",
+  "copyLink": "Copy link",
+  "linkCopied": "Link copied",
+  "stepsCount": "{count} steps",
+  "sections": {
+    "getStarted": {
+      "title": "Create your account and mess",
+      "summary": "Takes two minutes. Whoever creates the mess becomes its manager.",
+      "steps": [
+        "Tap Sign up and register with your email, or continue with Google.",
+        "On the next screen, give your mess a name (e.g. “Green View Mess”).",
+        "That's it: you land on the dashboard as the mess manager."
+      ],
+      "where": "Sign up → Create mess",
+      "tip": "One person can be in only one mess at a time."
+    },
+    "addMembers": {
+      "title": "Add your members",
+      "summary": "Invite flatmates who have an account, or create one for those who don't.",
+      "steps": [
+        "Open Members and tap Invite Member.",
+        "Search by name or email, pick the person and send the invite.",
+        "They accept it from the banner on their own dashboard.",
+        "Someone without a phone or email? Tap Create Member and set up their account yourself."
+      ],
+      "where": "Members → Invite Member",
+      "tip": "Ask members to sign up first; then they appear in the search."
+    },
+    "startMonth": {
+      "title": "Start the month",
+      "summary": "Every meal, bazaar, expense and deposit belongs to the active month.",
+      "steps": [
+        "Open Months.",
+        "Tap Start month and give it a name, e.g. “December 2026”.",
+        "The month is now active: everything you record goes into it."
+      ],
+      "where": "Months → Start month"
+    },
+    "dailyMeals": {
+      "title": "Record daily meals",
+      "summary": "Pick a day and set how many meals each member had.",
+      "steps": [
+        "Open Meals and choose the date (arrows or the calendar).",
+        "Use + and − for each member and meal type. Half meals (0.5) work too.",
+        "Use the “everyone” row to set a meal for all members at once.",
+        "Tap Save. You can come back and change any day of the active month."
+      ],
+      "where": "Meals",
+      "tip": "Meal types (breakfast, lunch, dinner…) and their default counts can be changed on the Meals page."
+    },
+    "approveBazaar": {
+      "title": "Approve bazaar",
+      "summary": "Members submit what they bought; only approved bazaar counts in the meal rate.",
+      "steps": [
+        "New submissions show up under Pending on the Bazaar page and on your dashboard.",
+        "Check the items and total, then tap Approve, or Reject if something is wrong.",
+        "You can also add bazaar yourself from the same page."
+      ],
+      "where": "Bazaar → Pending",
+      "tip": "A pending bazaar can still be edited or deleted; once approved it becomes a locked expense."
+    },
+    "expenses": {
+      "title": "Add bills and other expenses",
+      "summary": "Shared bills are split between members; individual ones go to one person.",
+      "steps": [
+        "Open Expenses and enter a title and amount, e.g. “Gas bill 1,000”.",
+        "Choose Shared for bills everyone pays (gas, internet, maid) and select who shares it.",
+        "Choose Individual for something only one member owes.",
+        "Pick the date and save."
+      ],
+      "where": "Expenses"
+    },
+    "deposits": {
+      "title": "Record deposits",
+      "summary": "Every taka a member gives to the mess fund.",
+      "steps": [
+        "Open Deposits.",
+        "Pick the member, enter the amount and date.",
+        "Save. Their balance updates straight away."
+      ],
+      "where": "Deposits"
+    },
+    "fixMistakes": {
+      "title": "Fix a mistake",
+      "summary": "Entered a wrong amount or date? Edit or delete it any time before the month closes.",
+      "steps": [
+        "Open Reports and go to the Expenses or Deposits tab.",
+        "Tap the pencil on the row to change title, amount or date, or delete it.",
+        "Meals: just open that day on the Meals page and save again.",
+        "Bazaar: edit or delete it while it is still pending."
+      ],
+      "where": "Reports → Expenses / Deposits",
+      "tip": "A closed month can't be changed, so check the numbers before closing."
+    },
+    "closeMonth": {
+      "title": "Close the month",
+      "summary": "Freezes the month's accounts and starts the next one with balances carried over.",
+      "steps": [
+        "Open Months and tap Close & start new.",
+        "Review everyone's final balance.",
+        "Choose whether balances carry forward; you can leave out individual members.",
+        "Check the new month's name and confirm. The old month is archived with its full summary."
+      ],
+      "where": "Months → Close & start new",
+      "tip": "Extra money becomes next month's deposit; dues become next month's expense."
+    },
+    "manageMess": {
+      "title": "Managers and mess settings",
+      "summary": "Share the work with a second manager and keep the member list tidy.",
+      "steps": [
+        "Members → Role on a member's card makes them a manager (at most 2 per mess).",
+        "Members → Remove takes someone out of the mess; their past months stay in the records.",
+        "Mess Settings lets you change the mess name and description."
+      ],
+      "where": "Members · Mess Settings"
+    },
+    "joinMess": {
+      "title": "Join your mess",
+      "summary": "Your manager adds you; you just accept.",
+      "steps": [
+        "Sign up with your email (or Google).",
+        "Tell your manager the email you used so they can invite you.",
+        "When the invite arrives, tap Accept on your dashboard."
+      ],
+      "where": "Sign up → Dashboard → Accept",
+      "tip": "No phone or email? Your manager can create your account for you."
+    },
+    "myBalance": {
+      "title": "See your meals, bill and balance",
+      "summary": "No calculating: your numbers are always up to date.",
+      "steps": [
+        "Your dashboard shows your balance, deposits and bill breakdown.",
+        "Tap “Everyone's summary” to see every member's balance.",
+        "Reports shows the month's meals, expenses, deposits and bazaar day by day.",
+        "The bell shows what changed in the mess since you last looked."
+      ],
+      "where": "Dashboard · Members · Reports",
+      "tip": "Positive balance = the mess owes you; negative = you owe the mess."
+    },
+    "submitBazaar": {
+      "title": "Submit your bazaar",
+      "summary": "Did the shopping? Add it so it counts in the meal rate.",
+      "steps": [
+        "Open Bazaar and add each item with its price.",
+        "Pick the date you shopped and submit.",
+        "Your manager approves it. Until then you can still edit or delete it."
+      ],
+      "where": "Bazaar"
+    },
+    "installApp": {
+      "title": "Install the app on your phone",
+      "summary": "Opens full screen from your home screen, like a normal app.",
+      "steps": [
+        "Open the Install guide.",
+        "Follow the steps for your phone and browser.",
+        "Open MessMate from the new icon on your home screen."
+      ],
+      "where": "Install guide"
+    }
+  },
+  "math": {
+    "title": "How the numbers are calculated",
+    "rate": "Meal rate = total approved bazaar ÷ total meals",
+    "bill": "Bill = your meals × meal rate + your share of shared bills + your individual expenses",
+    "balance": "Balance = your deposits − your bill (+ anything carried from last month)"
+  },
+  "faq": {
+    "title": "Common questions",
+    "items": {
+      "rateChanges": {
+        "q": "Why does the meal rate keep changing?",
+        "a": "It is total bazaar divided by total meals so far, so every new bazaar or meal moves it. The final rate is fixed when the month closes."
+      },
+      "pending": {
+        "q": "Why doesn't my bazaar show in the meal rate?",
+        "a": "Only approved bazaar counts. Ask your manager to approve it from the Bazaar page."
+      },
+      "lateMonth": {
+        "q": "We started using MessMate in the middle of the month. Is that a problem?",
+        "a": "No. In your first month you can add meals, bazaar and expenses for earlier dates too."
+      },
+      "removed": {
+        "q": "What happens when a member leaves?",
+        "a": "Settle their balance, then remove them from Members. Their past months stay in the records."
+      },
+      "twoManagers": {
+        "q": "Can two people manage the mess?",
+        "a": "Yes, up to two managers with the same permissions."
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready to start?",
+    "body": "Create your mess now; it takes about five minutes.",
+    "signup": "Create your mess",
+    "install": "Install the app"
+  }
+}

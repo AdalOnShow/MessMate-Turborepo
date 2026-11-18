@@ -98,7 +98,8 @@
         "balance": "See your meals, bill and balance any time; nothing to calculate."
       }
     },
-    "install": "Install the app"
+    "install": "Install the app",
+    "fullGuide": "Read the full guide"
   },
   "faq": {
     "eyebrow": "FAQ",
@@ -247,7 +248,8 @@
     "preview": "Preview",
     "faq": "FAQ",
     "logoAlt": "MessMate logo",
-    "install": "Install App"
+    "install": "Install App",
+    "guide": "Guide"
   },
   "hero": {
     "badge": "Mess management, simplified",

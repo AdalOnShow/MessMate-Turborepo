@@ -1,6 +1,7 @@
 import {
   BarChart3,
   Bell,
+  BookOpen,
   Calendar,
   Home,
   ReceiptText,
@@ -25,6 +26,7 @@ export type NavLabel =
   | "deposits"
   | "reports"
   | "notifications"
+  | "guide"
   | "profile"
   | "settings"
   | "messSettings"
@@ -50,6 +52,8 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
   { href: "/dashboard/activity", label: "notifications", icon: Bell },
   { href: "/dashboard/profile", label: "profile", icon: User },
+  // Leaves the dashboard for the public guide page.
+  { href: "/guide", label: "guide", icon: BookOpen },
 ];
 
 /**
@@ -67,6 +71,7 @@ const SIDEBAR_ORDER = [
   "/dashboard/reports",
   "/dashboard/activity",
   "/dashboard/profile",
+  "/guide",
 ];
 
 export const SIDEBAR_ITEMS: NavItem[] = SIDEBAR_ORDER.map(

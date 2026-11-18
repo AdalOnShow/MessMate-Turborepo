@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  BookOpen,
   CalendarCheck,
   CalendarPlus,
   Calculator,
@@ -205,6 +206,13 @@ export async function HowItWorksSection() {
           >
             {t("cta")}
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </a>
+          <a
+            href="/guide"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface-raised px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            <BookOpen className="size-4" aria-hidden="true" />
+            {t("fullGuide")}
           </a>
           <a
             href="/install"
