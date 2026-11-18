@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTips } from "../../components/help/PageTips";
+
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import {
@@ -955,9 +957,12 @@ function PageHeader({ monthTitle }: { monthTitle?: string | null }) {
   return (
     <div className="mb-8">
       <p className="label-mono text-primary">{t("reports")}</p>
-      <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
-        {t("reports")}
-      </h1>
+      <div className="mt-2 flex items-start justify-between gap-3">
+        <h1 className="heading-tight text-2xl text-foreground sm:text-3xl">
+          {t("reports")}
+        </h1>
+        <PageTips page="reports" />
+      </div>
       {monthTitle && (
         <p className="mt-1 text-sm text-foreground-muted">{monthTitle}</p>
       )}

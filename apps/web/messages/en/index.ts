@@ -15,6 +15,7 @@ import nav from "./nav.json";
 import pages from "./pages.json";
 import role from "./role.json";
 import status from "./status.json";
+import tips from "./tips.json";
 
 const messages = {
   auth: auth,
@@ -32,6 +33,7 @@ const messages = {
   pages: pages,
   role: role,
   status: status,
+  tips: tips,
 };
 
 export default messages;

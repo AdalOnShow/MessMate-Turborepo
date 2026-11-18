@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTips } from "../../components/help/PageTips";
+
 import { useTranslations } from "next-intl";
 import { OfflineHint } from "../../components/ui/offline-hint";
 import { useOnline } from "../../hooks/use-online";
@@ -337,9 +339,12 @@ export default function MealsPage() {
       <>
         <div className="mb-8">
           <p className="label-mono text-primary">{t("meals")}</p>
-          <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
-            {t("mealManagement")}
-          </h1>
+          <div className="mt-2 flex items-start justify-between gap-3">
+            <h1 className="heading-tight text-2xl text-foreground sm:text-3xl">
+              {t("mealManagement")}
+            </h1>
+            <PageTips page="meals" />
+          </div>
         </div>
         <div className="rounded-xl border border-border bg-surface p-8 text-center">
           <p className="text-sm text-foreground-muted">
@@ -355,9 +360,12 @@ export default function MealsPage() {
       <div className="mb-5 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="label-mono text-primary">{t("meals")}</p>
-          <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
-            {activeMonth.title}
-          </h1>
+          <div className="mt-2 flex items-start justify-between gap-3">
+            <h1 className="heading-tight text-2xl text-foreground sm:text-3xl">
+              {activeMonth.title}
+            </h1>
+            <PageTips page="meals" />
+          </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">

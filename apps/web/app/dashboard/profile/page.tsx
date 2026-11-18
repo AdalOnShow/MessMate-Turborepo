@@ -1,5 +1,7 @@
 "use client";
 
+import { TipsPreference } from "../../components/help/PageTips";
+
 import { useTranslations } from "next-intl";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import {
@@ -200,6 +202,7 @@ function CompactAvatarUpload({
 }
 
 function ProfileContent() {
+  const tt = useTranslations("tips.pref");
   const t = useTranslations("pages.profile");
   const { user, isAuthenticated } = useSessionStore();
   const profile = useGetProfile(isAuthenticated);
@@ -375,6 +378,18 @@ function ProfileContent() {
                 </div>
               </dl>
             </div>
+
+            <section
+              id="preferences"
+              className="scroll-mt-20 rounded-xl border border-border bg-surface p-6"
+            >
+              <h2 className="text-xl font-semibold text-foreground">
+                {tt("title")}
+              </h2>
+              <div className="mt-4">
+                <TipsPreference />
+              </div>
+            </section>
 
             <form
               onSubmit={handlePasswordSubmit}

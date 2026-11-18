@@ -27,7 +27,7 @@
     "bazaarDeleted": "Bazaar deleted",
     "viewAll": "All notifications",
     "allActivity": "Notifications",
-    "activity": "Notifications",
+    "activity": "Mess activity",
     "activityHint": "Everything that has happened in your mess, newest first.",
     "justNow": "just now",
     "minutesAgo": "{count}m ago",

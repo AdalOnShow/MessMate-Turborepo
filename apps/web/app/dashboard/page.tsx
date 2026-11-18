@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTips } from "../components/help/PageTips";
+
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useSessionStore } from "../store";
@@ -211,9 +213,12 @@ export default function DashboardPage() {
       <header className="mb-5 sm:mb-7">
         <MonthPill />
         <p className="mt-4 text-sm text-foreground-muted">{greeting},</p>
-        <h1 className="heading-tight truncate text-2xl text-foreground sm:text-3xl">
-          {firstName || t("welcomeBack")}
-        </h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="heading-tight min-w-0 truncate text-2xl text-foreground sm:text-3xl">
+            {firstName || t("welcomeBack")}
+          </h1>
+          {myMess ? <PageTips page="dashboard" /> : null}
+        </div>
       </header>
 
       <InviteBanner />
