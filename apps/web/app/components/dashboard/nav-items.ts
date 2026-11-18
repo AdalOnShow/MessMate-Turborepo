@@ -48,7 +48,12 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/meals", label: "meals", icon: Utensils },
   { href: "/dashboard/bazaar", label: "bazaar", icon: ShoppingCart },
   { href: "/dashboard/expenses", label: "expenses", icon: ReceiptText },
-  { href: "/dashboard/deposits", label: "deposits", icon: WalletCards },
+  {
+    href: "/dashboard/deposits",
+    label: "deposits",
+    icon: WalletCards,
+    managerOnly: true,
+  },
   { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
   { href: "/dashboard/activity", label: "notifications", icon: Bell },
   { href: "/dashboard/profile", label: "profile", icon: User },
