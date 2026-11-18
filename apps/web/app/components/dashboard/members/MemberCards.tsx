@@ -25,14 +25,10 @@ import {
   Crown,
   UserMinus,
 } from "lucide-react";
+import { formatMoneyExact } from "../../../lib/format";
 
-const moneyFmt = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 0,
-});
-
-function formatMoney(n: number) {
-  return `৳${moneyFmt.format(n)}`;
-}
+// Paisa precision: the bill breakdown must visibly add up to the bill.
+const formatMoney = formatMoneyExact;
 
 function formatCompact(n: number) {
   return new Intl.NumberFormat("en-US", {

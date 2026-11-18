@@ -399,10 +399,10 @@ export class MessesService {
       meal_rate: calculations.meal_rate,
       total_members: calculations.items.length,
       total_meals: totalMeals,
-      total_deposits: totalDeposits,
-      total_expenses: totalBill,
-      total_bill: totalBill,
-      total_balance: totalBalance,
+      total_deposits: roundMoney(totalDeposits),
+      total_expenses: roundMoney(totalBill),
+      total_bill: roundMoney(totalBill),
+      total_balance: roundMoney(totalBalance),
     };
   }
 

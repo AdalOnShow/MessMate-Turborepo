@@ -14,9 +14,9 @@ import {
   failedQueries,
 } from "../../components/feedback/QueryErrorState";
 import { MonthSettings } from "../../components/dashboard/MonthSettings";
+import { formatMoneyExact } from "../../lib/format";
 
-const money = (n: number) =>
-  `৳${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+const money = formatMoneyExact;
 
 const signedMoney = (n: number) =>
   (n > 0 ? "+" : n < 0 ? "-" : "") + money(Math.abs(n));
