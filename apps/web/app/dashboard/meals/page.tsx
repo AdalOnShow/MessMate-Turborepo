@@ -2,6 +2,7 @@
 
 import { PageTips } from "../../components/help/PageTips";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { OfflineHint } from "../../components/ui/offline-hint";
 import { useOnline } from "../../hooks/use-online";
@@ -22,6 +23,7 @@ import {
 } from "../../hooks/use-meals";
 import {
   Check,
+  Lock,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -175,9 +177,16 @@ export default function MealsPage() {
   // count as unsaved changes until the manager presses Save. Only managers
   // see them, and only once the day's entries have loaded, so a slow or
   // failed load never shows defaults over real data.
+  // A day with meals is saved once. Changing it later happens one day at a
+  // time in Reports, so this grid is read-only for it.
+  const dayLocked = useMemo(
+    () => (entries ?? []).some((e) => e.total_meal > 0),
+    [entries],
+  );
+
   const defaultRows = useMemo(() => {
     const map: Record<string, Record<string, number>> = {};
-    if (!isManager || !entries) return map;
+    if (!isManager || !entries || dayLocked) return map;
     const row: Record<string, number> = {};
     for (const mt of activeMealTypes) {
       if (mt.value > 0) row[mt.id] = Math.min(10, mt.value);
@@ -187,7 +196,7 @@ export default function MealsPage() {
       if (!entryMap[member.id]) map[member.id] = row;
     }
     return map;
-  }, [isManager, entries, activeMealTypes, activeMembers, entryMap]);
+  }, [isManager, entries, dayLocked, activeMealTypes, activeMembers, entryMap]);
 
   // What the grid starts from for a member: their saved row, else defaults.
   const baseRow = useCallback(
@@ -266,6 +275,7 @@ export default function MealsPage() {
   const members = activeMembers ?? [];
   const showBulk =
     isManager &&
+    !dayLocked &&
     !entriesLoading &&
     members.length > 0 &&
     activeMealTypes.length > 0;
@@ -418,7 +428,29 @@ export default function MealsPage() {
         />
       ) : (
         <>
-          {isManager && (
+          {dayLocked && (
+            <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
+              <Lock size={18} className="shrink-0 text-primary" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">
+                  {t("daySavedTitle")}
+                </p>
+                <p className="text-sm text-foreground-muted">
+                  {t("daySavedHint")}
+                </p>
+              </div>
+              {isManager && (
+                <Link
+                  href="/dashboard/reports"
+                  className="flex h-11 shrink-0 items-center justify-center rounded-xl border border-border-strong px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-raised sm:h-auto sm:rounded-lg sm:py-2"
+                >
+                  {t("openReports")}
+                </Link>
+              )}
+            </div>
+          )}
+
+          {isManager && !dayLocked && (
             <div
               className={`bottom-above-nav fixed inset-x-4 z-40 items-center gap-3 rounded-2xl border border-border bg-surface-raised/95 p-2 pl-4 shadow-panel backdrop-blur-xl md:static md:mb-4 md:flex md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none ${
                 hasChanges ? "animate-pop-in flex" : "hidden"
@@ -539,7 +571,7 @@ export default function MealsPage() {
                               onDecrement={() =>
                                 updateValue(member.id, mt.id, -MEAL_STEP)
                               }
-                              disabled={!isManager}
+                              disabled={!isManager || dayLocked}
                             />
                           </div>
                         ))}
@@ -648,7 +680,7 @@ export default function MealsPage() {
                                   onDecrement={() =>
                                     updateValue(member.id, mt.id, -MEAL_STEP)
                                   }
-                                  disabled={!isManager}
+                                  disabled={!isManager || dayLocked}
                                 />
                               </div>
                             </td>

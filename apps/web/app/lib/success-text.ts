@@ -27,6 +27,7 @@ const SUCCESS_MESSAGES = {
   memberRemoved: "Member removed",
   memberRoleUpdated: "Member role updated",
   mealsSaved: "Meals saved",
+  mealsUpdated: "Meals updated",
   mealEntryDeleted: "Meal entry deleted",
   profileUpdated: "Profile updated",
   passwordChanged: "Password changed",

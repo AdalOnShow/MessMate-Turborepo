@@ -41,6 +41,15 @@ export async function bulkSaveMealEntries(
   return api.post<MealEntryInfo[]>(`/meals/${messId}/${monthId}`, data);
 }
 
+/** Edit a day that is already saved (Reports). All entries share one date. */
+export async function updateMealDay(
+  messId: string,
+  monthId: string,
+  data: BulkMealEntriesPayload,
+) {
+  return api.put<MealEntryInfo[]>(`/meals/${messId}/${monthId}/day`, data);
+}
+
 export async function deleteMealEntry(messId: string, entryId: string) {
   return api.delete(`/meals/${messId}/${entryId}`);
 }

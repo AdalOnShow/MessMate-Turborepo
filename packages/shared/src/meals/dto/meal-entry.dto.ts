@@ -14,6 +14,14 @@ export const bulkMealEntriesSchema = z.object({
     .max(200, ValidationMessage.MEAL_ENTRIES_TOO_MANY),
 });
 
+/** Edit one saved day: every entry must be for the same date. */
+export const updateMealDaySchema = bulkMealEntriesSchema.refine(
+  (v) => new Set(v.entries.map((e) => e.date)).size === 1,
+  { message: "All entries must be for the same day", path: ["entries"] },
+);
+
+export type UpdateMealDayDto = z.infer<typeof updateMealDaySchema>;
+
 export type BulkMealEntriesDto = z.infer<typeof bulkMealEntriesSchema>;
 
 export interface MealEntryResponse {

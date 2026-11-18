@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Loader2, Minus, Plus } from "lucide-react";
 import type { DepositWithRelations, ExpenseWithRelations } from "@repo/shared";
 import { Sheet, SheetActions } from "../../ui/sheet";
 import { DatePicker } from "../../ui/date-picker";
@@ -13,6 +14,14 @@ import {
   useDeleteDeposit,
   useUpdateDeposit,
 } from "../../../hooks/use-deposits";
+import { useMembers, type MemberData } from "../../../hooks/use-members";
+import { useGetMealTypes } from "../../../hooks/use-messes";
+import type { MealTypeInfo } from "../../../hooks/use-messes";
+import {
+  useGetMealEntries,
+  useUpdateMealDay,
+  type MealEntryInfo,
+} from "../../../hooks/use-meals";
 import { fromDateOnlyISO, toDateOnlyISO } from "../../../lib/format";
 
 const inputClass =
@@ -318,5 +327,218 @@ export function EditDepositSheet({
         </>
       )}
     </Sheet>
+  );
+}
+
+type MealRow = Record<string, number>;
+
+const MEAL_STEP = 0.5;
+
+function fmtMeal(n: number) {
+  return n % 1 === 0 ? String(n) : n.toFixed(1);
+}
+
+/**
+ * Edit the meals of one already-saved day (managers). Only that day is
+ * touched. Members who changed are sent with their whole row, because the API
+ * replaces a member's `meals` for the day.
+ */
+export function EditMealDaySheet({
+  messId,
+  monthId,
+  dayIso,
+  onClose,
+}: {
+  messId: string;
+  monthId: string;
+  /** The day's UTC-midnight ISO date, as the meal list holds it. */
+  dayIso: string;
+  onClose: () => void;
+}) {
+  const t = useTranslations("pages.reports");
+  const ymd = dayIso.slice(0, 10);
+  const entriesQuery = useGetMealEntries(messId, monthId, ymd, ymd);
+  const membersQuery = useMembers(messId, { status: "ACTIVE" });
+  const typesQuery = useGetMealTypes(messId);
+  const title = t("editMealDayTitle", {
+    date: new Date(dayIso).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      weekday: "short",
+      timeZone: "UTC",
+    }),
+  });
+
+  const ready = entriesQuery.data && membersQuery.data && typesQuery.data;
+  const failed = [entriesQuery, membersQuery, typesQuery].some(
+    (q) => q.isError && !q.data,
+  );
+
+  return (
+    <Sheet onClose={onClose} title={title} size="lg">
+      {ready ? (
+        <MealDayForm
+          messId={messId}
+          monthId={monthId}
+          dayIso={dayIso}
+          entries={entriesQuery.data!}
+          members={membersQuery.data!}
+          mealTypes={typesQuery.data!}
+          onClose={onClose}
+        />
+      ) : failed ? (
+        <p className="text-sm text-destructive">{t("mealsEditLoadFailed")}</p>
+      ) : (
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        </div>
+      )}
+    </Sheet>
+  );
+}
+
+function MealDayForm({
+  messId,
+  monthId,
+  dayIso,
+  entries,
+  members,
+  mealTypes,
+  onClose,
+}: {
+  messId: string;
+  monthId: string;
+  dayIso: string;
+  entries: MealEntryInfo[];
+  members: MemberData[];
+  mealTypes: MealTypeInfo[];
+  onClose: () => void;
+}) {
+  const t = useTranslations("pages.reports");
+  const update = useUpdateMealDay(messId, monthId);
+
+  const saved = useMemo(() => {
+    const map: Record<string, MealRow> = {};
+    for (const e of entries) map[e.member_id] = e.meals;
+    return map;
+  }, [entries]);
+  const [draft, setDraft] = useState<Record<string, MealRow>>({});
+
+  // Active types, plus any type that still holds meals on this day.
+  const types = mealTypes.filter(
+    (mt) =>
+      mt.is_active || Object.values(saved).some((row) => (row[mt.id] ?? 0) > 0),
+  );
+
+  const valueOf = (memberId: string, typeId: string) =>
+    draft[memberId]?.[typeId] ?? saved[memberId]?.[typeId] ?? 0;
+
+  const step = (memberId: string, typeId: string, delta: number) =>
+    setDraft((prev) => {
+      const row = prev[memberId] ?? { ...saved[memberId] };
+      const next = Math.max(0, Math.min(10, (row[typeId] ?? 0) + delta));
+      return { ...prev, [memberId]: { ...row, [typeId]: next } };
+    });
+
+  // Only members whose row really differs from what is saved.
+  const changed = Object.entries(draft).filter(([memberId, row]) =>
+    types.some((mt) => (row[mt.id] ?? 0) !== (saved[memberId]?.[mt.id] ?? 0)),
+  );
+
+  const save = () => {
+    if (changed.length === 0) return;
+    update.mutate(
+      {
+        entries: changed.map(([memberId, row]) => ({
+          memberId,
+          date: dayIso,
+          meals: row,
+        })),
+      },
+      { onSuccess: onClose },
+    );
+  };
+
+  const stepBtn =
+    "flex size-9 items-center justify-center rounded-lg border border-border-strong text-foreground transition-colors hover:bg-surface-raised disabled:opacity-30";
+
+  return (
+    <>
+      <p className="mb-3 text-sm text-foreground-muted">
+        {t("mealDayEditHint")}
+      </p>
+      {types.length === 0 ? (
+        <p className="text-sm text-foreground-muted">{t("noMealTypes")}</p>
+      ) : (
+        <ul className="max-h-[55vh] space-y-2 overflow-y-auto">
+          {members.map((m) => (
+            <li
+              key={m.id}
+              className="rounded-xl border border-border bg-surface p-3"
+            >
+              <p className="mb-2 truncate text-sm font-semibold text-foreground">
+                {m.user.name}
+              </p>
+              <div className="space-y-2">
+                {types.map((mt) => {
+                  const v = valueOf(m.id, mt.id);
+                  return (
+                    <div
+                      key={mt.id}
+                      className="flex items-center justify-between gap-3"
+                    >
+                      <span className="min-w-0 truncate text-sm text-foreground-muted">
+                        {mt.name}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          className={stepBtn}
+                          disabled={update.isPending || v <= 0}
+                          aria-label={`− ${mt.name}`}
+                          onClick={() => step(m.id, mt.id, -MEAL_STEP)}
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span className="w-9 text-center text-sm font-semibold tabular-nums text-foreground">
+                          {fmtMeal(v)}
+                        </span>
+                        <button
+                          type="button"
+                          className={stepBtn}
+                          disabled={update.isPending || v >= 10}
+                          aria-label={`+ ${mt.name}`}
+                          onClick={() => step(m.id, mt.id, MEAL_STEP)}
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <SheetActions>
+        <button
+          type="button"
+          className={secondaryBtn}
+          disabled={update.isPending}
+          onClick={onClose}
+        >
+          {t("cancel")}
+        </button>
+        <button
+          type="button"
+          className={primaryBtn}
+          disabled={update.isPending || changed.length === 0}
+          onClick={save}
+        >
+          {update.isPending ? t("saving") : t("save")}
+        </button>
+      </SheetActions>
+    </>
   );
 }

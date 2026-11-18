@@ -5,6 +5,7 @@ jest.mock(
 
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
@@ -82,6 +83,50 @@ describe('MealsService', () => {
           ],
         }),
       ).rejects.toMatchObject({ status: 400 });
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('saving a day twice', () => {
+    const date = '2026-11-10T00:00:00.000Z';
+    const dto = { entries: [{ memberId: 'm1', date, meals: { t1: 1 } }] };
+
+    const arrange = (existing: { total_meal: number }[]) => {
+      prismaMock.mess_members.findFirst.mockResolvedValue({ id: 'mgr' });
+      prismaMock.months.findFirst.mockResolvedValue({
+        id: MONTH,
+        started_at: new Date('2026-11-01T00:00:00Z'),
+      });
+      prismaMock.meal_types.findMany.mockResolvedValue([{ id: 't1' }]);
+      prismaMock.mess_members.findMany.mockResolvedValue([{ id: 'm1' }]);
+      prismaMock.meal_entries.findMany.mockResolvedValue(
+        existing.map((e, i) => ({
+          id: `e${i}`,
+          member_id: 'm1',
+          date: new Date(date),
+          meals: {},
+          ...e,
+        })),
+      );
+    };
+
+    it('create refuses a day that already has meals and writes nothing', async () => {
+      arrange([{ total_meal: 2 }]);
+      await rejectsWith(
+        service.bulkSaveMealEntries(MESS, MONTH, 'mgr-user', dto),
+        ConflictException,
+        ErrorCode.MEAL_ALREADY_SAVED,
+      );
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('edit refuses a day with nothing saved', async () => {
+      arrange([]);
+      await rejectsWith(
+        service.updateMealDay(MESS, MONTH, 'mgr-user', dto),
+        NotFoundException,
+        ErrorCode.MEAL_ENTRY_NOT_FOUND,
+      );
       expect(prismaMock.$transaction).not.toHaveBeenCalled();
     });
   });

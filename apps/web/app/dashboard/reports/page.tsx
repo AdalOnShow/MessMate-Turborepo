@@ -33,6 +33,7 @@ import {
 import {
   EditDepositSheet,
   EditExpenseSheet,
+  EditMealDaySheet,
 } from "../../components/dashboard/reports/EditEntrySheets";
 import type { DepositWithRelations, ExpenseWithRelations } from "@repo/shared";
 import {
@@ -131,9 +132,11 @@ function EditButton({
 function MealsSummaryView({
   messId,
   monthId,
+  isManager,
 }: {
   messId: string;
   monthId: string;
+  isManager: boolean;
 }) {
   const t = useTranslations("pages.reports");
   const query = useGetMonthMealSummary(messId, monthId);
@@ -165,6 +168,7 @@ function MealsSummaryView({
       <MealList
         messId={messId}
         monthId={monthId}
+        isManager={isManager}
         members={data.member_summaries
           .filter((m) => m.total_meals > 0)
           .map((m) => ({
@@ -428,14 +432,17 @@ function ExpenseList({
 function MealList({
   messId,
   monthId,
+  isManager,
   members,
 }: {
   messId: string;
   monthId: string;
+  isManager: boolean;
   members: { id: string; name: string; total: number }[];
 }) {
   const t = useTranslations("pages.reports");
   const query = useMealDays(messId, monthId);
+  const [editingDay, setEditingDay] = useState<string | null>(null);
 
   if (query.isPending) return <LoadingBlock />;
   if (query.isError && !query.data) {
@@ -474,6 +481,7 @@ function MealList({
                 </th>
               ))}
               <Th label={t("total")} />
+              {isManager && <ActionsTh label={t("actions")} />}
             </tr>
           </thead>
           <tbody>
@@ -500,6 +508,14 @@ function MealList({
                 <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-primary">
                   {day.total}
                 </td>
+                {isManager && (
+                  <td className="px-2 py-2 text-right">
+                    <EditButton
+                      label={t("editMealDay")}
+                      onClick={() => setEditingDay(day.date)}
+                    />
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -519,10 +535,20 @@ function MealList({
               <td className="px-4 py-3 text-right font-bold tabular-nums text-primary">
                 {grandTotal}
               </td>
+              {isManager && <td />}
             </tr>
           </tfoot>
         </table>
       </div>
+
+      {editingDay && (
+        <EditMealDaySheet
+          messId={messId}
+          monthId={monthId}
+          dayIso={editingDay}
+          onClose={() => setEditingDay(null)}
+        />
+      )}
 
       <LoadMore
         shown={days.length}
@@ -929,7 +955,11 @@ export default function ReportsPage() {
       </div>
 
       {activeTab === "meals" && (
-        <MealsSummaryView messId={messId} monthId={activeMonth.id} />
+        <MealsSummaryView
+          messId={messId}
+          monthId={activeMonth.id}
+          isManager={isManager}
+        />
       )}
       {activeTab === "expenses" && (
         <ExpensesSummaryView

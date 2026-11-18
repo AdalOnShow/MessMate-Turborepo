@@ -101,6 +101,9 @@
     "selectAll": "Select all"
   },
   "meals": {
+    "daySavedTitle": "This day's meals are already saved",
+    "daySavedHint": "To change them, open Reports → Meals and edit this day.",
+    "openReports": "Open Reports",
     "meals": "Meals",
     "mealManagement": "Meal Management",
     "noActiveMonthStart": "No active month. Start a month from the dashboard to record meals.",
@@ -228,6 +231,11 @@
     "fileMustSmallerThan": "File must be smaller than 5 MB."
   },
   "reports": {
+    "editMealDay": "Edit meals",
+    "editMealDayTitle": "Edit meals for {date}",
+    "mealDayEditHint": "Changes replace the saved meals for this day only.",
+    "noMealTypes": "No meal types to edit.",
+    "mealsEditLoadFailed": "Couldn't load this day. Close and try again.",
     "reports": "Reports",
     "noSummaryDataAvailable": "No summary data available for this month yet. Close the month from the dashboard to generate member summaries.",
     "members": "Members",
