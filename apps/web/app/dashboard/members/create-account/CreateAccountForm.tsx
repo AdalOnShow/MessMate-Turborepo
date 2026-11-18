@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTips } from "../../../components/help/PageTips";
+
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { startNavigationProgress } from "../../../lib/navigation-progress";
@@ -80,9 +82,12 @@ export default function CreateAccountForm() {
     <div className="mx-auto max-w-lg">
       <div className="mb-8">
         <p className="label-mono text-primary">{t("members")}</p>
-        <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
-          {t("createMemberAccount")}
-        </h1>
+        <div className="mt-2 flex items-start justify-between gap-3">
+          <h1 className="heading-tight text-2xl text-foreground sm:text-3xl">
+            {t("createMemberAccount")}
+          </h1>
+          <PageTips page="createAccount" />
+        </div>
       </div>
 
       <form

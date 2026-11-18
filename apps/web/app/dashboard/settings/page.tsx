@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTips } from "../../components/help/PageTips";
+
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { startNavigationProgress } from "../../lib/navigation-progress";
@@ -287,9 +289,12 @@ function SettingsContent() {
     <>
       <div className="mb-8">
         <p className="label-mono text-primary">{t("settings")}</p>
-        <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
-          {t("messSettings")}
-        </h1>
+        <div className="mt-2 flex items-start justify-between gap-3">
+          <h1 className="heading-tight text-2xl text-foreground sm:text-3xl">
+            {t("messSettings")}
+          </h1>
+          <PageTips page="settings" />
+        </div>
       </div>
 
       <div className="max-w-2xl rounded-xl border border-border bg-surface p-6">

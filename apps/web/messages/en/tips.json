@@ -1,0 +1,250 @@
+{
+  "button": "Tips",
+  "buttonLabel": "Tips for this page",
+  "sheetTitle": "Tips: {page}",
+  "fullGuide": "Read the full guide",
+  "turnOff": "Don't need tips? Turn them off in Profile.",
+  "managerBadge": "Manager",
+  "pref": {
+    "title": "Preferences",
+    "tipsLabel": "Show tips in the app",
+    "tipsDesc": "A small Tips button on each page explains how it works."
+  },
+  "pages": {
+    "dashboard": {
+      "name": "Dashboard",
+      "items": {
+        "balance": {
+          "title": "Balance at a glance",
+          "body": "Plus means money is left over; minus means money is owed. It updates as soon as something is added."
+        },
+        "mealRate": {
+          "title": "Why the meal rate moves",
+          "body": "Meal rate = approved bazaar ÷ total meals so far, so it changes during the month and is fixed when the month closes."
+        },
+        "approvals": {
+          "title": "Approve bazaar here",
+          "body": "New bazaar from members shows up on the dashboard; approve or reject it without opening the Bazaar page."
+        },
+        "everyone": {
+          "title": "Everyone's numbers",
+          "body": "Tap “Everyone's summary” on My Summary to see every member's meals, bill and balance."
+        },
+        "bell": {
+          "title": "What changed?",
+          "body": "The bell shows new activity since you last looked; open it to see who did what."
+        }
+      }
+    },
+    "members": {
+      "name": "Members",
+      "items": {
+        "invite": {
+          "title": "Invite someone",
+          "body": "Tap Invite Member and search by name or email. They accept from the banner on their own dashboard."
+        },
+        "create": {
+          "title": "No phone or email?",
+          "body": "Create Member opens an account for them with a password you set. Ask them to change it later in Profile."
+        },
+        "role": {
+          "title": "Make a second manager",
+          "body": "Use Role on a member's card. A mess can have at most 2 managers, with the same permissions."
+        },
+        "remove": {
+          "title": "Someone moved out",
+          "body": "Settle their balance first, then Remove. Their past months stay in the records."
+        },
+        "filters": {
+          "title": "Find a member",
+          "body": "Search by name or email, or filter by role and status. Removed members are under “Removed”."
+        },
+        "card": {
+          "title": "Reading a card",
+          "body": "Current balance includes anything carried from last month. Plus = they have money left, minus = they owe."
+        }
+      }
+    },
+    "meals": {
+      "name": "Meals",
+      "items": {
+        "date": {
+          "title": "Pick the day",
+          "body": "Use the arrows or the calendar. Any day of the active month can be filled in or changed later."
+        },
+        "count": {
+          "title": "Set the count",
+          "body": "Tap + and − for each member and meal. Half meals (0.5) are fine."
+        },
+        "everyone": {
+          "title": "Everyone at once",
+          "body": "The “everyone” row sets a meal for all members together, which is quicker for normal days."
+        },
+        "save": {
+          "title": "Don't forget to save",
+          "body": "Changes are kept only after you tap Save."
+        },
+        "types": {
+          "title": "Meal types",
+          "body": "Add, rename or turn off meal types (breakfast, lunch, dinner…) and set how many each counts by default."
+        },
+        "member": {
+          "title": "For members",
+          "body": "Only managers can change meals. You can check your meals here and on Reports."
+        }
+      }
+    },
+    "bazaar": {
+      "name": "Bazaar",
+      "items": {
+        "add": {
+          "title": "Add what you bought",
+          "body": "Add each item with its price; the total is worked out for you. Pick the day you shopped."
+        },
+        "pending": {
+          "title": "Pending first",
+          "body": "A new bazaar waits for a manager. Until then you can still edit or delete it."
+        },
+        "approve": {
+          "title": "Approving",
+          "body": "Check items and total, then Approve, or Reject if something is wrong. Approved bazaar is locked."
+        },
+        "rate": {
+          "title": "What counts",
+          "body": "Only approved bazaar goes into the meal rate."
+        },
+        "date": {
+          "title": "Dates",
+          "body": "The date must be in the current month and not in the future."
+        }
+      }
+    },
+    "expenses": {
+      "name": "Expenses",
+      "items": {
+        "shared": {
+          "title": "Shared",
+          "body": "For bills everyone pays (gas, internet, maid). It is split equally between the members you select."
+        },
+        "individual": {
+          "title": "Individual",
+          "body": "For something only one member owes. It goes straight onto their bill."
+        },
+        "noBazaar": {
+          "title": "Don't add bazaar here",
+          "body": "Approved bazaar becomes an expense automatically. Adding it again would count it twice."
+        },
+        "fix": {
+          "title": "Made a mistake?",
+          "body": "Edit or delete an expense from Reports → Expenses (pencil icon) until the month closes."
+        }
+      }
+    },
+    "deposits": {
+      "name": "Deposits",
+      "items": {
+        "record": {
+          "title": "Every payment",
+          "body": "Record each amount a member gives to the mess, with the date they paid."
+        },
+        "balance": {
+          "title": "Balances update at once",
+          "body": "The member's balance changes as soon as the deposit is saved."
+        },
+        "carried": {
+          "title": "Carried money",
+          "body": "Last month's extra money comes in automatically when a month closes; don't add it again as a deposit."
+        },
+        "fix": {
+          "title": "Made a mistake?",
+          "body": "Edit or delete a deposit from Reports → Deposits (pencil icon) until the month closes."
+        }
+      }
+    },
+    "reports": {
+      "name": "Reports",
+      "items": {
+        "tabs": {
+          "title": "Four reports",
+          "body": "Meals, Expenses, Deposits and Bazaar of the active month, newest first."
+        },
+        "filters": {
+          "title": "Filter and load more",
+          "body": "Use the chips to filter, and Load more for older entries."
+        },
+        "edit": {
+          "title": "Edit or delete",
+          "body": "Managers can fix expenses and deposits with the pencil icon on each row."
+        },
+        "past": {
+          "title": "Older months",
+          "body": "Closed months' full summaries are on the Months page."
+        }
+      }
+    },
+    "months": {
+      "name": "Months",
+      "items": {
+        "start": {
+          "title": "Start a month",
+          "body": "Everything you record goes into the active month. Name it after the month, e.g. “December 2026”."
+        },
+        "close": {
+          "title": "Closing",
+          "body": "Close & start new shows everyone's final balance first. Choose whether balances carry forward, and leave anyone out if needed."
+        },
+        "final": {
+          "title": "Can't be undone",
+          "body": "A closed month can't be changed, so check meals, bazaar and deposits before closing."
+        },
+        "history": {
+          "title": "Past months",
+          "body": "Tap a closed month to see its full summary: meal rate, bills and balances."
+        }
+      }
+    },
+    "activity": {
+      "name": "Notifications",
+      "items": {
+        "what": {
+          "title": "Everything in one place",
+          "body": "Every change in the mess, with what it was about and who did it."
+        },
+        "filter": {
+          "title": "Filter",
+          "body": "Use the chips to see only meals, expenses, deposits, bazaar, members or months."
+        },
+        "badge": {
+          "title": "The red badge",
+          "body": "Opening this page marks everything as seen and clears the badge on the bell."
+        }
+      }
+    },
+    "settings": {
+      "name": "Mess Settings",
+      "items": {
+        "info": {
+          "title": "Mess details",
+          "body": "Change the mess name, its link name (slug) and description."
+        },
+        "slug": {
+          "title": "Slug",
+          "body": "Use small letters, numbers and dashes only, e.g. green-view-mess."
+        }
+      }
+    },
+    "createAccount": {
+      "name": "Create Member",
+      "items": {
+        "who": {
+          "title": "Who is this for?",
+          "body": "Members without their own email or phone. You choose their login and password."
+        },
+        "after": {
+          "title": "Afterwards",
+          "body": "Give them the login. They can change the password any time from Profile."
+        }
+      }
+    }
+  }
+}

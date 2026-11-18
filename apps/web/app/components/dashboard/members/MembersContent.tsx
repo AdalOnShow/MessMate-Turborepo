@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTips } from "../../help/PageTips";
+
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
@@ -110,9 +112,12 @@ export function MembersContent() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="label-mono text-primary">{t("members")}</p>
-          <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
-            {t("messMembers")}
-          </h1>
+          <div className="mt-2 flex items-start justify-between gap-3">
+            <h1 className="heading-tight text-2xl text-foreground sm:text-3xl">
+              {t("messMembers")}
+            </h1>
+            <PageTips page="members" />
+          </div>
         </div>
         {isManager && (
           <div className="flex gap-3 self-start">

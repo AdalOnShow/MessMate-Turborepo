@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTips } from "../../components/help/PageTips";
+
 import {
   formatDateOnly,
   fromDateOnlyISO,
@@ -645,9 +647,12 @@ export default function BazaarPage() {
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
         <p className="label-mono text-primary">{t("bazaar")}</p>
-        <h1 className="mt-1 heading-tight text-2xl text-foreground sm:text-3xl">
-          {t("bazaarManagement")}
-        </h1>
+        <div className="mt-1 flex items-start justify-between gap-3">
+          <h1 className="heading-tight text-2xl text-foreground sm:text-3xl">
+            {t("bazaarManagement")}
+          </h1>
+          <PageTips page="bazaar" />
+        </div>
         <p className="mt-1 text-sm text-foreground-muted">
           {t("submitDailyGroceryBazaar")}
         </p>

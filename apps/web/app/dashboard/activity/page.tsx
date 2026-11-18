@@ -1,8 +1,10 @@
 "use client";
 
+import { PageTips } from "../../components/help/PageTips";
+
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { Activity, Loader2 } from "lucide-react";
+import { Activity } from "lucide-react";
 import type { ActivityCategory } from "@repo/shared";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useActivityHistory } from "../../hooks/use-reports";
@@ -13,6 +15,7 @@ import {
   LoadMore,
 } from "../../components/dashboard/reports/ListControls";
 import { QueryErrorState } from "../../components/feedback/QueryErrorState";
+import { Skeleton } from "../../components/ui/skeleton";
 
 type Filter = "all" | ActivityCategory;
 
@@ -26,10 +29,28 @@ const CATEGORY_LABEL = {
   months: "catMonths",
 } as const satisfies Record<Filter, string>;
 
-function Spinner() {
+/** Same shape as the loaded page: filter chips, then activity rows. */
+function ActivitySkeleton() {
   return (
-    <div className="flex items-center justify-center py-16">
-      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+    <div className="space-y-3" aria-hidden="true">
+      <div className="flex gap-2 overflow-hidden">
+        {["w-14", "w-16", "w-20", "w-16", "w-14", "w-[4.5rem]"].map((w, i) => (
+          <Skeleton key={i} className={`h-8 shrink-0 rounded-full ${w}`} />
+        ))}
+      </div>
+      <ul className="divide-y divide-border rounded-xl border border-border bg-surface px-3 py-1">
+        {Array.from({ length: 8 }, (_, i) => (
+          <li key={i} className="flex items-center gap-3 px-1 py-2.5">
+            <Skeleton className="size-9 shrink-0 rounded-full" />
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-2/5 rounded" />
+              <Skeleton className="h-3 w-3/5 rounded" />
+              <Skeleton className="h-3 w-1/4 rounded" />
+            </div>
+            <Skeleton className="h-3 w-10 shrink-0 self-start rounded" />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -42,7 +63,7 @@ function ActivityList({ messId }: { messId: string }) {
     filter === "all" ? undefined : filter,
   );
 
-  if (query.isPending) return <Spinner />;
+  if (query.isPending) return <ActivitySkeleton />;
   if (query.isError && !query.data) {
     return (
       <QueryErrorState
@@ -131,16 +152,19 @@ export default function ActivityPage() {
     <>
       <div className="mb-6">
         <p className="label-mono text-primary">{t("activity")}</p>
-        <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
-          {t("allActivity")}
-        </h1>
+        <div className="mt-2 flex items-start justify-between gap-3">
+          <h1 className="heading-tight text-2xl text-foreground sm:text-3xl">
+            {t("allActivity")}
+          </h1>
+          <PageTips page="activity" />
+        </div>
         <p className="mt-1 text-sm text-foreground-muted">
           {t("activityHint")}
         </p>
       </div>
 
       {isLoading ? (
-        <Spinner />
+        <ActivitySkeleton />
       ) : messQuery.isError && !myMess ? (
         <QueryErrorState
           error={messQuery.error}

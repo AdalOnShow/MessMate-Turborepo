@@ -1,5 +1,7 @@
 "use client";
 
+import { PageTips } from "../../components/help/PageTips";
+
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useGetMyMess } from "../../hooks/use-messes";
@@ -353,9 +355,12 @@ export default function MonthsPage() {
     <>
       <div className="mb-8">
         <p className="label-mono text-primary">{t("months")}</p>
-        <h1 className="mt-2 heading-tight text-2xl text-foreground sm:text-3xl">
-          {t("monthHistory")}
-        </h1>
+        <div className="mt-2 flex items-start justify-between gap-3">
+          <h1 className="heading-tight text-2xl text-foreground sm:text-3xl">
+            {t("monthHistory")}
+          </h1>
+          <PageTips page="months" />
+        </div>
       </div>
 
       {failedQueries(messQuery, monthsQuery).length > 0 ? (
