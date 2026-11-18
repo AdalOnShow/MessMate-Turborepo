@@ -3,7 +3,6 @@
 import { clearOfflineData } from "../lib/offline-cache";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { startNavigationProgress } from "../lib/navigation-progress";
-import { useRouter } from "next/navigation";
 import { useSessionStore } from "../store";
 import { unwrap } from "../lib/action-result";
 
@@ -27,7 +26,6 @@ interface SignupPayload {
 }
 
 export function useSignin() {
-  const router = useRouter();
   const setSession = useSessionStore((s) => s.setSession);
 
   return useMutation({
@@ -39,13 +37,14 @@ export function useSignin() {
       clearOfflineData();
       setSession(data.user);
       startNavigationProgress();
-      router.push("/dashboard");
+      // The dashboard has its own root layout (app/(app)), so this is a full
+      // page load anyway; doing it directly can't be lost to a router race.
+      window.location.assign("/dashboard");
     },
   });
 }
 
 export function useSignup() {
-  const router = useRouter();
   const setSession = useSessionStore((s) => s.setSession);
 
   return useMutation({
@@ -57,35 +56,38 @@ export function useSignup() {
       clearOfflineData();
       setSession(data.user);
       startNavigationProgress();
-      router.push("/dashboard");
+      // The dashboard has its own root layout (app/(app)), so this is a full
+      // page load anyway; doing it directly can't be lost to a router race.
+      window.location.assign("/dashboard");
     },
   });
 }
 
 export function useLogout() {
-  const router = useRouter();
   const clearSession = useSessionStore((s) => s.clearSession);
   const queryClient = useQueryClient();
+
+  // Sign-in lives under another root layout (app/(public)), so leaving is a
+  // full page load. A client-side router.push here raced with the refresh
+  // the server action triggers (it clears cookies) and with ProtectedPage's
+  // own redirect, and about half the time the user stayed on the dashboard.
+  // `replace` also keeps Back from returning to the dashboard.
+  const leave = () => {
+    clearOfflineData();
+    queryClient.clear();
+    startNavigationProgress();
+    window.location.replace("/signin");
+    clearSession();
+  };
 
   return useMutation({
     mutationFn: async () => {
       await serverLogout();
     },
     // Logout always ends the local session, even if the API call failed.
-    meta: { errorToast: false },
-    onSuccess: () => {
-      clearOfflineData();
-      queryClient.clear();
-      clearSession();
-      startNavigationProgress();
-      router.push("/");
-    },
-    onError: () => {
-      clearOfflineData();
-      queryClient.clear();
-      clearSession();
-      startNavigationProgress();
-      router.push("/");
-    },
+    // No refetch afterwards: there is no session left to refetch with.
+    meta: { errorToast: false, invalidate: false },
+    onSuccess: leave,
+    onError: leave,
   });
 }
