@@ -393,6 +393,10 @@ async function build() {
     // ---- Meals: one entry per member per day, entered by a manager at night.
     for (let d = 1; d <= lastDay; d++) {
       const enteredBy = d % 3 === 0 ? coManager : manager;
+      // Like the app: one activity per saved day, with the day's counts.
+      const savedAt = bd(2026, month, d, 22, between(0, 50));
+      let dayMembers = 0;
+      let dayMeals = 0;
       for (const u of users) {
         const away = (u.away[month] ?? []).some(([a, b]) => d >= a && d <= b);
         if (away) continue;
@@ -401,7 +405,7 @@ async function build() {
         const dinner = chance(0.04) ? 0 : 1 + guest;
         if (lunch + dinner === 0) continue;
         const id = randomUUID();
-        const at = bd(2026, month, d, 22, between(0, 50));
+        const at = savedAt;
         meals.push({
           id,
           month_id: monthId,
@@ -413,7 +417,24 @@ async function build() {
           created_at: at,
           updated_at: at,
         });
-        log('MEAL_ADDED', at, enteredBy.userId, 'meal_entries', id, monthId);
+        dayMembers += 1;
+        dayMeals += lunch + dinner;
+      }
+      if (dayMembers > 0) {
+        logs.push({
+          mess_id: messId,
+          month_id: monthId,
+          actor_id: enteredBy.userId,
+          action: 'MEAL_ADDED',
+          entity_type: 'meal_day',
+          entity_id: null,
+          details: {
+            date: day(2026, month, d).toISOString(),
+            members: dayMembers,
+            meals: dayMeals,
+          },
+          created_at: savedAt,
+        });
       }
     }
 
