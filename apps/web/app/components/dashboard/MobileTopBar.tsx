@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { useSessionStore } from "../../store";
 import { UserAvatar } from "./UserAvatar";
 import { getPageMeta } from "./nav-items";
+import { NotificationBell } from "./activity/NotificationBell";
 
 /** Sticky app bar for small screens (the sidebar is hidden below `lg`).
  *  Home shows the brand; other pages show their title, sub-pages a back button. */
@@ -50,6 +51,8 @@ export function MobileTopBar() {
             </span>
           </Link>
         )}
+
+        {pathname !== "/dashboard/activity" ? <NotificationBell /> : null}
 
         <Link
           href="/dashboard/profile"

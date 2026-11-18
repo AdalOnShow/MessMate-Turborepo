@@ -25,9 +25,9 @@
     "bazaarApproved": "Bazaar approved",
     "bazaarRejected": "Bazaar rejected",
     "bazaarDeleted": "Bazaar deleted",
-    "viewAll": "View all",
-    "allActivity": "All activity",
-    "activity": "Activity",
+    "viewAll": "All notifications",
+    "allActivity": "Notifications",
+    "activity": "Notifications",
     "activityHint": "Everything that has happened in your mess, newest first.",
     "justNow": "just now",
     "minutesAgo": "{count}m ago",
@@ -42,7 +42,8 @@
     "catMembers": "Members",
     "catMonths": "Months",
     "noActivityOfType": "No activity of this type yet.",
-    "by": "by {name}"
+    "by": "by {name}",
+    "newNotifications": "New notifications"
   },
   "home": {
     "goodMorning": "Good morning",
