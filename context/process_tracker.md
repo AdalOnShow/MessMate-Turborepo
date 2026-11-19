@@ -5,7 +5,8 @@
 ```text
 Project Name: MessMate
 
-Status: Active Development (All numbered phases complete — Phases 0-12 done. Next: Future Features)
+Status: Launch-ready (Phases 0-12 done; final pre-production QA passed 18 Nov 2026,
+follow-up fixes E1/E2/E4/C8 on 19 Nov 2026). Next: Future Features
 
 Frontend:
 Next.js 16
@@ -14,10 +15,13 @@ Tailwind CSS v4
 TanStack Query
 Zustand + Immer
 Lucide icons
-Custom design system (CSS variables) + selected shadcn/ui primitives (Button, Popover, Calendar, DatePicker)
+Custom design system (CSS variables, Tailwind v4 @theme). A few Radix + CVA
+primitives in app/components/ui (button, popover, calendar, date-picker,
+select); no shadcn/ui dependency
 
 Backend:
 NestJS 11
+Redis read-through cache (optional, fails open)
 Prisma ORM 7.8
 PostgreSQL (Neon serverless)
 JWT Authentication (Access + Refresh Tokens)
@@ -602,6 +606,11 @@ pnpm Workspace
 > Existing `/dashboard/months` and `/dashboard/meals/reports` pages are
 > preserved. Reports are visible to all active members (matching existing list
 > endpoint permissions).
+>
+> **Today (Nov 2026):** Reports covers the **active month** only, with tabs
+> Meals, Expenses, Deposits, Bazaar plus a member summary, and is where saved
+> meals, expenses and deposits are edited or deleted. Closed months are read
+> on the Months page. A closed-month selector on Reports is open (QA B9).
 
 ---
 
@@ -714,6 +723,18 @@ A task can be marked complete only if:
 - [x] Turbo.json updated (test task, inputs, cache)
 - [x] Bundle analyzer added to Next.js
 - [x] DATABASE_URL consolidated (single source of truth)
+- [x] Dashboard prerendered as static pages; client reads through the
+      `GET /api/[...path]` bridge in parallel instead of the one-at-a-time
+      server action queue (ADR-027)
+- [x] Redis read-through cache for computed mess data, cleared on every
+      write before the response (ADR-026)
+- [x] Last-known data cached per user in localStorage (24 h) for instant
+      launches of the installed app
+- [x] Homepage served fast behind Cloudflare (was ~20 s; ~1 s after fix)
+- [x] Activity log volume cut (one row per meal-day) + 12-month retention
+      (ADR-028)
+- [x] Migrations squashed into a single "version 1" baseline; production
+      DB reset before launch (ADR-029)
 
 ---
 
@@ -751,6 +772,10 @@ Items found in full-project security review (root commit `aa549b95...HEAD`), que
 
 ## Feature Added — Dashboard Bento Redesign
 
+> Historical. The dashboard home has since been rebuilt (balance hero, stat
+> tiles, approvals, summary, meals by member, activity); see
+> `technical-flow.md` → Dashboard Flow for what it shows today.
+
 - `/dashboard` was rebuilt as a modern **bento grid** (replacing the old uniform
   8-stat-tile layout; `MessStats.tsx` removed). Reuses the existing dark theme,
   palette, and typography; only presentation/layout changed.
@@ -781,6 +806,10 @@ Items found in full-project security review (root commit `aa549b95...HEAD`), que
 
 ## Feature Added — Member Dashboard (Phase 10, role-based)
 
+> Historical. The dashboard home has since been rebuilt (balance hero, stat
+> tiles, approvals, summary, meals by member, activity); see
+> `technical-flow.md` → Dashboard Flow for what it shows today.
+
 - `/dashboard` is now **role-based**: managers see the full manager bento
   (MonthOverview, MealOverview, Bazaar Approvals, Quick Actions, Recent
   Activity); members see the **same MonthOverview + MealOverview top grid**
@@ -801,25 +830,62 @@ Items found in full-project security review (root commit `aa549b95...HEAD`), que
 
 ---
 
+# Pre-Production QA (Nov 2026)
+
+Five QA rounds against the live site (messmate.sadal.dev). The final round on
+18 Nov 2026 ran on a freshly reset database with a new account: 17 of 20
+checks passed, and the verdict was "ready to launch, fix E1 first".
+
+Fixed before the final round: D1 (success dialog didn't close), D3 (logout
+sometimes stuck on the splash), B7 (invite search by first name), C4
+(carried-in dues mixed into Individual), B11 (money math to the paisa),
+closed-month meal double-billing, the 20-second homepage load.
+
+Final round follow-ups (19 Nov 2026):
+
+- [x] **E1 (major)** — dashboard showed pre-save numbers after "Go to
+      dashboard" until a reload. Every mutation now also refetches the
+      dashboard home queries (`mess-dashboard`, `member-dashboard`,
+      `meal-month-summary`, `mess-activities`) even when off screen, and
+      the mutation stays pending until they land (`lib/query-client.ts`).
+- [x] **E2** — after a month closed, the Meals date picker still offered
+      yesterday, a day of the closed month whose save the API rejects. The
+      picker is now limited to days the API accepts (`minDate`), and on a
+      month's opening day the page says no day can be filled in yet.
+- [x] **E4 / D4** — dialog amounts mixed "BDT 1,000.00" and "৳700". The
+      three page-local `formatMoney` copies (bazaar, deposits, expenses)
+      were removed in favour of the shared `formatMoneyExact`.
+- [x] **C8** — theme switch was only reachable on phones (More menu); it is
+      now next to Logout in the desktop sidebar.
+- [x] **C1** — not a bug. Bazaar lists page 4 at a time with "Load more"; a
+      just-submitted entry is added to the top of the already loaded page,
+      so 5 entries show until the list is reloaded.
+- [ ] **B9** — Reports has no month selector. Closed months' statements are
+      on the Months page; a selector for detailed closed-month lists is a
+      future feature.
+- E3 — not a site bug (QA browser kept a saved login from before the reset).
+
+---
+
 # Current Focus
 
 ```text
 Current Phase:
-Future Features (all numbered phases, 0-12, are complete)
+Launch, then Future Features (all numbered phases, 0-12, are complete)
 
-Phase 12 Completed:
-- Consolidated Reports hub (/dashboard/reports): month picker + 5 tabs
-  (Month Summary, Meals, Expenses, Deposits, Members)
-- New endpoints: GET /expenses/:messId/:monthId/summary (type totals +
-  per-member shared/individual breakdown), GET /deposits/:messId/:monthId/summary
-  (totals + per-member)
-- Members tab: live calculations for active month, archived month summaries
-  otherwise
-- Reports nav links (Sidebar + BottomNav); visible to all active members
+Just done:
+- Final pre-production QA follow-ups (E1, E2, E4, C8), see above
+- Reports: edit or delete one member's meals for a day
+- Long sessions with rotating refresh tokens; set-password notice
+- Activity: one row per meal-day, 12-month retention
+- Single "version 1" migration baseline, production DB reset
 
 Next Priority:
-- Future Features: Connected Accounts Management, Chat, Mobile, SaaS
-  (all require product decisions before scoping)
+- Launch
+- Open security TODOs (email verification, password reset, CSP)
+- B9 Reports month selector
+- Future Features: Connected Accounts, Chat, Mobile, SaaS (need product
+  decisions before scoping)
 
 Completed Phases:
 - Phase 0 - Project Foundation

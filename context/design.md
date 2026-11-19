@@ -2,180 +2,177 @@
 
 ## Overview
 
-MessMate's visual identity is **warm, approachable, and modern** — designed for students
-and bachelor groups in Bangladesh / South Asia. The aesthetic balances a **dark, immersive
-background** with **vibrant teal-cyan accents** and friendly typography to feel both
-trustworthy and energetic.
+MessMate is built for students and bachelor groups in Bangladesh, mostly on
+phones. The look is **calm, flat and dense with numbers**: layered navy
+surfaces, one blue accent, a warm yellow-amber call to action, and tight,
+heavy headings. Dark is the primary theme; light and system themes are
+supported.
+
+Source of truth: `apps/web/app/globals.css` (Tailwind v4 `@theme`). When this
+file and `globals.css` disagree, `globals.css` is right and this file must be
+updated.
+
+### Principles
+
+- **Flat surfaces.** Solid colours only. No gradients, glows or glassy
+  backgrounds on cards, heroes or buttons. (The only gradient is the
+  skeleton shimmer.)
+- **Depth from layers, not shadows:** `surface-sunken` → `surface` →
+  `surface-raised` → `surface-overlay`, separated by 1px borders.
+  `shadow-panel` is only for floating sheets and bars.
+- **Numbers first.** Money is always `৳` with `formatMoney` (whole taka) or
+  `formatMoneyExact` (৳1,000 / ৳333.30). Never `BDT 1,000.00`.
+- **Touch first.** Targets are at least 44px (`h-11`) on phones; denser
+  `sm:`/`md:` variants on larger screens.
 
 ---
 
 ## Color System
 
-All colors are defined as CSS custom properties and Tailwind theme tokens.
+Use the Tailwind names (`bg-surface`, `text-foreground-muted`,
+`border-border-strong`, …), never raw hex.
 
-### Dark Theme (Primary)
+| Token                 | Dark                  | Light     | Usage                                                  |
+| --------------------- | --------------------- | --------- | ------------------------------------------------------ |
+| `background`          | `#020013`             | `#fcfcfd` | Page background                                        |
+| `surface-sunken`      | `#090b1d`             | `#f3f4f7` | Inputs, sidebar, wells                                 |
+| `surface`             | `#11142b`             | `#ffffff` | Cards                                                  |
+| `surface-raised`      | `#171a34`             | `#f9f9fb` | Hover, nested blocks, toggles                          |
+| `surface-overlay`     | `#22274a`             | `#e8e8ec` | Popovers, menus                                        |
+| `border`              | `#1a1d38`             | `#e0e1e6` | Card borders, dividers                                 |
+| `border-strong`       | `#23274a`             | `#cdced6` | Inputs, secondary buttons                              |
+| `primary`             | `#3291ff`             | `#0070f3` | Links, primary buttons, active nav                     |
+| `primary-hover`       | `#51baff`             | `#3291ff` | Hover                                                  |
+| `accent-warm`         | `#ffa929`             |           | Pending states, warnings, highlights                   |
+| `gold`                | `#d4af37`             |           | Small decorative accents                               |
+| `cta-from` / `cta-to` | `#ffe61c` / `#ffa929` |           | `bg-cta`: solid yellow, amber on hover (landing, auth) |
+| `foreground`          | `#ffffff`             | `#11142b` | Headings, key numbers                                  |
+| `foreground-body`     | `#d9dff2`             | `#2e3135` | Body text                                              |
+| `foreground-muted`    | `#858fad`             | `#5a6169` | Labels, secondary text                                 |
+| `destructive`         | `#ef4444`             |           | Errors, deletes, negative balance                      |
+| `success`             | `#22c55e`             |           | Saved, approved, positive balance                      |
 
-| Role              | Hex / Value              | CSS Variable                | Usage                            |
-| ----------------- | ------------------------ | --------------------------- | -------------------------------- |
-| Background        | `#0B1120`                | `--color-background`        | Page background                  |
-| Surface           | `#111827`                | `--color-surface`           | Cards, sections                  |
-| Surface Raised    | `#1E293B`                | `--color-surface-raised`    | Elevated cards, hover states     |
-| Primary           | `#06B6D4`                | `--color-primary`           | CTAs, links, highlights          |
-| Primary Hover     | `#22D3EE`                | `--color-primary-hover`     | Button hover, link hover         |
-| Accent Warm       | `#F59E0B`                | `--color-accent-warm`       | Bengali accents, badges, warmth  |
-| Accent Warm Hover | `#FBBF24`                | `--color-accent-warm-hover` | Warm accent hover                |
-| Foreground        | `#F1F5F9`                | `--color-foreground`        | Primary text                     |
-| Foreground Muted  | `#94A3B8`                | `--color-foreground-muted`  | Secondary text, descriptions     |
-| Border            | `rgba(148,163,184,0.15)` | `--color-border`            | Subtle borders, dividers         |
-| Border Hover      | `rgba(148,163,184,0.25)` | `--color-border-hover`      | Hovered borders                  |
-| Destructive       | `#EF4444`                | `--color-destructive`       | Errors, destructive actions      |
-| Success           | `#10B981`                | `--color-success`           | Success states, positive balance |
-| Ring              | `rgba(6,182,212,0.4)`    | `--color-ring`              | Focus rings                      |
+Status tints use the colour at low opacity on a border and background, e.g.
+`border-success/25 bg-success/10 text-success`.
 
-### Gradient Tokens
+### Themes
 
-| Name          | Value                                                            | Usage                |
-| ------------- | ---------------------------------------------------------------- | -------------------- |
-| Hero Gradient | `linear-gradient(135deg, #0B1120, #111827, #0F172A)`             | Hero background      |
-| Glow Primary  | `radial-gradient(circle, rgba(6,182,212,0.15), transparent 70%)` | Ambient glow effects |
-| Glow Warm     | `radial-gradient(circle, rgba(245,158,11,0.1), transparent 70%)` | Warm accent glow     |
-| Card Gradient | `linear-gradient(180deg, #1E293B, #111827)`                      | Card backgrounds     |
+`store/theme.ts` keeps `light | dark | system` and sets `data-theme` on
+`<html>`. The toggle is in the More sheet on phones and next to Logout in the
+desktop sidebar.
 
 ---
 
 ## Typography
 
-### Font Pairing: Friendly SaaS
+| Role    | Font              | Token          | Usage                                        |
+| ------- | ----------------- | -------------- | -------------------------------------------- |
+| Heading | Inter             | `font-heading` | Headings, numbers                            |
+| Body    | Inter             | `font-body`    | Everything else                              |
+| Mono    | JetBrains Mono    | `font-mono`    | `label-mono` labels, emails, ids             |
+| Bangla  | Noto Sans Bengali | `font-bengali` | Bangla UI (also the fallback in every stack) |
 
-| Role    | Font              | Weights       | Usage                    |
-| ------- | ----------------- | ------------- | ------------------------ |
-| Heading | Plus Jakarta Sans | 500, 600, 700 | Headings, hero text, nav |
-| Body    | Plus Jakarta Sans | 300, 400, 500 | Body text, descriptions  |
-| Bengali | Alkatra           | 400, 500, 600 | Bengali accent text      |
+Fonts load through `next/font/google` (`app/fonts.ts`), as variable fonts.
 
-### Google Fonts Import
+Utilities:
 
-```css
-@import url("https://fonts.googleapis.com/css2?family=Alkatra:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap");
-```
-
-### Type Scale (Desktop → Mobile)
-
-| Token   | Desktop | Mobile | Weight | Line Height |
-| ------- | ------- | ------ | ------ | ----------- |
-| Display | 64px    | 36px   | 700    | 1.1         |
-| H1      | 48px    | 32px   | 700    | 1.2         |
-| H2      | 36px    | 28px   | 600    | 1.25        |
-| H3      | 24px    | 20px   | 600    | 1.3         |
-| Body LG | 20px    | 18px   | 400    | 1.6         |
-| Body    | 16px    | 16px   | 400    | 1.6         |
-| Body SM | 14px    | 14px   | 400    | 1.5         |
-| Caption | 12px    | 12px   | 500    | 1.4         |
+- `heading-tight`: weight 800, letter-spacing −0.035em, line-height 1.08.
+- `label-mono`: 11px uppercase mono, letter-spacing 0.12em, for small section
+  labels above headings.
 
 ---
 
-## Spacing
+## Radius
 
-Using an 8px base grid (4px for fine adjustments):
-
-| Token | Value | Usage                      |
-| ----- | ----- | -------------------------- |
-| xs    | 4px   | Icon padding, fine gaps    |
-| sm    | 8px   | Tight element spacing      |
-| md    | 16px  | Component internal padding |
-| lg    | 24px  | Section internal padding   |
-| xl    | 32px  | Between components         |
-| 2xl   | 48px  | Between sections (mobile)  |
-| 3xl   | 64px  | Between sections (tablet)  |
-| 4xl   | 96px  | Between sections (desktop) |
+| Token | Value  | Typical use                 |
+| ----- | ------ | --------------------------- |
+| sm    | 5px    | Small chips                 |
+| md    | 8px    | Inputs, toggles             |
+| lg    | 10px   | Buttons, nav items          |
+| xl    | 12px   | Cards, buttons on phones    |
+| 2xl   | 14px   | Large cards, sheets         |
+| full  | 9999px | Avatars, pills, status dots |
 
 ---
 
-## Border Radius
+## Motion
 
-| Token | Value  | Usage                     |
-| ----- | ------ | ------------------------- |
-| sm    | 6px    | Badges, chips             |
-| md    | 8px    | Inputs, small cards       |
-| lg    | 12px   | Cards, buttons            |
-| xl    | 16px   | Feature cards             |
-| 2xl   | 24px   | Hero elements, large CTAs |
-| full  | 9999px | Avatars, pills            |
+| Token           | Value                             |
+| --------------- | --------------------------------- |
+| Duration fast   | 150ms                             |
+| Duration normal | 250ms                             |
+| Duration slow   | 400ms                             |
+| Ease default    | cubic-bezier(0.4, 0, 0.2, 1)      |
+| Ease spring     | cubic-bezier(0.34, 1.56, 0.64, 1) |
 
----
-
-## Shadows & Effects
-
-| Token      | Value                            | Usage            |
-| ---------- | -------------------------------- | ---------------- |
-| Card       | `0 4px 24px rgba(0,0,0,0.3)`     | Default card     |
-| Card Hover | `0 8px 32px rgba(0,0,0,0.4)`     | Hovered card     |
-| Glow Cyan  | `0 0 40px rgba(6,182,212,0.2)`   | CTA glow         |
-| Glow Amber | `0 0 40px rgba(245,158,11,0.15)` | Warm accent glow |
-
----
-
-## Animation Tokens
-
-| Token           | Value                             | Usage                      |
-| --------------- | --------------------------------- | -------------------------- |
-| Duration Fast   | 150ms                             | Hover, focus               |
-| Duration Normal | 250ms                             | Transitions, state changes |
-| Duration Slow   | 400ms                             | Page reveals, stagger      |
-| Easing Default  | cubic-bezier(0.4, 0, 0.2, 1)      | General transitions        |
-| Easing Spring   | cubic-bezier(0.34, 1.56, 0.64, 1) | Bouncy interactions        |
+Utilities: `animate-sheet-up` (bottom sheets), `animate-fade-in`,
+`animate-pop-in`, `.page-enter` (soft fade-up on every dashboard navigation),
+`.skeleton` (loading shimmer), the navigation progress bar and the splash
+screen. Respect `prefers-reduced-motion`.
 
 ---
 
 ## Breakpoints
 
-| Name    | Min Width | Usage   |
-| ------- | --------- | ------- |
-| Mobile  | 0px       | Default |
-| Tablet  | 768px     | md:     |
-| Desktop | 1024px    | lg:     |
-| Wide    | 1440px    | xl:     |
+| Name    | Min width | Prefix |
+| ------- | --------- | ------ |
+| Phone   | 0         |        |
+| Small   | 640px     | `sm:`  |
+| Tablet  | 768px     | `md:`  |
+| Desktop | 1024px    | `lg:`  |
+
+Below `lg` the app uses a bottom navigation bar plus a More sheet; from `lg`
+up, a fixed 288px sidebar. `pb-safe`, `pt-safe`, `pb-bottom-nav` and
+`bottom-above-nav` handle notches and the bottom bar.
 
 ---
 
-## Component Patterns
+## Components
+
+Reuse what exists before adding anything:
+
+- `app/components/ui/`: small Radix + CVA primitives (`button`, `badge`,
+  `popover`, `calendar`, `date-picker`, `select`, `sheet`, `skeleton`,
+  `field-error`, `password-checklist`, `offline-hint`, …). No shadcn
+  dependency, and no generated shadcn components.
+- `components/feedback/`: `SuccessDialog`, `Toaster`, `QueryErrorState` /
+  `QueriesErrorState`, `OfflineBanner`, `AppSplash`, `NavigationProgress`.
+- `components/help/PageTips`: the per-page tips button.
 
 ### Buttons
 
-- **Primary**: Cyan background, white text, rounded-lg, glow on hover
-- **Secondary**: Transparent with cyan border, cyan text, fill on hover
-- **Ghost**: No border, muted text, subtle background on hover
-- Min height: 44px for touch targets
+- **Primary:** `bg-primary text-white`, hover `bg-primary-hover`.
+- **CTA (marketing, auth):** `bg-cta`, solid yellow, amber on hover.
+- **Secondary:** `border border-border-strong bg-surface`, hover
+  `bg-surface-raised`.
+- **Destructive:** `border-destructive/30 bg-destructive/10 text-destructive`.
+- Height `h-11` on phones (`h-10`/`h-9` on desktop where dense).
 
 ### Cards
 
-- Surface background with subtle border
-- 16px padding minimum
-- Hover: raise shadow + lighten border
-- Transition: 250ms ease
+`rounded-xl border border-border bg-surface`, 16px+ padding. No shadow, no
+gradient. Hover only changes the border or background.
 
-### Section Headers
+### Feedback
 
-- Centered, with a small accent label above (Bengali or English)
-- H2 heading with gradient or colored accent word
-- Muted description below, max-width 640px
+- After adding, editing or deleting a deposit, expense, bazaar or meals: the
+  success dialog (summary rows, then Go to dashboard / Stay here).
+- Other successes: a toast. Failures: always a toast, never inline (except
+  form field validation and auth forms).
+- Failed loads: `QueryErrorState` with Retry, never an empty state.
 
 ---
 
-## Bengali Accent Usage
+## Bangla
 
-Bengali text (`Alkatra`) is used for:
-
-- Subtle taglines / accent phrases
-- Section pre-headers (e.g., "বৈশিষ্ট্যসমূহ" for Features)
-- Cultural touches that resonate with the target audience
-
-Bengali text should always be paired with English equivalents for clarity.
+The whole UI is translated (`apps/web/messages/{en,bn}`), switched in place
+with `LanguageToggle`. Every new string needs both an `en` and a `bn` entry.
+Bangla renders in Noto Sans Bengali through the font stacks.
 
 ---
 
 ## Icons
 
-- Use inline SVGs only — no emojis, no icon fonts
-- Consistent 24px stroke icons (Lucide style)
-- Match `--color-foreground-muted` for default, `--color-primary` for active
+Lucide React only (no emoji, no icon fonts). 16–20px in UI, 24px in empty
+states. `text-foreground-muted` by default, `text-primary` when active.
+Decorative icons get `aria-hidden="true"`.

@@ -6,6 +6,7 @@ import {
   formatDateOnly,
   fromDateOnlyISO,
   toDateOnlyISO,
+  formatMoneyExact,
 } from "../../../lib/format";
 import { showSuccess } from "../../../store/success-dialog";
 import { useTranslations } from "next-intl";
@@ -46,14 +47,6 @@ import {
 
 function formatDate(iso: string) {
   return formatDateOnly(iso);
-}
-
-function formatMoney(n: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "BDT",
-    maximumFractionDigits: 2,
-  }).format(n);
 }
 
 const inputClass =
@@ -153,7 +146,7 @@ function BazaarForm({
         label: tsd("labels.items"),
         value: cleanedItems.map((i) => i.name).join(", "),
       },
-      { label: tsd("labels.total"), value: formatMoney(total) },
+      { label: tsd("labels.total"), value: formatMoneyExact(total) },
       {
         label: tsd("labels.date"),
         value: formatDateOnly(payload.expense_date),
@@ -287,7 +280,7 @@ function BazaarForm({
             {t("total")}
           </p>
           <div className="flex h-[42px] items-center justify-end rounded-lg border border-primary/25 bg-primary/5 px-3 text-base font-bold tabular-nums text-primary">
-            {formatMoney(total)}
+            {formatMoneyExact(total)}
           </div>
         </div>
       </div>
@@ -398,7 +391,7 @@ function BazaarCard({
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <span className="text-base font-bold tabular-nums text-foreground">
-            {formatMoney(submission.total_amount)}
+            {formatMoneyExact(submission.total_amount)}
           </span>
           <span
             className={`rounded-[5px] border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] ${STATUS_STYLES[submission.status]}`}
@@ -435,7 +428,7 @@ function BazaarCard({
                   {item.name}
                 </span>
                 <span className="shrink-0 font-medium tabular-nums text-foreground">
-                  {formatMoney(item.amount)}
+                  {formatMoneyExact(item.amount)}
                 </span>
               </li>
             ))}
@@ -487,7 +480,9 @@ function BazaarCard({
                                 },
                                 {
                                   label: tsd("labels.total"),
-                                  value: formatMoney(submission.total_amount),
+                                  value: formatMoneyExact(
+                                    submission.total_amount,
+                                  ),
                                 },
                               ],
                             }),

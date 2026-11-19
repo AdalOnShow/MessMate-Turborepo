@@ -2,698 +2,446 @@
 
 ## Database
 
-PostgreSQL, managed through Prisma ORM.
+PostgreSQL on Neon (serverless), accessed through Prisma 7.8 with the Neon
+adapter. The Prisma schema lives in `packages/database/prisma/schema.prisma`.
 
-This document is the single source of truth for all database structure. Any
-changes to tables, columns, enums, constraints, or indexes must be reflected
-here before implementation.
+This document describes that schema in words. When the two disagree, the Prisma
+schema is right and this file must be updated. Change both in the same PR.
+
+### Migrations
+
+Migration history was squashed on 18 Nov 2026 into a single baseline,
+`packages/database/prisma/migrations/20261119000000_version_1`, and the
+production database was reset. A database created from the old history cannot
+migrate across the squash; recreate it from the baseline instead. Every change
+after that is a normal `prisma migrate dev` migration on top of the baseline.
 
 ---
 
 ## Design Principles
 
-- Soft deletes on every major entity.
-- Murmur-friendly activity logging.
-- Accounting month lifecycle.
-- Balance carry-forward.
-- No recalculation of historical data.
-- Expansibility for SaaS, mobile, and notifications without schema redesign.
-- Immutable audit trail for all accounting actions.
+- Soft deletes (`deleted_at`) on most major entities (ADR-010). Expenses are
+  the exception: they are hard-deleted, with a snapshot kept in
+  `activity_logs.details`.
+- Accounting is organised by month (ADR-006). Closed months are never
+  recalculated (ADR-009).
+- Balances carry forward through `carry_forward_balances` (ADR-008).
+- Meals and bazaar items are JSONB (ADR-021, ADR-022).
+- Every accounting change writes an `activity_logs` row in the same
+  transaction (ADR-013). Activity older than 12 months is purged (ADR-028).
+- Money is `DECIMAL(12,2)`, meal counts `DECIMAL(10,2)`.
+- Calendar dates (meal, expense, deposit, bazaar dates) are stored as UTC
+  midnight of the chosen day.
 
 ---
 
 ## Enums
 
-### SystemRole
+| Enum               | Values                                                    |
+| ------------------ | --------------------------------------------------------- |
+| `SystemRole`       | `ADMIN`, `USER`                                           |
+| `MessRole`         | `MANAGER`, `MEMBER`                                       |
+| `MonthStatus`      | `ACTIVE`, `ARCHIVED` (archived = closed)                  |
+| `ExpenseType`      | `BAZAAR`, `SHARED`, `INDIVIDUAL`                          |
+| `BazaarStatus`     | `PENDING`, `APPROVED`, `REJECTED`                         |
+| `CarryForwardType` | `PREVIOUS_DUE` (member owed), `PREVIOUS_BALANCE` (credit) |
+
+### activity_action
 
 ```text
-ADMIN
-USER
-```
-
-### MessRole
-
-```text
-MANAGER
-MEMBER
-```
-
-### MonthStatus
-
-```text
-ACTIVE
-ARCHIVED
-```
-
-### ExpenseType
-
-```text
-BAZAAR
-SHARED
-INDIVIDUAL
-```
-
-### BazaarStatus
-
-```text
-PENDING
-APPROVED
-REJECTED
-```
-
-### CarryForwardType
-
-```text
-PREVIOUS_DUE
-PREVIOUS_BALANCE
+MEMBER_ADDED            MEMBER_REMOVED
+MANAGER_ASSIGNED        MANAGER_REMOVED
+MEAL_ADDED              MEAL_UPDATED            MEAL_DELETED
+EXPENSE_ADDED           EXPENSE_UPDATED         EXPENSE_DELETED
+DEPOSIT_ADDED           DEPOSIT_UPDATED         DEPOSIT_DELETED
+MONTH_OPENED            MONTH_CLOSED
+MEMBER_BALANCE_CREATED  DEFAULT_MEALS_UPDATED
+BAZAAR_SUBMITTED        BAZAAR_UPDATED          BAZAAR_APPROVED
+BAZAAR_REJECTED         BAZAAR_DELETED
 ```
 
 ---
 
 ## Entities
 
+All ids are UUIDs (`@default(uuid())`). `created_at` and `updated_at` default to
+`now()`.
+
 ### users
 
-Platform-wide user table. Each row represents a person who may own or
-participate in metses.
+A person on the platform.
 
-| Field           | Type        | Nullable | Default           | Notes                                         |
-| --------------- | ----------- | -------- | ----------------- | --------------------------------------------- |
-| id              | UUID        | false    | gen_random_uuid() | Primary key                                   |
-| name            | TEXT        | false    | -                 | Full name                                     |
-| email           | TEXT        | false    | -                 | Unique, used for OAuth and login              |
-| password        | TEXT        | true     | null              | Nullable for OAuth-only users                 |
-| phone           | TEXT        | true     | null              | Optional contact number                       |
-| avatar          | TEXT        | true     | null              | URL to profile image                          |
-| system_role     | SystemRole  | false    | USER              | ADMIN or USER                                 |
-| manager_created | BOOLEAN     | false    | false             | True if setup was initiated by a mess manager |
-| email_verified  | BOOLEAN     | false    | false             | OAuth or invite verification                  |
-| created_at      | TIMESTAMPTZ | false    | now()             | Audit timestamp                               |
-| updated_at      | TIMESTAMPTZ | false    | now()             | Audit timestamp                               |
-| deleted_at      | TIMESTAMPTZ | true     | null              | Soft delete                                   |
+| Field                | Type        | Null | Default | Notes                                                     |
+| -------------------- | ----------- | ---- | ------- | --------------------------------------------------------- |
+| id                   | UUID        | no   | uuid    | PK                                                        |
+| name                 | TEXT        | no   |         |                                                           |
+| email                | TEXT        | no   |         | Unique                                                    |
+| password             | TEXT        | yes  | null    | bcrypt hash; null for Google-only accounts                |
+| refresh_token        | TEXT        | yes  | null    | Legacy, unused since `user_sessions`                      |
+| phone                | TEXT        | yes  | null    |                                                           |
+| avatar               | TEXT        | yes  | null    | Cloudinary URL                                            |
+| system_role          | SystemRole  | no   | USER    |                                                           |
+| manager_created      | BOOLEAN     | no   | false   | Account was created by a mess manager                     |
+| must_change_password | BOOLEAN     | no   | false   | Set for manager-created accounts; cleared on own password |
+| email_verified       | BOOLEAN     | no   | false   | True for Google sign-ins                                  |
+| created_at           | TIMESTAMPTZ | no   | now()   |                                                           |
+| updated_at           | TIMESTAMPTZ | no   | now()   |                                                           |
+| deleted_at           | TIMESTAMPTZ | yes  | null    | Soft delete                                               |
 
-Indexes:
-
-- `idx_users_email` UNIQUE on (`email`) where `deleted_at IS NULL`.
-- `idx_users_system_role` on (`system_role`).
-
-Business constraints:
-
-- `email` is unique and immutable per user.
-- Only one pair of `MANAGER` entries allowed per mess.
-
----
+Indexes: `users_email_key` UNIQUE (`email`); `idx_users_system_role`.
 
 ### oauth_accounts
 
-Social login linkage. One user may have multiple linked providers.
+Linked social logins (Google today). Auto-linking at login is prohibited
+(ADR-024).
 
-| Field            | Type        | Nullable | Default           | Notes                    |
-| ---------------- | ----------- | -------- | ----------------- | ------------------------ |
-| id               | UUID        | false    | gen_random_uuid() | Primary key              |
-| user_id          | UUID        | false    | -                 | FK to `users.id`         |
-| provider         | TEXT        | false    | -                 | GOOGLE, FACEBOOK, etc.   |
-| provider_user_id | TEXT        | false    | -                 | Provider-side account ID |
-| created_at       | TIMESTAMPTZ | false    | now()             | -                        |
+| Field            | Type        | Null | Notes                    |
+| ---------------- | ----------- | ---- | ------------------------ |
+| id               | UUID        | no   | PK                       |
+| user_id          | UUID        | no   | FK users, cascade delete |
+| provider         | TEXT        | no   | `google`                 |
+| provider_user_id | TEXT        | no   | Provider's account id    |
+| created_at       | TIMESTAMPTZ | no   |                          |
 
-Indexes:
+Indexes: `idx_oauth_accounts_user_provider` UNIQUE (`user_id`, `provider`);
+`idx_oauth_accounts_provider` (`provider`, `provider_user_id`).
 
-- `idx_oauth_accounts_user_provider` UNIQUE on (`user_id`, `provider`).
-- `idx_oauth_accounts_provider` on (`provider`, `provider_user_id`).
+### user_sessions
 
-Foreign keys:
+One row per signed-in device (ADR-025). The refresh token carries the session
+id; only SHA-256 hashes are stored.
 
-- `user_id` references `users(id)` ON DELETE CASCADE.
+| Field               | Type        | Null | Notes                                                    |
+| ------------------- | ----------- | ---- | -------------------------------------------------------- |
+| id                  | UUID        | no   | PK, also the access token's `sid`                        |
+| user_id             | UUID        | no   | FK users, cascade delete                                 |
+| token_hash          | TEXT        | no   | Hash of the current refresh token                        |
+| previous_token_hash | TEXT        | yes  | Token replaced by the last rotation (2-minute grace)     |
+| rotated_at          | TIMESTAMPTZ | yes  | When the last rotation happened                          |
+| user_agent          | TEXT        | yes  |                                                          |
+| created_at          | TIMESTAMPTZ | no   |                                                          |
+| last_used_at        | TIMESTAMPTZ | no   |                                                          |
+| expires_at          | TIMESTAMPTZ | no   | Slides 30 days ahead on every refresh                    |
+| revoked_at          | TIMESTAMPTZ | yes  | Set on logout; the JWT strategy rejects revoked sessions |
 
-Future Use:
-
-This table will be used by the Connected Accounts feature (see features.md) to
-allow users to manually link/unlink OAuth providers from Account Settings.
-Auto-linking during login is prohibited per ADR-024.
-
----
+Indexes: `idx_user_sessions_user`; `idx_user_sessions_expires`.
 
 ### messes
 
-Each mess represents a household or shared-living entity.
+A shared household.
 
-| Field       | Type        | Nullable | Default           | Notes                      |
-| ----------- | ----------- | -------- | ----------------- | -------------------------- |
-| id          | UUID        | false    | gen_random_uuid() | Primary key                |
-| name        | TEXT        | false    | -                 | Mess display name          |
-| slug        | TEXT        | false    | -                 | URL-safe unique identifier |
-| description | TEXT        | true     | null              | Optional description       |
-| created_by  | UUID        | false    | -                 | FK to `users.id`           |
-| created_at  | TIMESTAMPTZ | false    | now()             | -                          |
-| updated_at  | TIMESTAMPTZ | false    | now()             | -                          |
-| deleted_at  | TIMESTAMPTZ | true     | null              | Soft delete                |
+| Field       | Type        | Null | Notes                       |
+| ----------- | ----------- | ---- | --------------------------- |
+| id          | UUID        | no   | PK                          |
+| name        | TEXT        | no   |                             |
+| slug        | TEXT        | no   | Unique, generated from name |
+| description | TEXT        | yes  |                             |
+| created_by  | UUID        | no   | FK users                    |
+| created_at  | TIMESTAMPTZ | no   |                             |
+| updated_at  | TIMESTAMPTZ | no   |                             |
+| deleted_at  | TIMESTAMPTZ | yes  | Soft delete                 |
 
-Indexes:
-
-- `idx_messes_slug` UNIQUE on (`slug`) where `deleted_at IS NULL`.
-- `idx_messes_created_by` on (`created_by`).
-
-Foreign keys:
-
-- `created_by` references `users(id`).
-
----
+Indexes: `messes_slug_key` UNIQUE (`slug`); `idx_messes_created_by`.
 
 ### mess_members
 
-Membership history for every user within each mess. Replaces a `members`
-sub-object on `messes`.
+Membership history of users in messes (ADR-023).
 
-| Field      | Type        | Nullable | Default           | Notes                                       |
-| ---------- | ----------- | -------- | ----------------- | ------------------------------------------- |
-| id         | UUID        | false    | gen_random_uuid() | Primary key                                 |
-| mess_id    | UUID        | false    | -                 | FK to `messes.id`                           |
-| user_id    | UUID        | false    | -                 | FK to `users.id`                            |
-| mess_role  | MessRole    | false    | -                 | MANAGER or MEMBER                           |
-| joined_at  | TIMESTAMPTZ | false    | now()             | -                                           |
-| removed_at | TIMESTAMPTZ | true     | null              | Membership end timestamp; NULL means active |
-| created_at | TIMESTAMPTZ | false    | now()             | -                                           |
-| updated_at | TIMESTAMPTZ | false    | now()             | -                                           |
-| deleted_at | TIMESTAMPTZ | true     | null              | Soft delete                                 |
+| Field      | Type        | Null | Notes                           |
+| ---------- | ----------- | ---- | ------------------------------- |
+| id         | UUID        | no   | PK; meals/deposits reference it |
+| mess_id    | UUID        | no   | FK messes, cascade delete       |
+| user_id    | UUID        | no   | FK users, cascade delete        |
+| mess_role  | MessRole    | no   |                                 |
+| joined_at  | TIMESTAMPTZ | no   | now()                           |
+| removed_at | TIMESTAMPTZ | yes  | null = active member            |
+| created_at | TIMESTAMPTZ | no   |                                 |
+| updated_at | TIMESTAMPTZ | no   |                                 |
+| deleted_at | TIMESTAMPTZ | yes  | Soft delete                     |
 
 Indexes:
 
-- `idx_mess_members_mess_user` UNIQUE on (`mess_id`, `user_id`) where
+- `mess_members_user_id_key` UNIQUE (`user_id`) WHERE `removed_at IS NULL`:
+  the database enforces one active mess per user (ADR-003).
+- `idx_mess_members_mess_active` (`mess_id`, `removed_at`) WHERE
   `deleted_at IS NULL`.
-- `idx_mess_members_mess_active` on (`mess_id`, `removed_at`) where
-  `deleted_at IS NULL`.
-- `idx_mess_members_user` on (`user_id`).
+- `idx_mess_members_user` (`user_id`).
 
-Foreign keys:
+Rules:
 
-- `mess_id` references `messes(id` ON DELETE CASCADE.
-- `user_id` references `users(id` ON DELETE CASCADE.
-
-Business constraints:
-
-- A user may have only one ACTIVE membership per mess at a time.
-- Only two MANAGER rows per mess at any point in time.
-- Active membership is determined by `removed_at IS NULL`.
-- Month participation is determined by:
-  `joined_at <= month_end AND (removed_at IS NULL OR removed_at >= month_start)`
-
----
+- At most 2 `MANAGER` rows per mess and at least 1 (ADR-004, enforced in the
+  service). Handover swaps roles in one transaction.
+- Active membership checks filter `removed_at IS NULL AND deleted_at IS NULL`.
+- Month participation:
+  `joined_at <= month_end AND (removed_at IS NULL OR removed_at >= month_start)`.
 
 ### months
 
-Accounting periods. Each month contains meal entries, expenses, deposits, and
-approvals for a single mess.
+Accounting periods.
 
-| Field        | Type        | Nullable | Default           | Notes                         |
-| ------------ | ----------- | -------- | ----------------- | ----------------------------- |
-| id           | UUID        | false    | gen_random_uuid() | Primary key                   |
-| mess_id      | UUID        | false    | -                 | FK to `messes.id`             |
-| title        | TEXT        | false    | -                 | Display title (ex. July 2026) |
-| month_status | MonthStatus | false    | -                 | ACTIVE or ARCHIVED            |
-| started_at   | DATE        | false    | -                 | First day of period           |
-| ended_at     | DATE        | true     | null              | Closing date                  |
-| created_by   | UUID        | false    | -                 | FK to `users.id`              |
-| created_at   | TIMESTAMPTZ | false    | now()             | -                             |
-| updated_at   | TIMESTAMPTZ | false    | now()             | -                             |
-| deleted_at   | TIMESTAMPTZ | true     | null              | Soft delete                   |
+| Field        | Type        | Null | Notes                                          |
+| ------------ | ----------- | ---- | ---------------------------------------------- |
+| id           | UUID        | no   | PK                                             |
+| mess_id      | UUID        | no   | FK messes, cascade delete                      |
+| title        | TEXT        | no   | Unique per mess ("November 2026 (2)" on clash) |
+| month_status | MonthStatus | no   |                                                |
+| started_at   | TIMESTAMPTZ | no   | When the manager started it                    |
+| ended_at     | TIMESTAMPTZ | yes  | Set on close                                   |
+| created_by   | UUID        | no   | FK users                                       |
+| created_at   | TIMESTAMPTZ | no   |                                                |
+| updated_at   | TIMESTAMPTZ | no   |                                                |
+| deleted_at   | TIMESTAMPTZ | yes  |                                                |
 
-Indexes:
-
-- `idx_months_mess_status` UNIQUE on (`mess_id`) where `month_status = ACTIVE`.
-- `idx_months_mess` on (`mess_id`).
-- `idx_months_dates` on (`started_at`, `ended_at`).
-
-Foreign keys:
-
-- `mess_id` references `messes(id` ON DELETE CASCADE.
-- `created_by` references `users(id`).
-
-Business constraints:
-
-- Only one ACTIVE month per mess.
-
----
+Indexes: `idx_months_mess_status` UNIQUE (`mess_id`) WHERE
+`month_status = 'ACTIVE'` (one active month per mess); `idx_months_mess`;
+`idx_months_dates` (`started_at`, `ended_at`).
 
 ### meal_types
 
-Configurable per-mess meal types with economy values. Active `name` keys for a
-mess define the `meals` JSONB keys on `meal_entries`.
+Per-mess meal types (ADR-005).
 
-| Field      | Type          | Nullable | Default           | Notes                                                    |
-| ---------- | ------------- | -------- | ----------------- | -------------------------------------------------------- |
-| id         | UUID          | false    | gen_random_uuid() | Primary key                                              |
-| mess_id    | UUID          | false    | -                 | FK to `messes.id`                                        |
-| name       | TEXT          | false    | -                 | ex. BREAKFAST                                            |
-| value      | DECIMAL(5, 2) | false    | -                 | Default daily count; prefills the meal grid (ex. 1, 0.5) |
-| is_active  | BOOLEAN       | false    | true              | Enable or disable                                        |
-| created_at | TIMESTAMPTZ   | false    | now()             | -                                                        |
-| updated_at | TIMESTAMPTZ   | false    | now()             | -                                                        |
-| deleted_at | TIMESTAMPTZ   | true     | null              | Soft delete                                              |
+| Field      | Type         | Null | Notes                                      |
+| ---------- | ------------ | ---- | ------------------------------------------ |
+| id         | UUID         | no   | PK; the key used in `meal_entries.meals`   |
+| mess_id    | UUID         | no   | FK messes, cascade delete                  |
+| name       | TEXT         | no   |                                            |
+| value      | DECIMAL(5,2) | no   | Default count the meal grid is filled with |
+| is_active  | BOOLEAN      | no   | true                                       |
+| created_at | TIMESTAMPTZ  | no   |                                            |
+| updated_at | TIMESTAMPTZ  | no   |                                            |
+| deleted_at | TIMESTAMPTZ  | yes  |                                            |
 
-Indexes:
+Every meal counts as 1 toward the bill; `value` is only the grid's default.
 
-- `idx_meal_types_mess_name` UNIQUE on (`mess_id`, `name`) where
-  `deleted_at IS NULL` and `is_active = true`.
-- `idx_meal_types_is_active` on (`is_active`).
-
-Foreign keys:
-
-- `mess_id` references `messes(id` ON DELETE CASCADE.
-
-Business constraints:
-
-- `value` must be positive.
-
----
+Indexes: `idx_meal_types_mess_name` UNIQUE (`mess_id`, `name`) WHERE
+`deleted_at IS NULL AND is_active = true`; `idx_meal_types_is_active`.
 
 ### meal_entries
 
-A daily meal record for one member. Stores selected meal types inside a JSONB
-column and the precomputed total meal value.
+One member's meals for one day (ADR-021).
 
-| Field      | Type           | Nullable | Default           | Notes                                           |
-| ---------- | -------------- | -------- | ----------------- | ----------------------------------------------- |
-| id         | UUID           | false    | gen_random_uuid() | Primary key                                     |
-| month_id   | UUID           | false    | -                 | FK to `months.id`                               |
-| member_id  | UUID           | false    | -                 | FK to `mess_members.id`                         |
-| date       | DATE           | false    | -                 | Meal date                                       |
-| meals      | JSONB          | false    | -                 | Map of active meal type keys to selected values |
-| total_meal | DECIMAL(10, 2) | false    | 0                 | Sum of meal counts for the date (each meal = 1) |
-| created_by | UUID           | false    | -                 | FK to `users.id`                                |
-| created_at | TIMESTAMPTZ    | false    | now()             | -                                               |
-| updated_at | TIMESTAMPTZ    | false    | now()             | -                                               |
-| deleted_at | TIMESTAMPTZ    | true     | null              | Soft delete                                     |
+| Field      | Type          | Null | Notes                                       |
+| ---------- | ------------- | ---- | ------------------------------------------- |
+| id         | UUID          | no   | PK                                          |
+| month_id   | UUID          | no   | FK months                                   |
+| member_id  | UUID          | no   | FK mess_members                             |
+| date       | TIMESTAMPTZ   | no   | UTC midnight of the day                     |
+| meals      | JSONB         | no   | `{ "<meal_type_id>": count }`, steps of 0.5 |
+| total_meal | DECIMAL(10,2) | no   | Sum of `meals`                              |
+| created_by | UUID          | no   | FK users                                    |
+| created_at | TIMESTAMPTZ   | no   |                                             |
+| updated_at | TIMESTAMPTZ   | no   |                                             |
+| deleted_at | TIMESTAMPTZ   | yes  |                                             |
 
-Indexes:
+Indexes: `idx_meal_entries_unique` UNIQUE (`month_id`, `member_id`, `date`)
+WHERE `deleted_at IS NULL`; `idx_meal_entries_month_date`;
+`idx_meal_entries_member`.
 
-- `idx_meal_entries_month_date` on (`month_id`, `date`).
-- `idx_meal_entries_member` on (`member_id`).
-- `idx_meal_entries_unique` UNIQUE on (`month_id`, `member_id`, `date`) where
-  `deleted_at IS NULL`.
+Rules (enforced in `apps/api/src/meals/meal-entries.ts`):
 
-Foreign keys:
-
-- `month_id` references `months(id` ON DELETE CASCADE.
-- `member_id` references `mess_members(id`).
-- `created_by` references `users(id`).
-
-Business constraints:
-
-- `member_id` must belong to the mess represented by `month_id`.
-- `meals` keys must be limited to active meal types for the mess.
-- `total_meal` must equal the sum of values stored in `meals`.
-
----
+- Only days that have ended (yesterday or earlier, Asia/Dhaka) can be saved.
+- A day must fall in the active month. A mess's first month may back-fill 31
+  days before it started; later months start on their own start day, because
+  earlier days belong to a closed month.
+- A day is saved once (`POST`); after that it is edited in Reports
+  (`PUT .../day`), one member or one day at a time.
 
 ### bazaar_submissions
 
-Manager-submitted bazaar expenses pending approval or finalized. Item details
-are stored in a JSONB array; total amount is denormalized for fast reporting.
+Grocery purchases awaiting approval (ADR-012, ADR-022).
 
-| Field        | Type           | Nullable | Default           | Notes                                                  |
-| ------------ | -------------- | -------- | ----------------- | ------------------------------------------------------ |
-| id           | UUID           | false    | gen_random_uuid() | Primary key                                            |
-| mess_id      | UUID           | false    | -                 | FK to `messes.id`                                      |
-| month_id     | UUID           | false    | -                 | FK to `months.id`                                      |
-| submitted_by | UUID           | false    | -                 | FK to `users.id`                                       |
-| status       | BazaarStatus   | false    | PENDING           | PENDING, APPROVED, REJECTED                            |
-| description  | TEXT           | true     | null              | Optional narrative                                     |
-| items        | JSONB          | false    | -                 | Ordered list of `{ "name": string, "amount": number }` |
-| total_amount | DECIMAL(12, 2) | false    | -                 | Sum of `items[].amount`                                |
-| expense_date | DATE           | false    | -                 | Date of purchase                                       |
-| approved_by  | UUID           | true     | null              | FK to `users.id`                                       |
-| approved_at  | TIMESTAMPTZ    | true     | null              | -                                                      |
-| created_at   | TIMESTAMPTZ    | false    | now()             | -                                                      |
-| updated_at   | TIMESTAMPTZ    | false    | now()             | -                                                      |
-| deleted_at   | TIMESTAMPTZ    | true     | null              | Soft delete                                            |
+| Field        | Type          | Null | Notes                                          |
+| ------------ | ------------- | ---- | ---------------------------------------------- |
+| id           | UUID          | no   | PK                                             |
+| mess_id      | UUID          | no   | FK messes, cascade delete                      |
+| month_id     | UUID          | no   | FK months                                      |
+| submitted_by | UUID          | no   | FK users; any active member may submit         |
+| status       | BazaarStatus  | no   | PENDING                                        |
+| description  | TEXT          | yes  |                                                |
+| items        | JSONB         | no   | `[{ name, amount }]`                           |
+| total_amount | DECIMAL(12,2) | no   | Sum of item amounts                            |
+| expense_date | TIMESTAMPTZ   | no   | UTC midnight                                   |
+| approved_by  | UUID          | yes  | FK users; the manager who approved or rejected |
+| approved_at  | TIMESTAMPTZ   | yes  |                                                |
+| created_at   | TIMESTAMPTZ   | no   |                                                |
+| updated_at   | TIMESTAMPTZ   | no   |                                                |
+| deleted_at   | TIMESTAMPTZ   | yes  |                                                |
 
-Indexes:
+Indexes: `idx_bazaar_submissions_mess_month`; `idx_bazaar_submissions_status`;
+`idx_bazaar_submissions_approved` (`approved_at`, `approved_by`) WHERE
+`status = 'APPROVED'`; `idx_bazaar_submissions_total_amount`.
 
-- `idx_bazaar_submissions_mess_month` on (`mess_id`, `month_id`).
-- `idx_bazaar_submissions_status` on (`status`).
-- `idx_bazaar_submissions_approved` on (`approved_at`, `approved_by`) where
-  `status = APPROVED`.
-
-Foreign keys:
-
-- `mess_id` references `messes(id` ON DELETE CASCADE.
-- `month_id` references `months(id`).
-- `submitted_by` references `users(id`.
-- `approved_by` references `users(id`) nullable.
-
-Business constraints:
-
-- Only a MANAGER may submit and approve bazaars.
-- `total_amount` must equal the sum of amounts in `items`.
-- `items` must be a non-empty array when `status != REJECTED`.
-
----
+Rules: the submitter or a manager may edit or delete a submission while it is
+PENDING. Approval creates a `BAZAAR` expense in the same transaction. Closing
+a month rejects every submission still PENDING.
 
 ### expenses
 
-Canonical expense ledger backed by bazaar submissions, shared costs, and
-individual charges.
+The expense ledger. Hard-deleted (no `deleted_at`).
 
-| Field        | Type           | Nullable | Default           | Notes                      |
-| ------------ | -------------- | -------- | ----------------- | -------------------------- |
-| id           | UUID           | false    | gen_random_uuid() | Primary key                |
-| mess_id      | UUID           | false    | -                 | FK to `messes.id`          |
-| month_id     | UUID           | false    | -                 | FK to `months.id`          |
-| type         | ExpenseType    | false    | -                 | BAZAAR, SHARED, INDIVIDUAL |
-| title        | TEXT           | false    | -                 | Short description          |
-| amount       | DECIMAL(12, 2) | false    | -                 | Total expense amount       |
-| created_by   | UUID           | false    | -                 | FK to `users.id`           |
-| expense_date | DATE           | false    | -                 | When the spend occurred    |
-| created_at   | TIMESTAMPTZ    | false    | now()             | -                          |
-| updated_at   | TIMESTAMPTZ    | false    | now()             | -                          |
+| Field        | Type          | Null | Notes                     |
+| ------------ | ------------- | ---- | ------------------------- |
+| id           | UUID          | no   | PK                        |
+| mess_id      | UUID          | no   | FK messes, cascade delete |
+| month_id     | UUID          | no   | FK months                 |
+| type         | ExpenseType   | no   |                           |
+| title        | TEXT          | no   |                           |
+| amount       | DECIMAL(12,2) | no   |                           |
+| created_by   | UUID          | no   | FK users                  |
+| expense_date | TIMESTAMPTZ   | no   | UTC midnight              |
+| created_at   | TIMESTAMPTZ   | no   |                           |
+| updated_at   | TIMESTAMPTZ   | no   |                           |
 
-Indexes:
+Indexes: `idx_expenses_mess_month`; `idx_expenses_type`; `idx_expenses_created`.
 
-- `idx_expenses_mess_month` on (`mess_id`, `month_id`).
-- `idx_expenses_type` on (`type`).
-- `idx_expenses_created` on (`created_by`).
-
-Foreign keys:
-
-- `mess_id` references `messes(id` ON DELETE CASCADE.
-- `month_id` references `months(id`).
-- `created_by` references `users(id`.
-
-Business constraints:
-
-- Once created, `expenses` rows are never updated.
-- Bazaar expenses are always created atomically when the bazaar is approved.
-
----
+Rules: managers may edit or delete expenses of the active month. An edit
+replaces the expense's `expense_members` rows. A delete removes the expense
+and its allocations and logs `EXPENSE_DELETED` with a snapshot in `details`.
 
 ### expense_members
 
-Splits an expense across eligible members with immutable allocations. The
-authoritative source for historical share calculations.
+How a SHARED or INDIVIDUAL expense is split.
 
-| Field            | Type           | Nullable | Default           | Notes                   |
-| ---------------- | -------------- | -------- | ----------------- | ----------------------- |
-| id               | UUID           | false    | gen_random_uuid() | Primary key             |
-| expense_id       | UUID           | false    | -                 | FK to `expenses.id`     |
-| member_id        | UUID           | false    | -                 | FK to `mess_members.id` |
-| allocated_amount | DECIMAL(12, 2) | false    | -                 | Member portion          |
-| created_at       | TIMESTAMPTZ    | false    | now()             | -                       |
+| Field            | Type          | Null | Notes                    |
+| ---------------- | ------------- | ---- | ------------------------ |
+| id               | UUID          | no   | PK                       |
+| expense_id       | UUID          | no   | FK expenses, cascade     |
+| member_id        | UUID          | no   | FK mess_members          |
+| allocated_amount | DECIMAL(12,2) | no   | Shares sum to the amount |
+| created_at       | TIMESTAMPTZ   | no   |                          |
 
-Indexes:
+Indexes: `idx_expense_members_unique` UNIQUE (`expense_id`, `member_id`);
+`idx_expense_members_expense`; `idx_expense_members_member`.
 
-- `idx_expense_members_expense` on (`expense_id`).
-- `idx_expense_members_member` on (`member_id`).
-- `idx_expense_members_unique` UNIQUE on (`expense_id`, `member_id`).
-
-Foreign keys:
-
-- `expense_id` references `expenses(id` ON DELETE CASCADE.
-- `member_id` references `mess_members(id`).
-
-Business constraints:
-
-- `allocated_amount` values for one expense must sum to the expense `amount`.
-- Historical allocations are immutable.
-
----
+BAZAAR expenses have no allocations: they are shared by meals through the
+meal rate.
 
 ### deposits
 
-Member cash deposits toward their ongoing balance.
+Money a member paid into the mess.
 
-| Field        | Type           | Nullable | Default           | Notes                   |
-| ------------ | -------------- | -------- | ----------------- | ----------------------- |
-| id           | UUID           | false    | gen_random_uuid() | Primary key             |
-| mess_id      | UUID           | false    | -                 | FK to `messes.id`       |
-| month_id     | UUID           | false    | -                 | FK to `months.id`       |
-| member_id    | UUID           | false    | -                 | FK to `mess_members.id` |
-| amount       | DECIMAL(12, 2) | false    | -                 | Positive deposit amount |
-| note         | TEXT           | true     | null              | Optional explanation    |
-| deposit_date | DATE           | false    | -                 | Date of deposit         |
-| created_by   | UUID           | false    | -                 | FK to `users.id`        |
-| created_at   | TIMESTAMPTZ    | false    | now()             | -                       |
-| updated_at   | TIMESTAMPTZ    | false    | now()             | -                       |
-| deleted_at   | TIMESTAMPTZ    | true     | null              | Soft delete             |
+| Field        | Type          | Null | Notes                     |
+| ------------ | ------------- | ---- | ------------------------- |
+| id           | UUID          | no   | PK                        |
+| mess_id      | UUID          | no   | FK messes, cascade delete |
+| month_id     | UUID          | no   | FK months                 |
+| member_id    | UUID          | no   | FK mess_members           |
+| amount       | DECIMAL(12,2) | no   | Positive                  |
+| deposit_date | TIMESTAMPTZ   | no   | UTC midnight              |
+| created_by   | UUID          | no   | FK users                  |
+| created_at   | TIMESTAMPTZ   | no   |                           |
+| updated_at   | TIMESTAMPTZ   | no   |                           |
+| deleted_at   | TIMESTAMPTZ   | yes  | Soft delete               |
 
-Indexes:
-
-- `idx_deposits_mess_month` on (`mess_id`, `month_id`).
-- `idx_deposits_member` on (`member_id`).
-- `idx_deposits_date` on (`deposit_date`).
-
-Foreign keys:
-
-- `mess_id` references `messes(id` ON DELETE CASCADE.
-- `month_id` references `months(id`).
-- `member_id` references `mess_members(id`).
-- `created_by` references `users(id`.
-
-Business constraints:
-
-- `amount` must be positive.
-
----
+Indexes: `idx_deposits_mess_month`; `idx_deposits_member`; `idx_deposits_date`.
 
 ### member_month_summaries
 
-Account snapshot generated when a month is closed. This is the primary balance
-statement.
+Each member's statement, written once when a month closes (ADR-009).
 
-| Field           | Type           | Nullable | Default           | Notes                    |
-| --------------- | -------------- | -------- | ----------------- | ------------------------ |
-| id              | UUID           | false    | gen_random_uuid() | Primary key              |
-| month_id        | UUID           | false    | -                 | FK to `months.id`        |
-| member_id       | UUID           | false    | -                 | FK to `mess_members.id`  |
-| total_meals     | INT            | false    | 0                 | Aggregated meal count    |
-| meal_cost       | DECIMAL(12, 2) | false    | 0.00              | Sum of meal costs        |
-| shared_cost     | DECIMAL(12, 2) | false    | 0.00              | Shared expense share     |
-| individual_cost | DECIMAL(12, 2) | false    | 0.00              | Individual expense share |
-| deposit_amount  | DECIMAL(12, 2) | false    | 0.00              | Total deposits in month  |
-| final_bill      | DECIMAL(12, 2) | false    | 0.00              | Net billing              |
-| final_balance   | DECIMAL(12, 2) | false    | 0.00              | Outstanding balance      |
-| created_at      | TIMESTAMPTZ    | false    | now()             | Generated timestamp      |
+| Field           | Type          | Notes                                     |
+| --------------- | ------------- | ----------------------------------------- |
+| id              | UUID          | PK                                        |
+| month_id        | UUID          | FK months, cascade delete                 |
+| member_id       | UUID          | FK mess_members                           |
+| total_meals     | DECIMAL(10,2) |                                           |
+| meal_cost       | DECIMAL(12,2) | Bazaar split by meals (largest remainder) |
+| shared_cost     | DECIMAL(12,2) | Sum of SHARED allocations                 |
+| individual_cost | DECIMAL(12,2) | INDIVIDUAL allocations + carried-in due   |
+| deposit_amount  | DECIMAL(12,2) | Deposits + carried-in balance             |
+| final_bill      | DECIMAL(12,2) | meal + shared + individual                |
+| final_balance   | DECIMAL(12,2) | deposit_amount − final_bill               |
+| created_at      | TIMESTAMPTZ   |                                           |
 
-Indexes:
+Indexes: `idx_member_month_summaries_month_member` UNIQUE (`month_id`,
+`member_id`); `idx_member_month_summaries_month`;
+`idx_member_month_summaries_balance` (`final_balance`).
 
-- `idx_member_month_summaries_month_member` UNIQUE on (`month_id`, `member_id`).
-- `idx_member_month_summaries_month` on (`month_id`).
-- `idx_member_month_summaries_balance` on (`final_balance`).
-
-Foreign keys:
-
-- `month_id` references `months(id` ON DELETE CASCADE.
-- `member_id` references `mess_members(id`.
-
-Business constraints:
-
-- Rows are created only once when the corresponding month is closed.
-- Never subject to recalculation after creation.
-
----
+The maths lives in `apps/api/src/months/month-summary.ts`.
 
 ### carry_forward_balances
 
-Records balance movement from one month to the next so that carry-forward
-history is audit-able.
+Balances moved from a closed month into the next one (ADR-008).
 
-| Field              | Type             | Nullable | Default           | Notes                            |
-| ------------------ | ---------------- | -------- | ----------------- | -------------------------------- |
-| id                 | UUID             | false    | gen_random_uuid() | Primary key                      |
-| source_month_id    | UUID             | false    | -                 | FK to `months.id`                |
-| target_month_id    | UUID             | false    | -                 | FK to `months.id`                |
-| member_id          | UUID             | false    | -                 | FK to `mess_members.id`          |
-| amount             | DECIMAL(12, 2)   | false    | -                 | Balance value carried            |
-| carry_forward_type | CarryForwardType | false    | -                 | PREVIOUS_DUE or PREVIOUS_BALANCE |
-| created_at         | TIMESTAMPTZ      | false    | now()             | -                                |
+| Field              | Type             | Notes                                          |
+| ------------------ | ---------------- | ---------------------------------------------- |
+| id                 | UUID             | PK                                             |
+| source_month_id    | UUID             | FK months (the closed month)                   |
+| target_month_id    | UUID             | FK months (the new month)                      |
+| member_id          | UUID             | FK mess_members                                |
+| amount             | DECIMAL(12,2)    | Always positive                                |
+| carry_forward_type | CarryForwardType | PREVIOUS_BALANCE = credit, PREVIOUS_DUE = owed |
+| created_at         | TIMESTAMPTZ      |                                                |
 
-Indexes:
+Indexes: `idx_carry_forward_member_months` (`member_id`, `source_month_id`,
+`target_month_id`); `idx_carry_forward_target`.
 
-- `idx_carry_forward_member_months` on (`member_id`, `source_month_id`,
-  `target_month_id`).
-- `idx_carry_forward_target` on (`target_month_id`).
-
-Foreign keys:
-
-- `source_month_id` references `months(id`).
-- `target_month_id` references `months(id`).
-- `member_id` references `mess_members(id).
-
-Business constraints:
-
-- `amount` must be non-negative.
-- Created only during month close.
-
----
+Carries are not written as deposit or expense rows. The summary maths and the
+live calculations count PREVIOUS_BALANCE as a deposit and PREVIOUS_DUE as an
+individual cost. The UI shows them in a separate "Carried in" column. Members
+removed before the close are not carried; the manager may also switch carry
+forward off or exclude members (`carryForward` on `POST /months/:messId`).
 
 ### activity_logs
 
-Recorder of all significant accounting and member changes. Immutable after
-creation. Never bypassed for any accounting action.
+Audit trail and activity feed (ADR-013).
 
-| Field       | Type            | Nullable | Default           | Notes                     |
-| ----------- | --------------- | -------- | ----------------- | ------------------------- |
-| id          | UUID            | false    | gen_random_uuid() | Primary key               |
-| mess_id     | UUID            | false    | -                 | FK to `messes.id`         |
-| month_id    | UUID            | true     | null              | FK to `months.id`         |
-| actor_id    | UUID            | false    | -                 | FK to `users.id`          |
-| action      | activity_action | false    | -                 | ex. EXPENSE_APPROVED      |
-| entity_type | TEXT            | true     | null              | ex. EXPENSE               |
-| entity_id   | UUID            | true     | null              | PK of the affected record |
-| created_at  | TIMESTAMPTZ     | false    | now()             | -                         |
+| Field       | Type            | Null | Notes                                        |
+| ----------- | --------------- | ---- | -------------------------------------------- |
+| id          | UUID            | no   | PK                                           |
+| mess_id     | UUID            | no   | FK messes, cascade delete                    |
+| month_id    | UUID            | yes  | FK months                                    |
+| actor_id    | UUID            | no   | FK users                                     |
+| action      | activity_action | no   |                                              |
+| entity_type | TEXT            | yes  | e.g. `deposits`, `meal_day`                  |
+| entity_id   | TEXT            | yes  | Affected record                              |
+| details     | JSONB           | yes  | Snapshot (deleted expenses, meal-day counts) |
+| created_at  | TIMESTAMPTZ     | no   |                                              |
 
-Indexes:
+Indexes: `idx_activity_logs_mess_created` (`mess_id`, `created_at` DESC);
+`idx_activity_logs_actor`.
 
-- `idx_activity_logs_mess_created` on (`mess_id`, `created_at` DESC).
-- `idx_activity_logs_actor` on (`actor_id`).
-- `idx_activity_logs_entity` on (`entity_type`, `entity_id`).
-- `idx_activity_logs_action` on (`action`).
-
-Foreign keys:
-
-- `mess_id` references `messes(id` ON DELETE CASCADE.
-- `month_id` references `months(id`) nullable.
-- `actor_id` references `users(id`.
-
----
+Volume rules: a meal save writes one row per day (`entity_type: 'meal_day'`,
+member and meal counts in `details`), not one per member. Rows older than 12
+months are deleted for a mess when it opens a new month
+(`ACTIVITY_RETENTION_MONTHS`, ADR-028).
 
 ### join_requests
 
-Stores join request history. Primary validation happens in Redis with 10-minute
-TTL. This table is primarily for audit and retry after expiration.
+Invites from a manager to an existing user (ADR-015).
 
-| Field        | Type        | Nullable | Default           | Notes                                |
-| ------------ | ----------- | -------- | ----------------- | ------------------------------------ |
-| id           | UUID        | false    | gen_random_uuid() | Primary key                          |
-| mess_id      | UUID        | false    | -                 | FK to `messes.id`                    |
-| user_id      | UUID        | false    | -                 | FK to `users.id`                     |
-| requested_by | UUID        | false    | -                 | FK to `users.id`                     |
-| status       | TEXT        | false    | -                 | PENDING, APPROVED, REJECTED, EXPIRED |
-| verified_at  | TIMESTAMPTZ | true     | null              | Manager approval timestamp           |
-| created_at   | TIMESTAMPTZ | false    | now()             | -                                    |
+| Field        | Type        | Null | Notes                                  |
+| ------------ | ----------- | ---- | -------------------------------------- |
+| id           | UUID        | no   | PK                                     |
+| mess_id      | UUID        | no   | FK messes, cascade delete              |
+| user_id      | UUID        | no   | Invited user, FK users, cascade delete |
+| requested_by | UUID        | no   | Inviting manager, FK users             |
+| status       | TEXT        | no   | PENDING, ACCEPTED, REJECTED, EXPIRED   |
+| verified_at  | TIMESTAMPTZ | yes  | When accepted or rejected              |
+| created_at   | TIMESTAMPTZ | no   |                                        |
 
-Indexes:
+Indexes: `idx_join_requests_mess_user` UNIQUE (`mess_id`, `user_id`) WHERE
+`status = 'PENDING'`; `idx_join_requests_user`.
 
-- `idx_join_requests_mess_user` UNIQUE on (`mess_id`, `user_id`) where
-  `status = PENDING`.
-- `idx_join_requests_user` on (`user_id`).
-
-Foreign keys:
-
-- `mess_id` references `messes(id` ON DELETE CASCADE.
-- `user_id` references `users(id` ON DELETE CASCADE.
-- `requested_by` references `users(id`.
-
-Business constraints:
-
-- TTL enforcement is the responsibility of the backend without a database-side
-  reminder.
-
----
-
-## Additional Enums
-
-### ApprovedAction
-
-```text
-BAZAAR_APPROVED
-BAZAAR_REJECTED
-```
-
-### action
-
-```text
-MEMBER_ADDED
-MEMBER_REMOVED
-MANAGER_ASSIGNED
-MEAL_ADDED
-MEAL_UPDATED
-MEAL_DELETED
-EXPENSE_ADDED
-EXPENSE_UPDATED
-DEPOSIT_ADDED
-DEPOSIT_UPDATED
-MONTH_OPENED
-MONTH_CLOSED
-MEMBER_BALANCE_CREATED
-```
-
----
-
-## Index Summary
-
-| Table                  | Index                                     | Type   | Columns                                |
-| ---------------------- | ----------------------------------------- | ------ | -------------------------------------- |
-| users                  | `idx_users_email`                         | Unique | `email` (partial)                      |
-| users                  | `idx_users_system_role`                   | Normal | `system_role`                          |
-| oauth_accounts         | `idx_oauth_accounts_user_provider`        | Unique | `user_id, provider`                    |
-| messes                 | `idx_messes_slug`                         | Unique | `slug` (partial)                       |
-| mess_members           | `idx_mess_members_mess_user`              | Unique | `mess_id, user_id` (partial)           |
-| mess_members           | `idx_mess_members_mess_active`            | Normal | `mess_id, removed_at` (partial)        |
-| mess_members           | `idx_mess_members_user`                   | Normal | `user_id`                              |
-| months                 | `idx_months_mess_status`                  | Unique | `mess_id` (partial)                    |
-| months                 | `idx_months_mess`                         | Normal | `mess_id`                              |
-| months                 | `idx_months_dates`                        | Normal | `started_at, ended_at`                 |
-| meal_types             | `idx_meal_types_mess_name`                | Unique | `mess_id, name` (partial)              |
-| meal_entries           | `idx_meal_entries_month_date`             | Normal | `month_id, date`                       |
-| meal_entries           | `idx_meal_entries_member`                 | Normal | `member_id`                            |
-| meal_entries           | `idx_meal_entries_unique`                 | Unique | `month_id, member_id, date` (partial)  |
-| meal_entries           | `idx_meal_entries_total_meal`             | Normal | `total_meal`                           |
-| bazaar_submissions     | `idx_bazaar_submissions_mess_month`       | Normal | `mess_id, month_id`                    |
-| bazaar_submissions     | `idx_bazaar_submissions_status`           | Normal | `status`                               |
-| bazaar_submissions     | `idx_bazaar_submissions_approved`         | Normal | `approved_at`, `approved_by` (partial) |
-| bazaar_submissions     | `idx_bazaar_submissions_total_amount`     | Normal | `total_amount`                         |
-| expenses               | `idx_expenses_mess_month`                 | Normal | `mess_id, month_id`                    |
-| expenses               | `idx_expenses_type`                       | Normal | `type`                                 |
-| deposits               | `idx_deposits_mess_month`                 | Normal | `mess_id, month_id`                    |
-| deposits               | `idx_deposits_member`                     | Normal | `member_id`                            |
-| deposits               | `idx_deposits_date`                       | Normal | `deposit_date`                         |
-| member_month_summaries | `idx_member_month_summaries_month_member` | Unique | `month_id, member_id`                  |
-| member_month_summaries | `idx_member_month_summaries_month`        | Normal | `month_id`                             |
-| carry_forward_balances | `idx_carry_forward_months`                | Normal | `source_month_id, target_month_id`     |
-| carry_forward_balances | `idx_carry_forward_target`                | Normal | `target_month_id`                      |
-| activity_logs          | `idx_activity_logs_mess_created`          | Normal | `mess_id, created_at DESC`             |
-| activity_logs          | `idx_activity_logs_actor`                 | Normal | `actor_id`                             |
-| activity_logs          | `idx_activity_logs_entity`                | Normal | `entity_type, entity_id`               |
-| activity_logs          | `idx_activity_logs_action`                | Normal | `action`                               |
-| join_requests          | `idx_join_requests_mess_user`             | Unique | `mess_id, user_id` (partial)           |
+Pending invites older than 7 days are marked EXPIRED when the invitee's
+pending list is read.
 
 ---
 
 ## Soft Delete Strategy
 
-Every major table stores a `deleted_at` timestamp:
-
-```text
-NULL  -> Active
-NOT NULL -> Deleted
-```
-
-Delete operations never physically remove rows. Use partial indexes on critical
-unique keys so soft-deleted rows do not block new inserts.
-
----
+`deleted_at IS NULL` means active. Soft-deleted rows stay for history, and
+partial unique indexes ignore them so a new row can take their place.
+`expenses` and `expense_members` are hard-deleted; the activity log keeps the
+record.
 
 ## Immutability Rules
 
-- `expense_members` allocations must never change after creation.
-- `activity_logs` rows must never be deleted or modified.
-- `member_month_summaries` is created only once at month close and is never
+- `member_month_summaries` is written once at month close and never
   recalculated.
-- `meal_entries`, `carry_forward_balances` are append-only once written.
-
----
-
-## Future Expansion Compatibility
-
-This schema already supports:
-
-- Multi-tenant SaaS without structural changes.
-- Mobile app integration through singular `users` source of truth.
-- Unified activity feed through `activity_logs` serves notification-center use
-  cases without a separate `notifications` table.
-- Multiple OAuth providers through the `oauth_accounts` table.
-- Recurring expense templates through the `expenses` table with new flags.
-- Structured bazaar payloads through the `bazaar_submissions.items` JSONB
-  column.
-- Analytics and reporting due to immutable `activity_logs` and explicit
-  timestamps.
+- Closed (ARCHIVED) months accept no meals, expenses, deposits or bazaar
+  changes.
+- Changes to the active month (editing meals, expenses, deposits) are allowed
+  and always logged in `activity_logs`.
+- `activity_logs` rows are never edited; they are deleted only by the
+  12-month retention purge.

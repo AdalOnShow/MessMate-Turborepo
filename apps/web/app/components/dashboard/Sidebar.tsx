@@ -9,6 +9,7 @@ import { useLogout } from "../../hooks/use-auth";
 import { useGetMyMess } from "../../hooks/use-messes";
 import { useTranslations } from "next-intl";
 import { LanguageToggle } from "../LanguageToggle";
+import { ThemeToggle } from "../ThemeToggle";
 import { UserAvatar } from "./UserAvatar";
 import { LinkPendingDot } from "../ui/link-pending";
 import { UnreadBadge } from "./activity/NotificationBell";
@@ -119,15 +120,19 @@ export function Sidebar() {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => logout.mutate()}
-          disabled={logout.isPending}
-          className="flex h-10 w-full items-center justify-center gap-2 rounded-[9px] border border-border text-sm font-semibold text-foreground-muted transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <LogOut size={16} aria-hidden="true" />
-          {tc("logout")}
-        </button>
+        {/* Desktop has no More sheet, so the theme switch lives here. */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle className="size-10 shrink-0 rounded-[9px] border border-border bg-transparent text-foreground-muted hover:bg-surface-raised hover:text-foreground [&_svg]:size-4" />
+          <button
+            type="button"
+            onClick={() => logout.mutate()}
+            disabled={logout.isPending}
+            className="flex h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-[9px] border border-border text-sm font-semibold text-foreground-muted transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <LogOut size={16} aria-hidden="true" />
+            {tc("logout")}
+          </button>
+        </div>
       </div>
     </aside>
   );

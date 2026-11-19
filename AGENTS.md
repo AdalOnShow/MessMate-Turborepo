@@ -94,7 +94,7 @@ cd packages/database && pnpm generate  # prisma generate
 
 - Dark theme primary. CSS variables in `globals.css` via Tailwind v4 `@theme`.
 - Use `foreground`, `foreground-muted`, `primary`, `surface`, `surface-raised` etc. from the theme.
-- Font: Plus Jakarta Sans (headings + body), Alkatra (Bengali accents).
+- Fonts: Inter (headings + body), Noto Sans Bengali (Bangla), JetBrains Mono (labels). Flat surfaces, no gradients. See `context/design.md`.
 - No shadcn/ui — custom Tailwind components only.
 - Lucide React for icons.
 

@@ -103,6 +103,8 @@
   "meals": {
     "daySavedTitle": "This day's meals are already saved",
     "daySavedHint": "To change them, open Reports → Meals and edit this day.",
+    "noDayYetTitle": "No day of {month} can be filled in yet",
+    "noDayYetHint": "Meals are saved for days that have ended. The first day of this month opens tomorrow.",
     "openReports": "Open Reports",
     "meals": "Meals",
     "mealManagement": "Meal Management",

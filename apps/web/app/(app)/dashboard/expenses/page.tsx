@@ -2,7 +2,11 @@
 
 import { PageTips } from "../../../components/help/PageTips";
 
-import { formatDateOnly, toDateOnlyISO } from "../../../lib/format";
+import {
+  formatDateOnly,
+  formatMoneyExact,
+  toDateOnlyISO,
+} from "../../../lib/format";
 import { showSuccess } from "../../../store/success-dialog";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
@@ -22,14 +26,6 @@ import {
   QueriesErrorState,
   failedQueries,
 } from "../../../components/feedback/QueryErrorState";
-
-function formatMoney(n: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "BDT",
-    maximumFractionDigits: 2,
-  }).format(n);
-}
 
 function computeSplit(amount: number, count: number): number[] {
   if (count <= 0 || amount <= 0) return [];
@@ -118,7 +114,10 @@ export default function AddExpensePage() {
           title: "expenseAdded",
           rows: [
             { label: tsd("labels.title"), value: payload.title },
-            { label: tsd("labels.amount"), value: formatMoney(parsedAmount) },
+            {
+              label: tsd("labels.amount"),
+              value: formatMoneyExact(parsedAmount),
+            },
             {
               label: tsd("labels.split"),
               value:
@@ -417,7 +416,7 @@ export default function AddExpensePage() {
                       <span className="flex-1">{member.user.name}</span>
                       {isChecked && type === "SHARED" && shares.length > 0 && (
                         <span className="text-xs font-medium text-foreground-muted">
-                          {formatMoney(
+                          {formatMoneyExact(
                             shares[selected.indexOf(member.id)] ?? 0,
                           )}
                         </span>
@@ -438,7 +437,7 @@ export default function AddExpensePage() {
                 <div className="mb-2 flex items-center gap-2 text-primary">
                   <Users size={14} />
                   <span className="text-xs font-mono font-medium uppercase tracking-[0.1em]">
-                    {t("autoSplit")} {formatMoney(parsedAmount)} ÷{" "}
+                    {t("autoSplit")} {formatMoneyExact(parsedAmount)} ÷{" "}
                     {selected.length}
                   </span>
                 </div>
@@ -452,14 +451,14 @@ export default function AddExpensePage() {
                         {member.user.name}
                       </span>
                       <span className="font-semibold text-foreground">
-                        {formatMoney(shares[index] ?? 0)}
+                        {formatMoneyExact(shares[index] ?? 0)}
                       </span>
                     </div>
                   ))}
                   <div className="mt-1 flex items-center justify-between border-t border-primary/15 pt-1.5 text-sm">
                     <span className="text-foreground-muted">{t("total")}</span>
                     <span className="font-bold text-primary">
-                      {formatMoney(parsedAmount)}
+                      {formatMoneyExact(parsedAmount)}
                     </span>
                   </div>
                 </div>

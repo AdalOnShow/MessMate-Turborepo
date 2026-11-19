@@ -11,7 +11,10 @@ import { useOnline } from "../../../hooks/use-online";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGetMyMess } from "../../../hooks/use-messes";
-import { useGetActiveMonth } from "../../../hooks/use-months";
+import {
+  useGetActiveMonth,
+  useGetMonthHistory,
+} from "../../../hooks/use-months";
 import {
   useGetMealTypes,
   useCreateMealType,
@@ -75,6 +78,9 @@ function latestMealDate(): string {
   }).format(new Date());
   return shiftDate(todayDhaka, -1);
 }
+
+/** Days a mess's first month may reach back before it started. */
+const FIRST_MONTH_GRACE_DAYS = 31;
 
 // Every +/− press changes a meal count by half a meal.
 const MEAL_STEP = 0.5;
@@ -170,6 +176,31 @@ export default function MealsPage() {
   // Recomputed each render so a page left open past midnight moves on too.
   const latestDate = latestMealDate();
   const atLatest = selectedDate >= latestDate;
+
+  // The earliest day the API accepts for this month (prepareMealEntries in
+  // apps/api/src/meals/meal-entries.ts): the month's start day once an
+  // earlier month exists, since every day before it belongs to that closed
+  // month; a mess's first month may back-fill 31 days. No limit until the
+  // history has loaded (the API still checks).
+  const historyQuery = useGetMonthHistory(messId);
+  const history = historyQuery.data;
+  const startDay = activeMonth?.started_at.slice(0, 10);
+  const earliestDate =
+    startDay && activeMonth && history
+      ? history.some(
+          (m) =>
+            m.id !== activeMonth.id && m.started_at < activeMonth.started_at,
+        )
+        ? startDay
+        : shiftDate(startDay, -FIRST_MONTH_GRACE_DAYS)
+      : undefined;
+  // A month opened today (e.g. on the 1st, right after closing the last
+  // one) has no finished day yet: yesterday belongs to the closed month.
+  const noDayYet = !!earliestDate && latestDate < earliestDate;
+  const atEarliest = !!earliestDate && selectedDate <= earliestDate;
+  if (earliestDate && !noDayYet && selectedDate < earliestDate) {
+    setSelectedDate(earliestDate);
+  }
 
   const entriesQuery = useGetMealEntries(
     messId,
@@ -438,8 +469,9 @@ export default function MealsPage() {
                 setSelectedDate((d) => shiftDate(d, -1));
                 setLocalGrid({});
               }}
+              disabled={atEarliest || noDayYet}
               aria-label="Previous day"
-              className="flex size-11 shrink-0 items-center justify-center text-foreground-muted active:text-foreground sm:size-9"
+              className="flex size-11 shrink-0 items-center justify-center text-foreground-muted active:text-foreground disabled:opacity-30 sm:size-9"
             >
               <ChevronLeft size={18} />
             </button>
@@ -447,6 +479,8 @@ export default function MealsPage() {
               <DatePicker
                 date={parseDate(selectedDate)}
                 maxDate={parseDate(latestDate)}
+                minDate={earliestDate ? parseDate(earliestDate) : undefined}
+                disabled={noDayYet}
                 onSelect={(d) => {
                   if (!d) return;
                   setSelectedDate(formatDate(d));
@@ -461,7 +495,7 @@ export default function MealsPage() {
                 setSelectedDate((d) => shiftDate(d, 1));
                 setLocalGrid({});
               }}
-              disabled={atLatest}
+              disabled={atLatest || noDayYet}
               aria-label="Next day"
               className="flex size-11 shrink-0 items-center justify-center text-foreground-muted active:text-foreground disabled:opacity-30 sm:size-9"
             >
@@ -473,7 +507,14 @@ export default function MealsPage() {
 
       {/* Without the saved entries the grid would show zeros, and saving it
           would overwrite real data, so show the error instead. */}
-      {entriesQuery.isError && !entries ? (
+      {noDayYet ? (
+        <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-6 text-center">
+          <p className="text-sm font-semibold text-foreground">
+            {t("noDayYetTitle", { month: activeMonth.title })}
+          </p>
+          <p className="text-sm text-foreground-muted">{t("noDayYetHint")}</p>
+        </div>
+      ) : entriesQuery.isError && !entries ? (
         <QueryErrorState
           error={entriesQuery.error}
           onRetry={entriesQuery.refetch}

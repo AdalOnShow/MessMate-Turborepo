@@ -238,6 +238,17 @@ Previous Month Due
 - Simplifies accounting
 - Preserves balance history
 
+## Implementation (Nov 2026)
+
+Carries are stored as `carry_forward_balances` rows, not as real deposit or
+expense rows. The maths treats `PREVIOUS_BALANCE` as a deposit and
+`PREVIOUS_DUE` as an individual cost (`apps/api/src/months/month-summary.ts`).
+The UI shows carried amounts in their own "Carried in" column, so they are not
+confused with the month's own individual expenses. When starting a month, the
+manager can switch carry forward off or exclude members who settled in cash.
+Members removed before the close keep their summary but are not carried.
+Close, summaries, the new month, carries and logs run in one transaction.
+
 ---
 
 # ADR-009: Historical Data Preservation
@@ -317,6 +328,13 @@ Future membership changes do not affect the calculation.
 - Historical accuracy
 - Accounting consistency
 
+## Amendment (Nov 2026)
+
+Membership changes never touch existing allocations. A manager editing an
+expense of the **active** month replaces its allocations in the same
+transaction, and the change is logged. Expenses of closed months cannot be
+edited.
+
 ---
 
 # ADR-012: Bazaar Approval Workflow
@@ -376,6 +394,12 @@ Examples:
 - Traceability
 - Accountability
 
+## Amendment (Nov 2026)
+
+Logs are written in the same `prisma.$transaction` as the change they
+describe. See ADR-028 for volume and retention: one row per meal-day, and
+12 months kept.
+
 ---
 
 # ADR-014: Manager-Created Accounts
@@ -406,6 +430,13 @@ manager_created = false
 
 - Easier onboarding
 - Less friction for mess members
+
+## Amendment (Nov 2026)
+
+The manager chooses the initial password, so they know it. Such accounts get
+`must_change_password = true`, and the dashboard shows a "Set your own
+password" notice linking to Profile until the member changes it
+(`PATCH /users/me/password` clears the flag).
 
 ---
 
@@ -696,6 +727,154 @@ Account linking must occur from an authenticated settings page.
 - Improve user control
 - Simplify future OAuth provider support
 - Reduce account takeover risk
+
+---
+
+# ADR-025: Device Sessions With Rotating Refresh Tokens
+
+## Status
+
+Accepted (Nov 2026)
+
+## Decision
+
+- Each sign-in creates a `user_sessions` row. Tokens are httpOnly cookies.
+- Access tokens last 7 days and carry the session id (`sid`). `JwtStrategy`
+  checks the session on every request, so logout revokes a session at once
+  even though the token itself is long-lived.
+- Refresh tokens rotate on every refresh. Each one carries a random `jti`, and
+  only SHA-256 hashes are stored. The session expiry slides 30 days ahead on
+  each refresh.
+- A token that was just replaced is still accepted for 2 minutes and returns
+  an access token only, so two tabs refreshing together don't sign the user
+  out.
+
+## Reason
+
+People open a mess app a few times a week. Hourly expiry caused needless
+refresh traffic and occasional sign-outs. Server-side session checks keep
+revocation immediate.
+
+## Consequences
+
+One session lookup per authenticated request. A stolen access token works
+until its session is revoked, not until it expires.
+
+---
+
+# ADR-026: Redis Read-Through Cache for Computed Mess Data
+
+## Status
+
+Accepted (Nov 2026)
+
+## Decision
+
+`CacheService` (`apps/api/src/common/cache/`) caches computed results per mess
+in Redis, in two buckets:
+
+- `live`: anything derived from the active month (active month, calculations,
+  dashboards, summaries, activity). Every write under `/:messId/...` clears
+  it.
+- `closed`: reports of closed months. Only changes to people (names, avatars,
+  membership) clear it.
+
+`CacheInvalidationInterceptor` clears the bucket after every successful
+non-GET request, **before** the response is sent, so the client's next read
+never sees old numbers. Entries carry a version counter, so a result computed
+during a write is never served. The cache fails open: without `REDIS_URL`, or
+when Redis is slow (400 ms command timeout) or down, the loader just runs
+against the database.
+
+## Reason
+
+Dashboards and summaries aggregate a whole month on every load. Neon
+round trips from Vercel functions made them slow.
+
+## Consequences
+
+New endpoints that compute month data should use `cache.remember(...)`. New
+write routes must include `:messId`, or rely on the per-user fallback that
+clears every mess the user belongs to.
+
+---
+
+# ADR-027: Prerendered Dashboard, Client Reads Through a GET Bridge
+
+## Status
+
+Accepted (Nov 2026)
+
+## Decision
+
+- `app/(app)/` (all of `/dashboard`) is a separate root layout, prerendered as
+  static pages. It never calls `cookies()`, `headers()` or `next-intl/server`.
+  Language is chosen in the browser (`ClientIntlProvider`).
+- Page data loads in the browser through TanStack Query. Reads go through
+  `GET /api/[...path]` (`app/api/[...path]/route.ts`), which forwards to the
+  Nest API with the httpOnly access token and returns an `ActionResult`.
+  Next.js runs server actions one at a time, so reads made that way waited in
+  a queue. Writes still use server actions.
+- Every successful mutation invalidates all queries. Queries behind the
+  dashboard home screen are refetched even when they are not on screen, so
+  "Go to dashboard" after a save shows the new numbers at once.
+- The last loaded data is kept in `localStorage` per user for 24 h
+  (`lib/offline-cache.ts`), so the installed app opens straight to the
+  last-known screen. It is wiped on logout.
+- Moving between the two root layouts (sign-in to dashboard, logout) uses a
+  full page load (`window.location`), not `router.push`.
+
+## Reason
+
+Dashboard navigation needs no server round trip, and a cold function no longer
+blocks every page change.
+
+## Consequences
+
+`next build` must keep showing `○` (static) for `/dashboard/*`. Server-only
+APIs are not allowed under `app/(app)/`.
+
+---
+
+# ADR-028: Activity Log Volume and Retention
+
+## Status
+
+Accepted (Nov 2026). Amends ADR-013.
+
+## Decision
+
+- A meal save writes one row per day (`entity_type: 'meal_day'`, member and
+  meal counts in `details`), not one row per member.
+- Activity older than 12 months (`ACTIVITY_RETENTION_MONTHS`) is deleted for
+  a mess when that mess opens a new month. No scheduled job is needed.
+- Deleted expenses keep a snapshot in `details`.
+
+## Reason
+
+`activity_logs` was the fastest-growing table. Closed months keep their full
+numbers in `member_month_summaries`, so old activity isn't needed for the
+accounts.
+
+---
+
+# ADR-029: Single Migration Baseline
+
+## Status
+
+Accepted (18 Nov 2026)
+
+## Decision
+
+Before launch, all migrations were squashed into one baseline
+(`20261119000000_version_1`) and the production database was reset. From now
+on migrations are only ever added on top of the baseline. Never squash again
+once real users exist.
+
+## Reason
+
+There were no real users yet, and eight migrations of early iteration made
+fresh setups slow and error-prone.
 
 ---
 

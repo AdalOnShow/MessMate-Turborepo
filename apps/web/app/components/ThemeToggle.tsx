@@ -4,8 +4,9 @@ import { useTranslations } from "next-intl";
 import { useThemeStore } from "../store/theme";
 import { Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { cn } from "../lib/utils";
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const t = useTranslations("misc.themeToggle");
   const { mode, toggleTheme } = useThemeStore();
   const [resolved, setResolved] = useState<"light" | "dark">("dark");
@@ -32,7 +33,10 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="relative inline-flex items-center justify-center h-10 w-10 rounded-lg bg-surface hover:bg-surface transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 cursor-pointer"
+      className={cn(
+        "relative inline-flex items-center justify-center h-10 w-10 rounded-lg bg-surface hover:bg-surface transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 cursor-pointer",
+        className,
+      )}
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
       <span className="sr-only">

@@ -34,6 +34,14 @@ declare module "@tanstack/react-query" {
 
 const MAX_RETRIES = 2;
 
+/** Queries behind the dashboard home screen's balances and stats. */
+const HOME_QUERY_KEYS = new Set([
+  "mess-dashboard",
+  "member-dashboard",
+  "meal-month-summary",
+  "mess-activities",
+]);
+
 let redirectingToSignin = false;
 
 /**
@@ -89,6 +97,9 @@ function makeQueryClient() {
         // on screen, so the user knows it may be out of date.
         if (query.state.data === undefined) return;
         if (query.meta?.errorToast === false) return;
+        // Off-screen refetches (e.g. the dashboard's, after a save) aren't
+        // showing anything stale; the page refetches when it is opened.
+        if (query.getObserversCount() === 0) return;
         toast.error(errorText("couldntRefresh", "Couldn't refresh data"), {
           description: err.message,
         });
@@ -117,9 +128,26 @@ function makeQueryClient() {
         // has been refetched: dialogs close and buttons re-enable only once
         // the new numbers are on screen, instead of briefly (or, if the
         // refetch is slow, for a long time) showing the old ones.
-        return client.invalidateQueries({
-          predicate: (query) => !query.meta?.manualCacheUpdate,
-        });
+        return Promise.all([
+          client.invalidateQueries({
+            predicate: (query) => !query.meta?.manualCacheUpdate,
+          }),
+          // The home screen's figures are refetched even when it is not on
+          // screen. Most writes end in a success dialog whose "Go to
+          // dashboard" button leads there; otherwise the dashboard first
+          // shows the pre-write numbers (৳0 deposits right after adding
+          // ৳1,000) until its own refetch lands. Only queries already in
+          // the cache are refetched, so this costs nothing before the
+          // dashboard has been opened. Queries restored from the offline
+          // cache have no queryFn until their page mounts; they are skipped
+          // and refetch on mount as usual.
+          client.refetchQueries({
+            predicate: (query) =>
+              HOME_QUERY_KEYS.has(query.queryKey[0] as string) &&
+              typeof query.options.queryFn === "function",
+            type: "inactive",
+          }),
+        ]);
       },
       onError: (error, variables, _ctx, mutation) => {
         if (mutation.meta?.errorToast === false) {

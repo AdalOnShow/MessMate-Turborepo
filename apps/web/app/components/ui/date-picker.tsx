@@ -22,12 +22,15 @@ interface DatePickerProps {
   toYear?: number;
   /** Days after this one can't be picked. */
   maxDate?: Date;
+  /** Days before this one can't be picked. */
+  minDate?: Date;
 }
 
+const dayStart = (d: Date) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
 function isAfterDay(a: Date, b: Date) {
-  const day = (d: Date) =>
-    new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  return day(a) > day(b);
+  return dayStart(a) > dayStart(b);
 }
 
 export function DatePicker({
@@ -39,6 +42,7 @@ export function DatePicker({
   fromYear = 2000,
   toYear = new Date().getFullYear() + 5,
   maxDate,
+  minDate,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -70,7 +74,8 @@ export function DatePicker({
           disabled={(d) =>
             d.getFullYear() < fromYear ||
             d.getFullYear() > toYear ||
-            (maxDate !== undefined && isAfterDay(d, maxDate))
+            (maxDate !== undefined && isAfterDay(d, maxDate)) ||
+            (minDate !== undefined && isAfterDay(minDate, d))
           }
           autoFocus
         />

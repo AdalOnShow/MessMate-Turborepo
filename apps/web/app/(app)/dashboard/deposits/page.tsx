@@ -2,7 +2,11 @@
 
 import { PageTips } from "../../../components/help/PageTips";
 
-import { formatDateOnly, toDateOnlyISO } from "../../../lib/format";
+import {
+  formatDateOnly,
+  formatMoneyExact,
+  toDateOnlyISO,
+} from "../../../lib/format";
 import { showSuccess } from "../../../store/success-dialog";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -22,14 +26,6 @@ import {
   QueriesErrorState,
   failedQueries,
 } from "../../../components/feedback/QueryErrorState";
-
-function formatMoney(n: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "BDT",
-    maximumFractionDigits: 2,
-  }).format(n);
-}
 
 export default function AddDepositPage() {
   const t = useTranslations("pages.deposits");
@@ -82,7 +78,10 @@ export default function AddDepositPage() {
           title: "depositAdded",
           rows: [
             { label: tsd("labels.member"), value: memberName },
-            { label: tsd("labels.amount"), value: formatMoney(parsedAmount) },
+            {
+              label: tsd("labels.amount"),
+              value: formatMoneyExact(parsedAmount),
+            },
             {
               label: tsd("labels.date"),
               value: formatDateOnly(payload.deposit_date),
@@ -272,7 +271,7 @@ export default function AddDepositPage() {
                   {selectedMember.user.name}
                 </span>
                 <span className="font-bold text-foreground">
-                  {formatMoney(parsedAmount)}
+                  {formatMoneyExact(parsedAmount)}
                 </span>
               </div>
             </div>

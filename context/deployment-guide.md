@@ -7,6 +7,10 @@ This guide covers deploying MessMate to production:
 - **Web (Next.js):** Vercel
 - **API (NestJS):** Vercel (Serverless)
 - **Database:** Neon PostgreSQL
+- **Cache (optional):** Redis via `REDIS_URL` (e.g. Upstash). Without it the
+  API runs uncached (ADR-026).
+- **Domain:** `messmate.sadal.dev` behind Cloudflare. Set `COOKIE_DOMAIN` when
+  the web app and API share a parent domain.
 
 **Total Cost: Free** (Vercel Hobby + Neon Free Tier)
 
@@ -30,6 +34,9 @@ This guide covers deploying MessMate to production:
    cd packages/database
    pnpm prisma migrate deploy
    ```
+   Migrations start from a single baseline, `20261119000000_version_1`
+   (ADR-029). A database created from the pre-squash history cannot migrate
+   onto it; recreate that database from the baseline instead.
 5. The connection string should look like:
    ```
    postgresql://neondb_owner:password@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
@@ -65,18 +72,12 @@ This guide covers deploying MessMate to production:
    - **Project Name:** `messmate-api`
    - **Framework Preset:** Other
    - **Root Directory:** `apps/api`
-   - **Build Command:** `cd ../.. && pnpm turbo build --filter=api`
+   - **Build Command:** taken from `apps/api/vercel.json`
+     (`pnpm turbo build --filter=@repo/database && pnpm turbo build --filter=api`)
    - **Output Directory:** `dist`
 5. Add environment variables:
-   ```
-   DATABASE_URL=postgresql://neondb_owner:password@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
-   JWT_ACCESS_SECRET=your-64-char-hex-secret
-   JWT_REFRESH_SECRET=your-64-char-hex-secret
-   CORS_ORIGIN=https://messmate-web.vercel.app
-   BCRYPT_SALT_ROUNDS=10
-   NODE_ENV=production
-   VERCEL=1
-   ```
+   See the full list in Step 7. `CORS_ORIGIN` is required at boot and may be
+   a comma-separated list.
 6. Go to Settings → Functions and set:
    - **Function Region:** Select closest to your users
    - **Max Duration:** 30 seconds
@@ -166,6 +167,7 @@ DATABASE_URL=postgresql://neondb_owner:password@ep-xxx-pooler.region.aws.neon.te
 
 ```bash
 NEXT_PUBLIC_API_URL=https://messmate-api.vercel.app
+COOKIE_DOMAIN=.sadal.dev                        # same value as the API, if used
 ```
 
 ### API (Vercel)
@@ -174,8 +176,16 @@ NEXT_PUBLIC_API_URL=https://messmate-api.vercel.app
 DATABASE_URL=postgresql://neondb_owner:password@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
 JWT_ACCESS_SECRET=your-64-char-hex-secret
 JWT_REFRESH_SECRET=your-64-char-hex-secret
-CORS_ORIGIN=https://messmate-web.vercel.app
+CORS_ORIGIN=https://messmate.sadal.dev          # comma-separated list allowed
+COOKIE_DOMAIN=.sadal.dev                        # optional, shared parent domain
 BCRYPT_SALT_ROUNDS=10
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_CALLBACK_URL=https://<api-host>/auth/google/callback
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+REDIS_URL=rediss://...                          # optional; uncached without it
 NODE_ENV=production
 VERCEL=1
 ```
@@ -185,9 +195,9 @@ VERCEL=1
 ## Step 8: Verify Deployment
 
 1. Check Vercel deployment logs for both projects
-2. Test the API health endpoint:
+2. Test the API health endpoint (checks the database too):
    ```bash
-   curl https://messmate-api.vercel.app
+   curl https://messmate-api.vercel.app/health   # {"status":"ok","db":"ok",...}
    ```
 3. Test authentication:
    ```bash
@@ -244,8 +254,19 @@ VERCEL=1
 ### Authentication Issues
 
 - Verify JWT secrets are set and identical across deployments
-- Check token expiry settings
+- Sessions live in `user_sessions` (ADR-025): access tokens last 7 days,
+  refresh tokens 30 days sliding. Changing `JWT_*_SECRET` signs everyone out.
+- If the web app and API are on different subdomains, set the same
+  `COOKIE_DOMAIN` on both
 - Ensure `VERCEL=1` is set in API environment
+
+### Stale Numbers
+
+- The API clears its Redis cache on every write before responding. If old
+  balances ever show, check the logs for `"source":"cache","op":"invalidate"`
+  errors; entries in the `live` bucket expire after 15 minutes anyway.
+- `/api/*` responses are `private, no-store`. Keep any Cloudflare "cache
+  everything" rule away from `/api/*` and `/dashboard*`.
 
 ---
 
