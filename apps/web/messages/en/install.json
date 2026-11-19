@@ -95,8 +95,8 @@
         "body": "In Chrome, tap the three-dot menu (⋮) in the top-right corner."
       },
       "s2": {
-        "title": "Tap “Add to home screen”",
-        "body": "Tap “Add to home screen”. On some phones it's called “Install app”."
+        "title": "Tap “Install and create shortcut”",
+        "body": "Scroll down the menu and tap “Install and create shortcut”. On older Chrome versions it's called “Add to home screen” or “Install app”."
       },
       "s3": {
         "title": "Tap “Install”",

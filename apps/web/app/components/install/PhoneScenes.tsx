@@ -379,10 +379,10 @@ function ChromeMenu() {
           "History",
           "Downloads",
           "Bookmarks",
-          "Add to home screen",
+          "Install and create shortcut",
           "Settings",
         ]}
-        highlight="Add to home screen"
+        highlight="Install and create shortcut"
       />
     </>
   );
