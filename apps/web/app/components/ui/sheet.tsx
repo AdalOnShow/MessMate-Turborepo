@@ -188,7 +188,12 @@ export function Sheet({
   );
 }
 
-/** Footer row for sheet actions: stacked full-width on phones, right-aligned on larger screens. */
+/**
+ * Footer row for sheet actions: stacked full-width on phones, right-aligned on
+ * larger screens. Buttons get the 44px phone height; a wrapper `div` that
+ * groups buttons keeps its natural height, or its stacked buttons would
+ * overflow upwards over the form.
+ */
 export function SheetActions({
   children,
   className,
@@ -199,7 +204,7 @@ export function SheetActions({
   return (
     <div
       className={cn(
-        "mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3 [&>*]:h-11 [&>*]:w-full sm:[&>*]:h-auto sm:[&>*]:w-auto",
+        "mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3 [&>*]:w-full sm:[&>*]:w-auto [&>:not(div)]:h-11 sm:[&>:not(div)]:h-auto",
         className,
       )}
     >
