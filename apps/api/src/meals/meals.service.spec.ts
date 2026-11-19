@@ -154,12 +154,42 @@ describe('MealsService', () => {
 
     it('edit refuses a day with nothing saved', async () => {
       arrange([]);
+      prismaMock.meal_entries.count.mockResolvedValue(0);
       await rejectsWith(
         service.updateMealDay(MESS, MONTH, 'mgr-user', dto),
         NotFoundException,
         ErrorCode.MEAL_ENTRY_NOT_FOUND,
       );
       expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('edit adds meals for one member who had none on a saved day', async () => {
+      arrange([]); // this member has no row yet
+      prismaMock.meal_entries.count.mockResolvedValue(3); // others do
+      prismaMock.meal_entries.create.mockResolvedValue({ id: 'new' });
+
+      await service.updateMealDay(MESS, MONTH, 'mgr-user', dto);
+
+      expect(prismaMock.meal_entries.count).toHaveBeenCalledWith({
+        where: {
+          month_id: MONTH,
+          deleted_at: null,
+          date: { in: [new Date(date)] },
+          total_meal: { gt: 0 },
+        },
+      });
+      expect(prismaMock.meal_entries.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ member_id: 'm1', total_meal: 1 }),
+        }),
+      );
+      const { data } = prismaMock.activity_logs.createMany.mock.calls[0][0] as {
+        data: Record<string, unknown>[];
+      };
+      expect(data[0]).toMatchObject({
+        action: 'MEAL_UPDATED',
+        details: { members: 1 },
+      });
     });
   });
 

@@ -119,7 +119,7 @@ export class MealsService {
       ),
     ].map((t) => new Date(t));
 
-    const [mealTypes, members, existing] = await Promise.all([
+    const [mealTypes, members, existing, savedOnDay] = await Promise.all([
       // Inactive types are included: a saved day can still hold counts for
       // a type that was switched off later.
       prisma.meal_types.findMany({
@@ -150,11 +150,26 @@ export class MealsService {
           total_meal: true,
         },
       }),
+      // An edit may be for one member who had no meals that day, so whether
+      // the day is saved is decided by everyone's rows, not just the ones sent.
+      mode === 'edit'
+        ? prisma.meal_entries.count({
+            where: {
+              month_id: monthId,
+              deleted_at: null,
+              date: { in: dates },
+              total_meal: { gt: 0 },
+            },
+          })
+        : Promise.resolve(0),
     ]);
 
     // A row cleared to 0 counts as "nothing saved", so it can be filled in
     // again. Anything with meals must go through the Reports edit instead.
-    const hasSavedMeals = existing.some((e) => Number(e.total_meal) > 0);
+    const hasSavedMeals =
+      mode === 'edit'
+        ? savedOnDay > 0
+        : existing.some((e) => Number(e.total_meal) > 0);
     if (mode === 'create' && hasSavedMeals) {
       throw new ConflictException({
         message:
