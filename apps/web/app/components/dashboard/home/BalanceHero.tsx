@@ -52,37 +52,59 @@ function HeroSkeleton() {
       <Skeleton className="h-3.5 w-24 rounded" />
       <Skeleton className="mt-3 h-11 w-48" />
       <Skeleton className="mt-5 h-1.5 w-full rounded-full" />
-      <div className="mt-5 grid grid-cols-3 gap-2.5">
+      <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
         {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-[68px] rounded-2xl" />
+          <Skeleton
+            key={i}
+            className={cn(
+              "h-[68px] rounded-2xl",
+              i === 2 && "col-span-2 h-11 sm:col-span-1 sm:h-[68px]",
+            )}
+          />
         ))}
       </div>
     </HeroShell>
   );
 }
 
-function StatTile({ stat }: { stat: Stat }) {
+/**
+ * `wide`: the odd tile out on phones. It takes the whole row there, with the
+ * label on the left and the value on the right, so the money tiles above get
+ * half the width each instead of a third (৳28,740 used to be cut off).
+ */
+function StatTile({ stat, wide = false }: { stat: Stat; wide?: boolean }) {
   const Icon = stat.icon;
   const content = (
     <>
-      <span className="flex items-center gap-1.5 text-[11px] font-medium text-foreground-muted">
+      <span className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-foreground-muted">
         <Icon size={13} aria-hidden="true" className="shrink-0" />
         <span className="truncate">{stat.label}</span>
       </span>
-      <span className="mt-1 block truncate text-base font-bold text-foreground tabular-nums sm:text-lg">
+      <span
+        className={cn(
+          "block truncate text-base font-bold text-foreground tabular-nums sm:mt-1 sm:text-lg",
+          !wide && "mt-1",
+        )}
+      >
         {stat.value}
       </span>
       {stat.href ? (
         <ChevronRight
           size={14}
           aria-hidden="true"
-          className="absolute right-2.5 top-3 text-foreground-muted opacity-0 transition-opacity group-hover:opacity-100"
+          className={cn(
+            "absolute right-2.5 top-3 text-foreground-muted opacity-0 transition-opacity group-hover:opacity-100",
+            wide && "top-1/2 -translate-y-1/2 sm:top-3 sm:translate-y-0",
+          )}
         />
       ) : null}
     </>
   );
-  const base =
-    "relative min-w-0 rounded-2xl border border-border bg-surface-raised/70 px-3 py-2.5";
+  const base = cn(
+    "relative min-w-0 rounded-2xl border border-border bg-surface-raised/70 px-3 py-2.5",
+    wide &&
+      "col-span-2 flex items-center justify-between gap-3 pr-8 sm:col-span-1 sm:block sm:pr-3",
+  );
 
   return stat.href ? (
     <Link
@@ -175,14 +197,19 @@ function BalanceBody({
         </div>
       ) : null}
 
+      {/* Two columns on phones; a third tile takes the next row whole. */}
       <div
         className={cn(
-          "mt-5 grid gap-2.5",
-          stats.length === 2 ? "grid-cols-2" : "grid-cols-3",
+          "mt-5 grid grid-cols-2 gap-2.5",
+          stats.length === 3 && "sm:grid-cols-3",
         )}
       >
-        {stats.map((stat) => (
-          <StatTile key={stat.label} stat={stat} />
+        {stats.map((stat, i) => (
+          <StatTile
+            key={stat.label}
+            stat={stat}
+            wide={stats.length % 2 === 1 && i === stats.length - 1}
+          />
         ))}
       </div>
     </HeroShell>
