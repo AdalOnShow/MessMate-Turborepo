@@ -602,19 +602,21 @@ function MealDayList({
                 >
                   <Pencil size={14} />
                 </button>
-                <button
-                  type="button"
-                  className={cn(
-                    iconBtn,
-                    "border-destructive/30 text-destructive hover:bg-destructive/10",
-                  )}
-                  aria-label={t("deleteMemberMealsAria", { name: row.name })}
-                  title={t("deleteMemberMealsAria", { name: row.name })}
-                  disabled={!row.entry}
-                  onClick={() => onDelete(row)}
-                >
-                  <Trash2 size={14} />
-                </button>
+                {/* 0 meals: nothing to delete, only edit (to add meals later). */}
+                {total > 0 && (
+                  <button
+                    type="button"
+                    className={cn(
+                      iconBtn,
+                      "border-destructive/30 text-destructive hover:bg-destructive/10",
+                    )}
+                    aria-label={t("deleteMemberMealsAria", { name: row.name })}
+                    title={t("deleteMemberMealsAria", { name: row.name })}
+                    onClick={() => onDelete(row)}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
             </li>
           );
