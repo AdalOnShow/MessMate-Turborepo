@@ -95,8 +95,8 @@
         "body": "Chrome-এ উপরের ডান কোণের তিন-ডট মেনুতে (⋮) ট্যাপ করুন।"
       },
       "s2": {
-        "title": "“Add to home screen”-এ ট্যাপ করুন",
-        "body": "“Add to home screen”-এ ট্যাপ করুন। কিছু ফোনে এটির নাম “Install app”।"
+        "title": "“Install and create shortcut”-এ ট্যাপ করুন",
+        "body": "মেনু একটু নিচে স্ক্রল করে “Install and create shortcut”-এ ট্যাপ করুন। পুরনো Chrome-এ এটির নাম “Add to home screen” বা “Install app”।"
       },
       "s3": {
         "title": "“Install”-এ ট্যাপ করুন",
