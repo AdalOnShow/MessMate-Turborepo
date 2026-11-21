@@ -1,19 +1,7 @@
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { Avatar, Container, SectionHeading } from "./ui";
-
-const WEEK = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
-
-const MEAL_DAYS = [
-  { lunch: 6, dinner: 5 },
-  { lunch: 5, dinner: 6 },
-  { lunch: 7, dinner: 7 },
-  { lunch: 6, dinner: 4 },
-  { lunch: 5, dinner: 5 },
-  { lunch: 8, dinner: 7 },
-  { lunch: 6, dinner: 6 },
-];
-const TODAY = 2;
+import { MealWeek } from "./MealWeek";
 
 const EXPENSES = [
   {
@@ -86,7 +74,6 @@ function FeatureRow({
 export async function FeaturesSection() {
   const t = await getTranslations("landing.features");
   const tRole = await getTranslations("role");
-  const today = MEAL_DAYS[TODAY]!;
 
   return (
     <section
@@ -98,58 +85,7 @@ export async function FeaturesSection() {
 
         <div className="mt-6 divide-y divide-border">
           <FeatureRow title={t("meals.title")} body={t("meals.body")}>
-            <div className="grid grid-cols-7 gap-1.5 text-center sm:gap-2">
-              {WEEK.map((d) => (
-                <span
-                  key={d}
-                  className="pb-1 text-[11px] font-medium text-foreground-muted"
-                >
-                  {t(`meals.week.${d}`)}
-                </span>
-              ))}
-              {MEAL_DAYS.map((day, i) => {
-                const isToday = i === TODAY;
-                return (
-                  <div
-                    key={i}
-                    className={`rounded-lg px-1 py-2 ${
-                      isToday ? "bg-primary text-white" : "bg-surface-raised"
-                    }`}
-                  >
-                    <span
-                      className={`block text-[11px] font-semibold ${
-                        isToday ? "text-white" : "text-foreground-muted"
-                      }`}
-                    >
-                      {i + 1}
-                    </span>
-                    <span className="mt-1.5 block text-[11px] font-bold sm:text-xs">
-                      {day.lunch}
-                      <span className="font-medium opacity-70">
-                        {t("meals.lunchShort")}
-                      </span>
-                    </span>
-                    <span className="block text-[11px] font-bold sm:text-xs">
-                      {day.dinner}
-                      <span className="font-medium opacity-70">
-                        {t("meals.dinnerShort")}
-                      </span>
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2 border-t border-border pt-4 text-sm">
-              <span className="font-semibold text-foreground">
-                {t("meals.today")}
-              </span>
-              <span className="text-foreground-muted">
-                {t("meals.tally", {
-                  meals: today.lunch + today.dinner,
-                  members: 7,
-                })}
-              </span>
-            </div>
+            <MealWeek />
           </FeatureRow>
 
           <FeatureRow title={t("money.title")} body={t("money.body")} flip>

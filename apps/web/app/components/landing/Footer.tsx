@@ -28,8 +28,8 @@ export async function Footer() {
   const t = await getTranslations("landing");
   const tc = await getTranslations("common");
   return (
-    <footer className="border-t border-border bg-surface pt-16 pb-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <footer className="border-t border-border bg-surface-sunken pt-16 pb-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 pb-12 md:grid-cols-2 lg:grid-cols-12">
           <div className="space-y-4 lg:col-span-5">
             <Link href="/" className="flex items-center gap-2.5">
@@ -47,7 +47,7 @@ export async function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em] text-foreground font-heading">
+            <h4 className="font-heading text-sm font-semibold text-foreground">
               {t("footer.product")}
             </h4>
             <ul className="mt-4 space-y-2.5">
@@ -55,7 +55,7 @@ export async function Footer() {
                 <li key={link.key}>
                   <a
                     href={link.href}
-                    className="text-sm text-foreground-muted transition-colors hover:text-primary"
+                    className="nav-link text-sm text-foreground-muted hover:text-foreground"
                   >
                     {t(link.key)}
                   </a>
@@ -65,7 +65,7 @@ export async function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em] text-foreground font-heading">
+            <h4 className="font-heading text-sm font-semibold text-foreground">
               {t("footer.resources")}
             </h4>
             <ul className="mt-4 space-y-2.5">
@@ -73,7 +73,7 @@ export async function Footer() {
                 <li key={link.key}>
                   <a
                     href={link.href}
-                    className="text-sm text-foreground-muted transition-colors hover:text-primary"
+                    className="nav-link text-sm text-foreground-muted hover:text-foreground"
                   >
                     {t(link.key)}
                   </a>
@@ -83,7 +83,7 @@ export async function Footer() {
           </div>
 
           <div className="lg:col-span-3">
-            <h4 className="text-sm font-mono font-medium uppercase tracking-[0.12em] text-foreground font-heading">
+            <h4 className="font-heading text-sm font-semibold text-foreground">
               {t("footer.account")}
             </h4>
             <ul className="mt-4 space-y-2.5">
@@ -91,7 +91,7 @@ export async function Footer() {
                 <li key={link.key}>
                   <a
                     href={link.href}
-                    className="text-sm text-foreground-muted transition-colors hover:text-primary"
+                    className="nav-link text-sm text-foreground-muted hover:text-foreground"
                   >
                     {tc(link.key)}
                   </a>
@@ -99,7 +99,7 @@ export async function Footer() {
               ))}
             </ul>
 
-            <div className="mt-6 rounded-2xl border border-border bg-surface-raised/60 p-4">
+            <div className="mt-6 border-t border-border pt-5">
               <p className="text-xs font-semibold text-foreground-muted">
                 {t.rich("footer.builtBy", {
                   strong: (c) => (
@@ -144,7 +144,7 @@ export async function Footer() {
           </div>
         </div>
 
-        <div className="h-px w-full bg-surface-raised" />
+        <div className="h-px w-full bg-border" />
 
         <div className="flex flex-col items-center justify-between gap-3 pt-6 sm:flex-row">
           <p className="text-xs text-foreground-muted">{t("footer.rights")}</p>

@@ -28,7 +28,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { richAccent } from "../landing/ui";
+import { plainRich } from "../landing/ui";
+import { PageHero } from "../landing/PageHero";
 
 type Role = "manager" | "member";
 
@@ -171,72 +172,60 @@ export function UserGuide() {
   return (
     <>
       {/* Hero with the role choice */}
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-4 pt-12 pb-10 sm:px-6 lg:pt-16">
-          <span className="label-mono text-primary">{t("eyebrow")}</span>
-          <h1 className="mt-4 max-w-3xl font-heading text-4xl heading-tight text-foreground sm:text-5xl">
-            {t.rich("title", richAccent)}
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-foreground-muted sm:text-lg">
-            {t("subtitle")}
-          </p>
-
-          <p className="mt-8 text-sm font-semibold text-foreground">
-            {t("iAm")}
-          </p>
-          <div
-            role="tablist"
-            aria-label={t("iAm")}
-            className="mt-3 grid max-w-xl grid-cols-2 gap-3"
-          >
-            {(["manager", "member"] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                role="tab"
-                aria-selected={role === r}
-                aria-controls="guide-content"
-                onClick={() => changeRole(r)}
-                className={cn(
-                  "rounded-2xl border p-4 text-left transition-colors",
-                  role === r
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-surface hover:border-border-strong",
-                )}
-              >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2 font-semibold text-foreground">
-                    {r === "manager" ? (
-                      <Crown size={18} className="text-accent-warm" />
-                    ) : (
-                      <Users size={18} className="text-primary" />
-                    )}
-                    {t(`roles.${r}.label`)}
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "flex size-5 items-center justify-center rounded-full border",
-                      role === r
-                        ? "border-primary bg-primary text-white"
-                        : "border-border-strong",
-                    )}
-                  >
-                    {role === r && <Check size={12} strokeWidth={3} />}
-                  </span>
+      <PageHero title={t.rich("title", plainRich)} subtitle={t("subtitle")}>
+        <p className="mt-8 text-sm font-semibold text-foreground">{t("iAm")}</p>
+        <div
+          role="tablist"
+          aria-label={t("iAm")}
+          className="mt-3 grid max-w-xl grid-cols-2 gap-3"
+        >
+          {(["manager", "member"] as const).map((r) => (
+            <button
+              key={r}
+              type="button"
+              role="tab"
+              aria-selected={role === r}
+              aria-controls="guide-content"
+              onClick={() => changeRole(r)}
+              className={cn(
+                "rounded-xl border p-4 text-left transition-[border-color,background-color,transform] duration-200 hover:-translate-y-0.5",
+                role === r
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-surface hover:border-border-strong",
+              )}
+            >
+              <span className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2 font-semibold text-foreground">
+                  {r === "manager" ? (
+                    <Crown size={18} className="text-accent-warm" />
+                  ) : (
+                    <Users size={18} className="text-primary" />
+                  )}
+                  {t(`roles.${r}.label`)}
                 </span>
-                <span className="mt-1 block text-xs text-foreground-muted sm:text-sm">
-                  {t(`roles.${r}.hint`)}
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "flex size-5 items-center justify-center rounded-full border",
+                    role === r
+                      ? "border-primary bg-primary text-white"
+                      : "border-border-strong",
+                  )}
+                >
+                  {role === r && <Check size={12} strokeWidth={3} />}
                 </span>
-              </button>
-            ))}
-          </div>
+              </span>
+              <span className="mt-1 block text-xs text-foreground-muted sm:text-sm">
+                {t(`roles.${r}.hint`)}
+              </span>
+            </button>
+          ))}
         </div>
-      </section>
+      </PageHero>
 
       <div
         id="guide-content"
-        className="mx-auto max-w-6xl scroll-mt-[60px] px-4 pb-20 sm:px-6"
+        className="mx-auto max-w-6xl scroll-mt-[60px] px-4 pb-20 sm:px-6 lg:px-8"
       >
         {/* Mobile: search + section chips stay at the top while scrolling. */}
         <div className="sticky top-[60px] z-30 -mx-4 border-b border-border bg-background/90 px-4 pt-3 pb-2 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:hidden">
@@ -254,7 +243,7 @@ export function UserGuide() {
             <div className="sticky top-[84px] space-y-4">
               <SearchBox value={query} onChange={setQuery} />
               <nav aria-label={t("onThisPage")}>
-                <p className="label-mono mb-2 px-2 text-[10px] text-foreground-muted">
+                <p className="mb-2 px-2 text-xs font-semibold text-foreground-muted">
                   {t("onThisPage")}
                 </p>
                 <ol className="space-y-0.5">

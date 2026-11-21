@@ -39,8 +39,16 @@
       },
       "lunchShort": "L",
       "dinnerShort": "D",
-      "today": "Wednesday",
-      "tally": "{meals} meals from {members} members"
+      "tally": "{meals} meals from {members} members",
+      "dayNames": {
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday",
+        "sat": "Saturday",
+        "sun": "Sunday"
+      }
     },
     "money": {
       "title": "Bazaar, bills and deposits in one ledger",

@@ -27,7 +27,8 @@ import {
 } from "../../lib/pwa";
 import { toast } from "../../store/toast";
 import { cn } from "../../lib/utils";
-import { richAccent } from "../landing/ui";
+import { plainRich } from "../landing/ui";
+import { PageHero } from "../landing/PageHero";
 import { PhoneScene, type SceneId } from "./PhoneScenes";
 
 type Os = "ios" | "android";
@@ -126,45 +127,37 @@ export function InstallGuide() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pt-12 pb-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:pt-20">
-          <div className="animate-pop-in">
-            <span className="label-mono text-primary">{t("eyebrow")}</span>
-            <h1 className="mt-4 font-heading text-4xl heading-tight text-foreground sm:text-5xl">
-              {t.rich("title", richAccent)}
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-foreground-muted sm:text-lg">
-              {t("subtitle")}
-            </p>
-
-            {env && (
-              <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-foreground-muted">
-                {env.os === "desktop" ? (
-                  <Monitor size={14} aria-hidden="true" />
-                ) : (
-                  <Smartphone size={14} aria-hidden="true" />
-                )}
-                {t("detected")}:
-                <span className="font-semibold text-foreground">
-                  {t(`os.${env.os}`)} · {t(`browser.${env.browser}`)}
-                </span>
-              </p>
-            )}
-
-            <div className="mt-6 max-w-xl">
-              {env && <PrimaryAction env={env} />}
-            </div>
-          </div>
-
+      <PageHero
+        title={t.rich("title", plainRich)}
+        subtitle={t("subtitle")}
+        aside={
           <div className="flex justify-center lg:justify-end">
             <PhoneScene
               scene="homescreen"
               os={env?.os === "ios" ? "ios" : "android"}
-              className="w-[220px] rotate-[-4deg]"
+              className="w-[220px] rotate-[-4deg] transition-transform duration-500 ease-out hover:rotate-0 hover:-translate-y-1"
             />
           </div>
+        }
+      >
+        {env && (
+          <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-foreground-muted">
+            {env.os === "desktop" ? (
+              <Monitor size={14} aria-hidden="true" />
+            ) : (
+              <Smartphone size={14} aria-hidden="true" />
+            )}
+            {t("detected")}:
+            <span className="font-semibold text-foreground">
+              {t(`os.${env.os}`)} · {t(`browser.${env.browser}`)}
+            </span>
+          </p>
+        )}
+
+        <div className="mt-6 max-w-xl">
+          {env && <PrimaryAction env={env} />}
         </div>
-      </section>
+      </PageHero>
 
       {/* Step-by-step */}
       <section
@@ -250,7 +243,7 @@ export function InstallGuide() {
                 }}
               >
                 <PhoneScene scene={guide.scenes[i]!} os={guide.os} />
-                <span className="mt-6 inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-primary uppercase">
+                <span className="mt-6 inline-flex items-center gap-2 text-xs font-semibold text-primary">
                   <span className="grid size-6 place-items-center rounded-full bg-primary text-[11px] text-white">
                     {i + 1}
                   </span>
@@ -366,7 +359,7 @@ function PrimaryAction({ env }: { env: DeviceEnv }) {
               setBusy(false);
             }
           }}
-          className="bg-cta group inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-xl px-8 text-base font-bold shadow-[0_10px_30px_-10px_rgba(255,169,41,0.6)] transition-transform active:scale-[0.98] disabled:opacity-70 sm:w-auto"
+          className="bg-cta group inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-xl px-8 text-base font-bold transition-transform active:scale-[0.98] disabled:opacity-70 sm:w-auto"
         >
           <Download
             size={20}

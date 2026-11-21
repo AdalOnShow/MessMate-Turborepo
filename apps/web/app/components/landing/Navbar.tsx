@@ -38,7 +38,7 @@ export function Navbar() {
           : "border-b border-transparent bg-transparent"
       }`}
     >
-      <nav className="mx-auto flex h-[60px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <nav className="mx-auto flex h-[60px] max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2.5">
           <Image
             src="/messmate-logo.png"
@@ -55,7 +55,7 @@ export function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-foreground-muted transition-colors hover:text-foreground"
+              className="nav-link text-sm font-medium text-foreground-muted hover:text-foreground"
             >
               {t(link.key)}
             </a>
@@ -66,7 +66,7 @@ export function Navbar() {
           <LanguageToggle />
           <a
             href="/signin"
-            className="rounded-[7px] px-4 py-2 text-[13px] font-semibold text-foreground-muted transition-colors hover:text-foreground"
+            className="nav-link mx-3 text-[13px] font-semibold text-foreground-muted hover:text-foreground"
           >
             {tc("signIn")}
           </a>

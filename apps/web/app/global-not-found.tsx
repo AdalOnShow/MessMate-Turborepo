@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { fontVariables } from "./fonts";
+import { landingFont } from "./components/landing/fonts";
 import NotFound from "./(public)/not-found";
 import "./globals.css";
 
@@ -21,7 +22,7 @@ export default async function GlobalNotFound() {
   const locale = await getLocale();
   const messages = await getMessages();
   return (
-    <html lang={locale} className={fontVariables}>
+    <html lang={locale} className={`${fontVariables} ${landingFont.variable}`}>
       <body className="font-body antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <NotFound />

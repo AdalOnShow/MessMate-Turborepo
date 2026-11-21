@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { fontVariables, viewport as sharedViewport } from "../fonts";
+import { landingFont } from "../components/landing/fonts";
 import { NextIntlClientProvider } from "next-intl";
 import { ErrorTranslatorBridge } from "../components/feedback/ErrorTranslatorBridge";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -55,7 +56,11 @@ export default async function RootLayout({
   const locale = await getLocale();
 
   return (
-    <html lang={locale} suppressHydrationWarning className={fontVariables}>
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className={`${fontVariables} ${landingFont.variable}`}
+    >
       <body className="font-body antialiased">
         <NextIntlClientProvider>
           <ErrorTranslatorBridge />

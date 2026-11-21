@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Container, SectionHeading } from "./ui";
+import { CountUp } from "./CountUp";
 
 const RATE = 68.5;
 
@@ -32,7 +33,7 @@ export async function AccountingSection() {
               {t("rateLabel")}
             </p>
             <p className="mt-1 font-heading text-[clamp(3.5rem,8vw,5.5rem)] font-extrabold leading-none tracking-[-0.04em] text-primary">
-              ৳68.50
+              <CountUp value={68.5} decimals={2} prefix="৳" />
             </p>
             <p className="mt-3 text-[15px] text-foreground-body">
               {t("rateWorking")}
@@ -92,7 +93,10 @@ export async function AccountingSection() {
                     const cost = Math.round(m.meals * RATE);
                     const balance = m.paid - cost;
                     return (
-                      <tr key={m.name}>
+                      <tr
+                        key={m.name}
+                        className="transition-colors duration-150 hover:bg-surface-raised"
+                      >
                         <th
                           scope="row"
                           className="px-4 py-3.5 font-semibold sm:px-5 text-foreground"

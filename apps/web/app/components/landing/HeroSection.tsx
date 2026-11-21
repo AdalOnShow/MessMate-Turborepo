@@ -1,17 +1,15 @@
 import { getTranslations } from "next-intl/server";
 import { DashboardPreview } from "./DashboardPreview";
 import { PrimaryCta } from "./PrimaryCta";
+import { Spotlight } from "./Spotlight";
 
 /** Two beams hang from the top corners and meet over the headline; what they
- *  light is this month's mess dashboard. The only animated moment on the page. */
+ *  light is this month's mess dashboard. With a mouse, the beams follow the cursor. */
 export async function HeroSection() {
   const t = await getTranslations("landing.hero");
   return (
     <section className="relative isolate overflow-hidden pt-32 pb-20 sm:pt-40 lg:pb-28">
-      <div aria-hidden="true" className="hero-spotlight -z-10">
-        <div className="hero-spotlight-beam hero-spotlight-beam--left" />
-        <div className="hero-spotlight-beam hero-spotlight-beam--right" />
-      </div>
+      <Spotlight />
 
       <div className="hero-rise mx-auto max-w-4xl px-4 text-center sm:px-6">
         <h1 className="landing-display mx-auto max-w-[22ch] text-balance text-foreground">

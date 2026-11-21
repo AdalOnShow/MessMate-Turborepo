@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSignin } from "../../hooks/use-auth";
 import { GoogleSignInButton } from "../../components/GoogleSignInButton";
 import { useTranslations } from "next-intl";
+import { Spotlight } from "../../components/landing/Spotlight";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { formatZodError, signInSchema } from "@repo/shared";
 import { translateFieldErrors } from "../../lib/error-text";
@@ -74,8 +75,9 @@ export default function SignInForm() {
     "w-full h-11 px-3.5 rounded-xl bg-surface-sunken border border-border text-foreground text-sm placeholder:text-foreground-muted/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors";
 
   return (
-    <div className="relative min-h-dvh flex items-center justify-center bg-background px-4 py-6 sm:py-8">
-      <div className="relative w-full max-w-sm">
+    <div className="landing-dark landing relative isolate flex min-h-dvh items-center justify-center overflow-hidden bg-background px-4 py-6 text-foreground sm:py-8">
+      <Spotlight size="page" />
+      <div className="hero-rise relative w-full max-w-sm">
         {/* Logo */}
         <Link
           href="/"
@@ -95,21 +97,8 @@ export default function SignInForm() {
           </span>
         </Link>
 
-        <div className="bg-surface border border-border rounded-2xl overflow-hidden p-6 sm:px-7 shadow-panel">
-          <div
-            className="-mx-6 -mt-6 mb-5 sm:-mx-7 flex items-center gap-3 border-b border-border bg-surface-raised px-4 py-2.5"
-            aria-hidden
-          >
-            <div className="flex gap-1.5">
-              <span className="size-2.5 rounded-full bg-destructive" />
-              <span className="size-2.5 rounded-full bg-accent-warm" />
-              <span className="size-2.5 rounded-full bg-success" />
-            </div>
-            <span className="font-mono text-[11px] text-foreground-muted">
-              messmate — auth/sign-in
-            </span>
-          </div>
-          <h1 className="heading-tight text-2xl text-foreground font-heading text-center mb-1">
+        <div className="overflow-hidden rounded-2xl border border-border bg-surface/90 p-6 backdrop-blur-sm sm:px-7">
+          <h1 className="mb-1 text-center font-heading text-[1.75rem] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
             {t("signin.title")}
           </h1>
           <p className="text-sm text-foreground-muted text-center mb-5">
@@ -121,7 +110,7 @@ export default function SignInForm() {
               <div className="space-y-1">
                 <label
                   htmlFor="email"
-                  className="label-mono text-[10px] text-foreground-muted"
+                  className="text-sm font-medium text-foreground-body"
                 >
                   {t("email")}
                 </label>
@@ -148,7 +137,7 @@ export default function SignInForm() {
               <div className="space-y-1">
                 <label
                   htmlFor="password"
-                  className="label-mono text-[10px] text-foreground-muted"
+                  className="text-sm font-medium text-foreground-body"
                 >
                   {t("password")}
                 </label>
@@ -219,7 +208,7 @@ export default function SignInForm() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border" />
               </div>
-              <div className="relative flex justify-center font-mono text-[10px] uppercase tracking-[0.12em]">
+              <div className="relative flex justify-center text-xs">
                 <span className="bg-surface px-2 text-foreground-muted">
                   {t("or")}
                 </span>

@@ -39,8 +39,16 @@
       },
       "lunchShort": "দু",
       "dinnerShort": "রা",
-      "today": "বুধবার",
-      "tally": "{members} জনের {meals}টি মিল"
+      "tally": "{members} জনের {meals}টি মিল",
+      "dayNames": {
+        "mon": "সোমবার",
+        "tue": "মঙ্গলবার",
+        "wed": "বুধবার",
+        "thu": "বৃহস্পতিবার",
+        "fri": "শুক্রবার",
+        "sat": "শনিবার",
+        "sun": "রবিবার"
+      }
     },
     "money": {
       "title": "বাজার, বিল আর জমা এক হিসাবে",

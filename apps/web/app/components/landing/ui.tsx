@@ -7,6 +7,13 @@ export const richAccent = {
   br: () => <br />,
 };
 
+/** For translated titles that still carry `<accent>` tags: the public pages
+ *  no longer color one word, so the tag renders as plain text. */
+export const plainRich = {
+  accent: (chunks: ReactNode) => <>{chunks}</>,
+  br: () => <br />,
+};
+
 /** Page-width wrapper shared by every landing section. */
 export function Container({
   children,

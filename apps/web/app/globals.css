@@ -98,8 +98,9 @@
 }
 
 /* ============================================
-   Landing page: type and spotlight
-   Scoped to `.landing` so no other page changes.
+   Public site (landing, about, guide, install, auth, 404): type and spotlight
+   Scoped to `.landing`, which every public page's root carries, so the
+   dashboard keeps its own type and look.
    ============================================ */
 
 .landing {
@@ -162,13 +163,48 @@
   --beam-angle: -45deg;
   left: 0;
   translate: -50% 0;
+  /* Extra turn toward the cursor, set by <Spotlight>. The individual
+     `rotate` property stacks on top of the entrance animation's transform. */
+  rotate: var(--tilt-left, 0deg);
 }
 
 .hero-spotlight-beam--right {
   --beam-angle: 45deg;
   right: 0;
   translate: 50% 0;
+  rotate: var(--tilt-right, 0deg);
   animation-delay: 0.15s;
+}
+
+.hero-spotlight-beam--left,
+.hero-spotlight-beam--right {
+  transition: rotate 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Smaller beams for page headers and the auth screens. */
+.hero-spotlight[data-size="page"] .hero-spotlight-beam {
+  width: clamp(260px, 30vw, 440px);
+  height: 125%;
+}
+
+/* A patch of the grid lights up under the cursor, like a lamp over a
+   ruled khata page. Hidden until <Spotlight> sees a fine pointer. */
+.hero-spotlight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, #ffffff1c 1px, transparent 1px),
+    linear-gradient(to bottom, #ffffff1c 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: top center;
+  mask-image: radial-gradient(
+    200px circle at var(--mx, 50%) var(--my, -50%),
+    #000 0%,
+    transparent 100%
+  );
+  opacity: var(--lamp, 0);
+  transition: opacity 0.4s ease;
 }
 
 @keyframes spotlight-in {
@@ -190,6 +226,13 @@
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: -0.04em;
+}
+
+:lang(bn) .landing h1,
+:lang(bn) .landing h2,
+:lang(bn) .landing h3 {
+  line-height: 1.3;
+  letter-spacing: 0;
 }
 
 :lang(bn) .landing-display {
@@ -219,6 +262,46 @@
   .hero-spotlight-beam,
   .hero-rise {
     animation: none;
+  }
+}
+
+/* Nav links: an underline that draws in from the left on hover. */
+.nav-link {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  padding-bottom: 2px;
+  transition:
+    background-size 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.2s;
+}
+.nav-link:hover,
+.nav-link:focus-visible {
+  background-size: 100% 1px;
+}
+
+/* FAQ answers open smoothly where the browser supports animating to auto. */
+.landing details {
+  interpolate-size: allow-keywords;
+}
+.landing details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    content-visibility 0.35s allow-discrete;
+}
+.landing details[open]::details-content {
+  block-size: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-spotlight-beam--left,
+  .hero-spotlight-beam--right,
+  .nav-link,
+  .landing details::details-content {
+    transition: none;
   }
 }
 

@@ -1,26 +1,12 @@
 import { getTranslations } from "next-intl/server";
-import {
-  ArrowUpRight,
-  Calculator,
-  Globe,
-  Layers,
-  Mail,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowUpRight, Globe, Mail } from "lucide-react";
 import { AUTHOR } from "../../lib/author";
-import { richAccent } from "../landing/ui";
+import { Container, plainRich } from "../landing/ui";
+import { PageHero } from "../landing/PageHero";
 import { GitHubIcon, LinkedInIcon } from "./SocialIcons";
 import { ProfilePhoto } from "./ProfilePhoto";
 
-const PROJECT_CARDS: {
-  key: "problem" | "solution" | "stack";
-  icon: LucideIcon;
-}[] = [
-  { key: "problem", icon: Users },
-  { key: "solution", icon: Calculator },
-  { key: "stack", icon: Layers },
-];
+const PROJECT = ["problem", "solution", "stack"] as const;
 
 const SKILLS = [
   "Next.js",
@@ -69,123 +55,121 @@ export async function AboutContent() {
 
   return (
     <>
-      {/* Hero */}
-      <section className="mx-auto max-w-5xl px-4 pt-12 pb-12 sm:px-6 lg:pt-20">
-        <span className="label-mono text-primary">{t("eyebrow")}</span>
-        <h1 className="mt-4 font-heading text-4xl heading-tight text-foreground sm:text-5xl">
-          {t.rich("title", richAccent)}
-        </h1>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-foreground-muted sm:text-lg">
-          {t("subtitle")}
-        </p>
-      </section>
+      <PageHero title={t.rich("title", plainRich)} subtitle={t("subtitle")} />
 
       {/* The project */}
-      <section className="mx-auto max-w-5xl px-4 pb-16 sm:px-6">
-        <h2 className="font-heading text-2xl heading-tight text-foreground">
-          {t("project.heading")}
-        </h2>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {PROJECT_CARDS.map(({ key, icon: Icon }) => (
-            <div
-              key={key}
-              className="rounded-2xl border border-border bg-surface p-5"
+      <section className="py-16 lg:py-24">
+        <Container className="grid grid-cols-1 gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <h2 className="font-heading text-[clamp(1.5rem,2.8vw,2.125rem)] font-bold leading-[1.15] tracking-[-0.02em] text-foreground">
+              {t("project.heading")}
+            </h2>
+            <a
+              href={AUTHOR.repo}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-6 inline-flex items-center gap-2 rounded-[10px] border border-border-strong px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-foreground-muted hover:bg-surface"
             >
-              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                <Icon size={20} aria-hidden="true" />
-              </span>
-              <h3 className="mt-4 font-semibold text-foreground">
-                {t(`project.${key}.title`)}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-foreground-muted">
-                {t(`project.${key}.body`)}
-              </p>
-            </div>
-          ))}
-        </div>
-        <a
-          href={AUTHOR.repo}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-6 inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
-        >
-          <GitHubIcon />
-          {t("project.sourceCode")}
-          <ArrowUpRight size={16} aria-hidden="true" />
-        </a>
+              <GitHubIcon />
+              {t("project.sourceCode")}
+              <ArrowUpRight
+                size={16}
+                aria-hidden="true"
+                className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+              />
+            </a>
+          </div>
+          <dl className="divide-y divide-border border-y border-border lg:col-span-8">
+            {PROJECT.map((key) => (
+              <div
+                key={key}
+                className="grid gap-2 py-6 sm:grid-cols-[12rem_1fr] sm:gap-8"
+              >
+                <dt className="font-heading text-base font-semibold text-foreground">
+                  {t(`project.${key}.title`)}
+                </dt>
+                <dd className="max-w-[62ch] text-[15px] leading-relaxed text-foreground-muted">
+                  {t(`project.${key}.body`)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Container>
       </section>
 
       {/* About me */}
-      <section className="mx-auto max-w-5xl px-4 pb-20 sm:px-6">
-        <h2 className="font-heading text-2xl heading-tight text-foreground">
-          {t("me.heading")}
-        </h2>
-        <div className="mt-6 rounded-2xl border border-border bg-surface p-6 sm:p-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-            <ProfilePhoto
-              src={AUTHOR.photo}
-              alt={t("me.photoAlt")}
-              initials={AUTHOR.initials}
-            />
-            <div className="min-w-0">
-              <p className="font-heading text-2xl font-bold text-foreground">
-                {AUTHOR.name}
-              </p>
-              <p className="mt-1 text-sm font-medium text-primary">
-                {t("me.role")}
-              </p>
-              <p className="mt-4 text-sm leading-relaxed text-foreground-muted sm:text-base">
-                {t("me.bio")}
-              </p>
-              <p className="mt-3 text-sm leading-relaxed text-foreground-muted sm:text-base">
-                {t("me.why")}
-              </p>
-              <ul
-                className="mt-5 flex flex-wrap gap-2"
-                aria-label={t("me.skills")}
-              >
-                {SKILLS.map((skill) => (
-                  <li
-                    key={skill}
-                    className="rounded-full border border-border bg-surface-raised px-3 py-1 text-xs font-medium text-foreground"
-                  >
-                    {skill}
-                  </li>
-                ))}
-              </ul>
+      <section className="border-t border-border bg-surface-sunken py-16 lg:py-24">
+        <Container className="grid grid-cols-1 gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <h2 className="font-heading text-[clamp(1.5rem,2.8vw,2.125rem)] font-bold leading-[1.15] tracking-[-0.02em] text-foreground">
+              {t("me.heading")}
+            </h2>
+            <div className="mt-6">
+              <ProfilePhoto
+                src={AUTHOR.photo}
+                alt={t("me.photoAlt")}
+                initials={AUTHOR.initials}
+              />
             </div>
           </div>
 
-          <div className="mt-8 grid gap-3 border-t border-border pt-6 sm:grid-cols-2">
-            {socials.map((s) => (
-              <a
-                key={s.key}
-                href={s.href}
-                {...(s.key === "email"
-                  ? {}
-                  : { target: "_blank", rel: "noopener noreferrer" })}
-                className="group flex items-center gap-3 rounded-xl border border-border bg-surface-raised p-4 transition-colors hover:border-primary/40"
-              >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-background text-foreground-muted transition-colors group-hover:text-primary">
-                  {s.icon}
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-foreground">
-                    {t(`me.links.${s.key}`)}
-                  </span>
-                  <span className="block truncate text-xs text-foreground-muted">
-                    {s.handle}
-                  </span>
-                </span>
-                <ArrowUpRight
-                  size={16}
-                  aria-hidden="true"
-                  className="ml-auto shrink-0 text-foreground-muted transition-colors group-hover:text-primary"
-                />
-              </a>
-            ))}
+          <div className="min-w-0 lg:col-span-8">
+            <p className="font-heading text-2xl font-bold text-foreground">
+              {AUTHOR.name}
+            </p>
+            <p className="mt-1 text-sm font-medium text-primary">
+              {t("me.role")}
+            </p>
+            <p className="mt-5 max-w-[62ch] text-[15px] leading-relaxed text-foreground-body sm:text-base">
+              {t("me.bio")}
+            </p>
+            <p className="mt-3 max-w-[62ch] text-[15px] leading-relaxed text-foreground-muted sm:text-base">
+              {t("me.why")}
+            </p>
+            <ul
+              className="mt-6 flex flex-wrap gap-2"
+              aria-label={t("me.skills")}
+            >
+              {SKILLS.map((skill) => (
+                <li
+                  key={skill}
+                  className="rounded-full border border-border px-3 py-1 text-xs font-medium text-foreground-body"
+                >
+                  {skill}
+                </li>
+              ))}
+            </ul>
+
+            <ul className="mt-10 divide-y divide-border border-y border-border">
+              {socials.map((s) => (
+                <li key={s.key}>
+                  <a
+                    href={s.href}
+                    {...(s.key === "email"
+                      ? {}
+                      : { target: "_blank", rel: "noopener noreferrer" })}
+                    className="group flex items-center gap-4 py-4 transition-colors"
+                  >
+                    <span className="text-foreground-muted transition-colors group-hover:text-primary">
+                      {s.icon}
+                    </span>
+                    <span className="w-28 shrink-0 text-sm font-semibold text-foreground">
+                      {t(`me.links.${s.key}`)}
+                    </span>
+                    <span className="min-w-0 truncate text-sm text-foreground-muted transition-colors group-hover:text-foreground">
+                      {s.handle}
+                    </span>
+                    <ArrowUpRight
+                      size={16}
+                      aria-hidden="true"
+                      className="ml-auto shrink-0 text-foreground-muted transition-[color,transform] duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+                    />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
+        </Container>
       </section>
     </>
   );
