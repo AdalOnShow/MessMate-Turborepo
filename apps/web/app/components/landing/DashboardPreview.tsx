@@ -25,7 +25,7 @@ const STATS = [
   },
   {
     key: "expenses",
-    value: "৳22,180",
+    value: "৳24,344",
     icon: ReceiptText,
   },
   {
@@ -86,7 +86,7 @@ function StatTile({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface-raised/70 p-3">
+    <div className="rounded-xl border border-border bg-surface-raised p-3">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-foreground-muted">{label}</span>
         <span
@@ -99,7 +99,7 @@ function StatTile({
           <Icon className="size-3.5" />
         </span>
       </div>
-      <p className="mt-1 text-lg font-bold tracking-tight text-foreground font-heading">
+      <p className="mt-1 font-heading text-xl font-bold tracking-tight text-foreground">
         {value}
       </p>
       <p className="mt-0.5 text-[10px] text-foreground-muted/80">{hint}</p>
@@ -118,7 +118,7 @@ export async function DashboardPreview() {
             <span className="size-2.5 rounded-full bg-destructive" />
             <span className="size-2.5 rounded-full bg-accent-warm" />
             <span className="size-2.5 rounded-full bg-success" />
-            <span className="ml-2 font-mono text-[11px] text-foreground-muted">
+            <span className="ml-2 text-xs text-foreground-muted">
               messmate.app/dashboard
             </span>
           </div>
@@ -128,7 +128,7 @@ export async function DashboardPreview() {
           </div>
         </div>
 
-        <div className="space-y-4 p-4">
+        <div className="space-y-4 p-4 sm:p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar initials="RM" />
@@ -147,7 +147,7 @@ export async function DashboardPreview() {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
             {STATS.map((stat) => (
               <StatTile
                 key={stat.key}
@@ -161,9 +161,9 @@ export async function DashboardPreview() {
           </div>
 
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            <div className="rounded-xl border border-border bg-surface-raised/70 p-3.5">
+            <div className="rounded-xl border border-border bg-surface-raised p-3.5">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+                <p className="text-xs font-semibold text-foreground-muted">
                   {t("memberBalances")}
                 </p>
                 <Plus className="size-3.5 text-foreground-muted" />
@@ -195,8 +195,8 @@ export async function DashboardPreview() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-surface-raised/70 p-3.5">
-              <p className="text-[11px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+            <div className="rounded-xl border border-border bg-surface-raised p-3.5">
+              <p className="text-xs font-semibold text-foreground-muted">
                 {t("recentActivity")}
               </p>
               <div className="mt-2.5 space-y-2.5">
@@ -228,11 +228,11 @@ export async function DashboardPreview() {
         </div>
       </div>
 
-      <div className="absolute -right-4 -top-6 hidden w-44 rounded-2xl border border-border bg-surface-raised p-4 shadow-panel md:block">
-        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
+      <div className="absolute -right-6 -top-8 hidden w-44 rounded-2xl border border-border bg-surface-raised p-4 shadow-panel md:block">
+        <p className="text-[11px] font-semibold text-foreground-muted">
           {t("todayRate")}
         </p>
-        <p className="mt-1 text-xl font-bold text-primary font-heading">
+        <p className="mt-1 font-heading text-2xl font-bold text-primary">
           ৳68.50
         </p>
         <div className="mt-2.5 space-y-1.5">
@@ -257,27 +257,6 @@ export async function DashboardPreview() {
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="absolute -bottom-6 -left-4 hidden w-40 rounded-2xl border border-border bg-surface-raised p-4 shadow-panel md:block">
-        <p className="text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
-          {t("yourBalance")}
-        </p>
-        <p className="mt-1 text-lg font-bold text-success font-heading">
-          +৳1,250
-        </p>
-        <div className="mt-2 flex items-end gap-1">
-          {[35, 55, 40, 70, 55, 85, 60].map((h, i) => (
-            <span
-              key={i}
-              className="w-2.5 rounded-sm bg-primary/70"
-              style={{ height: `${h}px` }}
-            />
-          ))}
-        </div>
-        <p className="mt-1.5 text-[10px] text-foreground-muted">
-          {t("thisMonth")}
-        </p>
       </div>
     </div>
   );

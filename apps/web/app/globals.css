@@ -98,6 +98,131 @@
 }
 
 /* ============================================
+   Landing page: type and spotlight
+   Scoped to `.landing` so no other page changes.
+   ============================================ */
+
+.landing {
+  --font-heading:
+    var(--font-landing), var(--font-bangla), "Noto Sans Bengali", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-body: var(--font-heading);
+  --spotlight: #ffffff17;
+  --spotlight-core: #ffffff14;
+  --spotlight-grid: #ffffff0d;
+  font-family: var(--font-body);
+  font-feature-settings: normal;
+  /* Schibsted's default figures are tabular, which spreads "৳2,877" apart. */
+  font-variant-numeric: proportional-nums;
+}
+
+/* Two soft beams hung from the top corners, angled 45° in and down, meeting
+   over the headline. A faint grid fades out from the top edge beneath them. */
+.hero-spotlight {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.hero-spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--spotlight-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--spotlight-grid) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: top center;
+  mask-image: radial-gradient(55% 45% at 50% 0, #000 30%, transparent 100%);
+}
+
+.hero-spotlight-beam {
+  position: absolute;
+  top: -12%;
+  width: clamp(320px, 38vw, 560px);
+  height: 150%;
+  transform-origin: 50% 0;
+  transform: rotate(var(--beam-angle));
+  background:
+    radial-gradient(
+      ellipse 50% 70% at 50% 0%,
+      var(--spotlight),
+      transparent 75%
+    ),
+    radial-gradient(
+      ellipse 22% 45% at 50% 0%,
+      var(--spotlight-core),
+      transparent 80%
+    );
+  animation: spotlight-in 1.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-spotlight-beam--left {
+  --beam-angle: -45deg;
+  left: 0;
+  translate: -50% 0;
+}
+
+.hero-spotlight-beam--right {
+  --beam-angle: 45deg;
+  right: 0;
+  translate: 50% 0;
+  animation-delay: 0.15s;
+}
+
+@keyframes spotlight-in {
+  from {
+    opacity: 0;
+    transform: rotate(calc(var(--beam-angle) * 0.6)) scaleY(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--beam-angle)) scaleY(1);
+  }
+}
+
+/* Hero headline: heavy and tight in Latin; Bangla needs room for its
+   matras and conjuncts, so it gets a taller line and no negative tracking. */
+.landing-display {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 6.2vw, 4.75rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+:lang(bn) .landing-display {
+  font-size: clamp(2.125rem, 5.4vw, 4rem);
+  font-weight: 700;
+  line-height: 1.28;
+  letter-spacing: 0;
+}
+
+/* The hero copy arrives once, just behind the beams. */
+.hero-rise {
+  animation: hero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-spotlight-beam,
+  .hero-rise {
+    animation: none;
+  }
+}
+
+/* ============================================
    Base Styles
    ============================================ */
 

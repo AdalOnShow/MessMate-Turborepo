@@ -4,33 +4,26 @@ import { ProblemSection } from "../components/landing/ProblemSection";
 import { FeaturesSection } from "../components/landing/FeaturesSection";
 import { HowItWorksSection } from "../components/landing/HowItWorksSection";
 import { AccountingSection } from "../components/landing/AccountingSection";
-import { ProductPreviewSection } from "../components/landing/ProductPreviewSection";
-import { ActivitySection } from "../components/landing/ActivitySection";
-import { RoleSection } from "../components/landing/RoleSection";
-import { MonthFlowSection } from "../components/landing/MonthFlowSection";
-import { TechnologySection } from "../components/landing/TechnologySection";
-import { FreeSection } from "../components/landing/FreeSection";
 import { FAQSection } from "../components/landing/FAQSection";
 import { FinalCTASection } from "../components/landing/FinalCTASection";
 import { Footer } from "../components/landing/Footer";
+import { landingFont } from "../components/landing/fonts";
 
 export default function HomePage() {
   return (
-    <div className="landing-dark min-h-screen bg-background text-foreground antialiased selection:bg-primary/30">
+    <div
+      className={`landing-dark landing ${landingFont.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/30`}
+    >
       <Navbar />
-      <HeroSection />
-      <ProblemSection />
-      <FeaturesSection />
-      <HowItWorksSection />
-      <AccountingSection />
-      <ProductPreviewSection />
-      <ActivitySection />
-      <RoleSection />
-      <MonthFlowSection />
-      <TechnologySection />
-      <FreeSection />
-      <FAQSection />
-      <FinalCTASection />
+      <main>
+        <HeroSection />
+        <ProblemSection />
+        <FeaturesSection />
+        <HowItWorksSection />
+        <AccountingSection />
+        <FAQSection />
+        <FinalCTASection />
+      </main>
       <Footer />
     </div>
   );

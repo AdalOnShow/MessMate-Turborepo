@@ -1,195 +1,132 @@
-import { Calculator, Check, ArrowRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { SectionHeading, richAccent } from "./ui";
-import { Reveal } from "./Reveal";
+import { Container, SectionHeading } from "./ui";
 
-const SETTLEMENT = [
-  {
-    who: "Adal Nawab",
-    meals: 42,
-    share: "৳2,877",
-    deposits: "৳4,000",
-    balance: "+৳1,123",
-    positive: true,
-  },
-  {
-    who: "Fahad Karim",
-    meals: 38,
-    share: "৳2,603",
-    deposits: "৳2,200",
-    balance: "-৳403",
-    positive: false,
-  },
-  {
-    who: "Rahim Uddin",
-    meals: 40,
-    share: "৳2,740",
-    deposits: "৳2,800",
-    balance: "+৳60",
-    positive: true,
-  },
-  {
-    who: "Karim Mia",
-    meals: 36,
-    share: "৳2,466",
-    deposits: "৳2,500",
-    balance: "+৳34",
-    positive: true,
-  },
+const RATE = 68.5;
+
+/** Meals × rate = meal cost; deposits − meal cost = balance. Kept to whole
+ *  taka so the table reads like a settled month. */
+const MEMBERS = [
+  { name: "Adal", meals: 42, paid: 4127 },
+  { name: "Fahad", meals: 38, paid: 2923 },
+  { name: "Rahim", meals: 40, paid: 2260 },
+  { name: "Karim", meals: 36, paid: 3076 },
 ];
+
+const taka = (n: number) => `৳${Math.round(n).toLocaleString("en-US")}`;
+const signed = (n: number) => `${n < 0 ? "−" : "+"}${taka(Math.abs(n))}`;
 
 export async function AccountingSection() {
   const t = await getTranslations("landing.accounting");
+
   return (
     <section
       id="accounting"
-      className="scroll-mt-20 overflow-hidden bg-background py-20 lg:py-28"
+      className="scroll-mt-20 border-t border-border py-20 lg:py-28"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-20">
-          <div>
-            <SectionHeading
-              align="left"
-              eyebrow={t("eyebrow")}
-              title={t.rich("title", richAccent)}
-              subtitle={t("subtitle")}
-            />
+      <Container>
+        <SectionHeading title={t("title")} subtitle={t("subtitle")} />
 
-            <div className="mt-8 space-y-4">
-              {(["p1", "p2", "p3", "p4"] as const).map((point) => (
-                <div key={point} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
-                    <Check className="size-3.5" />
-                  </span>
-                  <p className="text-sm leading-relaxed text-foreground-muted">
-                    {t(point)}
-                  </p>
-                </div>
+        <div className="mt-14 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:col-span-5">
+            <p className="text-sm font-semibold text-foreground-muted">
+              {t("rateLabel")}
+            </p>
+            <p className="mt-1 font-heading text-[clamp(3.5rem,8vw,5.5rem)] font-extrabold leading-none tracking-[-0.04em] text-primary">
+              ৳68.50
+            </p>
+            <p className="mt-3 text-[15px] text-foreground-body">
+              {t("rateWorking")}
+            </p>
+
+            <ul className="mt-8 space-y-3 border-t border-border pt-6">
+              {(["rate", "cost", "balance"] as const).map((key) => (
+                <li
+                  key={key}
+                  className="text-[15px] leading-relaxed text-foreground-muted"
+                >
+                  {t(`lines.${key}`)}
+                </li>
               ))}
-            </div>
-
-            <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5">
-              <p className="text-xs font-mono font-medium uppercase tracking-[0.12em] text-primary">
-                {t("formula")}
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2 font-heading">
-                <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  {t("mealRate")}
-                </span>
-                <span className="text-foreground-muted">=</span>
-                <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  {t("totalMealCost")}
-                </span>
-                <span className="text-foreground-muted">÷</span>
-                <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  {t("totalMeals")}
-                </span>
-              </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2 font-heading">
-                <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  {t("finalBalance")}
-                </span>
-                <span className="text-foreground-muted">=</span>
-                <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  {t("depositsPaid")}
-                </span>
-                <span className="text-foreground-muted">−</span>
-                <span className="rounded-lg bg-surface-raised px-3 py-2 text-sm font-bold text-foreground">
-                  {t("mealShare")}
-                </span>
-              </div>
-            </div>
+            </ul>
           </div>
 
-          <Reveal delay={120}>
-            <div className="relative">
-              <div className="relative overflow-hidden rounded-2xl border border-border bg-surface shadow-panel">
-                <div className="flex items-center justify-between border-b border-border bg-surface-raised px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Calculator className="size-4 text-primary" />
-                    <span className="text-sm font-bold text-foreground font-heading">
-                      {t("settlement")}
-                    </span>
-                  </div>
-                  <span className="rounded-lg bg-primary/10 px-2.5 py-1 text-[11px] font-bold text-primary">
-                    {t("month")}
-                  </span>
-                </div>
-
-                <div className="p-4">
-                  <div className="grid grid-cols-3 gap-2.5">
-                    <div className="rounded-xl bg-surface-raised/70 p-3 text-center">
-                      <p className="text-[10px] uppercase tracking-wider text-foreground-muted">
-                        {t("expenses")}
-                      </p>
-                      <p className="mt-0.5 text-sm font-bold text-foreground">
-                        ৳22,180
-                      </p>
-                    </div>
-                    <div className="rounded-xl bg-surface-raised/70 p-3 text-center">
-                      <p className="text-[10px] uppercase tracking-wider text-foreground-muted">
-                        {t("meals")}
-                      </p>
-                      <p className="mt-0.5 text-sm font-bold text-foreground">
-                        324
-                      </p>
-                    </div>
-                    <div className="rounded-xl bg-primary/10 p-3 text-center ring-1 ring-primary/30">
-                      <p className="text-[10px] uppercase tracking-wider text-primary">
-                        {t("mealRate")}
-                      </p>
-                      <p className="mt-0.5 text-sm font-bold text-primary">
-                        ৳68.50
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 overflow-hidden rounded-xl border border-border">
-                    <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] gap-1 border-b border-border bg-surface-raised/70 px-3 py-2 text-[10px] font-mono font-medium uppercase tracking-[0.12em] text-foreground-muted">
-                      <span>{t("member")}</span>
-                      <span className="text-right">{t("meals")}</span>
-                      <span className="text-right">{t("paid")}</span>
-                      <span className="text-right">{t("balance")}</span>
-                    </div>
-                    {SETTLEMENT.map((row) => (
-                      <div
-                        key={row.who}
-                        className="grid grid-cols-[1.2fr_1fr_1fr_1fr] items-center gap-1 border-b border-border px-3 py-2.5 last:border-0"
-                      >
-                        <span className="truncate text-xs font-semibold text-foreground">
-                          {row.who}
-                        </span>
-                        <span className="text-right text-xs text-foreground-muted">
-                          {row.meals}
-                        </span>
-                        <span className="text-right text-xs text-foreground-muted">
-                          {row.deposits}
-                        </span>
-                        <span
-                          className={`text-right text-xs font-bold ${
-                            row.positive ? "text-success" : "text-destructive"
+          <div className="min-w-0 lg:col-span-7">
+            <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
+              <table className="w-full min-w-[340px] whitespace-nowrap text-left text-sm">
+                <caption className="border-b border-border px-4 sm:px-5 py-4 text-left font-heading text-base font-semibold text-foreground">
+                  {t("table.caption")}
+                </caption>
+                <thead>
+                  <tr className="text-xs text-foreground-muted">
+                    <th scope="col" className="px-4 py-3 font-medium sm:px-5">
+                      {t("table.member")}
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-2 py-3 text-right font-medium sm:px-3"
+                    >
+                      {t("table.meals")}
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-2 py-3 text-right font-medium sm:px-3"
+                    >
+                      {t("table.cost")}
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-2 py-3 text-right font-medium sm:px-3"
+                    >
+                      {t("table.paid")}
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-right font-medium sm:px-5"
+                    >
+                      {t("table.balance")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border border-t border-border">
+                  {MEMBERS.map((m) => {
+                    const cost = Math.round(m.meals * RATE);
+                    const balance = m.paid - cost;
+                    return (
+                      <tr key={m.name}>
+                        <th
+                          scope="row"
+                          className="px-4 py-3.5 font-semibold sm:px-5 text-foreground"
+                        >
+                          {m.name}
+                        </th>
+                        <td className="px-2 py-3.5 text-right sm:px-3 text-foreground-body">
+                          {m.meals}
+                        </td>
+                        <td className="px-2 py-3.5 text-right sm:px-3 text-foreground-body">
+                          {taka(cost)}
+                        </td>
+                        <td className="px-2 py-3.5 text-right sm:px-3 text-foreground-body">
+                          {taka(m.paid)}
+                        </td>
+                        <td
+                          className={`px-4 py-3.5 text-right font-bold sm:px-5 ${
+                            balance < 0 ? "text-destructive" : "text-success"
                           }`}
                         >
-                          {row.balance}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between rounded-xl border border-border bg-surface-raised/70 px-3.5 py-2.5">
-                    <span className="text-[11px] text-foreground-muted">
-                      {t("rollNote")}
-                    </span>
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
-                      {t("carryForward")} <ArrowRight className="size-3.5" />
-                    </span>
-                  </div>
-                </div>
-              </div>
+                          {signed(balance)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          </Reveal>
+            <p className="mt-4 text-sm text-foreground-muted">
+              {t("rollNote")}
+            </p>
+          </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

@@ -1,45 +1,42 @@
 import { getTranslations } from "next-intl/server";
-import { richAccent } from "./ui";
-import { ArrowRight, MessageSquareText, Smartphone } from "lucide-react";
-import { Reveal } from "./Reveal";
+import { Smartphone } from "lucide-react";
 import { PrimaryCta } from "./PrimaryCta";
+import { Container } from "./ui";
 
 export async function FinalCTASection() {
   const t = await getTranslations("landing.finalCta");
   const tc = await getTranslations("common");
   return (
-    <section className="bg-background py-24 lg:py-36">
-      <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-        <Reveal>
-          <h2 className="mt-4 text-4xl heading-tight text-foreground font-heading sm:text-5xl lg:text-6xl">
-            {t.rich("title", richAccent)}
+    <section className="border-t border-border bg-surface-sunken py-20 lg:py-28">
+      <Container className="grid grid-cols-1 items-end gap-10 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <h2 className="font-heading text-[clamp(2rem,4.4vw,3.5rem)] font-extrabold leading-[1.05] tracking-[-0.035em] text-balance text-foreground">
+            {t("title")}
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-foreground-muted sm:text-lg">
+          <p className="mt-5 max-w-[52ch] text-base leading-relaxed text-foreground-muted sm:text-lg">
             {t("subtitle")}
           </p>
-        </Reveal>
+        </div>
 
-        <Reveal delay={140}>
-          <div className="mt-10 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
-            <PrimaryCta className="w-full rounded-[9px] px-9 py-4 text-sm sm:w-auto" />
+        <div className="flex flex-col gap-3 lg:col-span-5 lg:items-end">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <PrimaryCta className="rounded-[10px] px-8 py-4 text-[15px]" />
             <a
               href="/signin"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-[9px] border border-border-strong bg-transparent px-9 py-4 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-surface-raised sm:w-auto"
+              className="inline-flex items-center justify-center rounded-[10px] border border-border-strong px-8 py-4 text-[15px] font-semibold text-foreground transition-colors hover:border-foreground-muted hover:bg-surface"
             >
-              <MessageSquareText className="size-4" />
               {tc("signIn")}
             </a>
           </div>
           <a
             href="/install"
-            className="mt-6 hidden items-center gap-2 text-sm font-medium md:inline-flex text-foreground-muted transition-colors hover:text-primary"
+            className="hidden items-center gap-2 text-sm font-medium text-foreground-muted transition-colors hover:text-foreground md:inline-flex"
           >
-            <Smartphone className="size-4" />
+            <Smartphone className="size-4" aria-hidden="true" />
             {t("installHint")}
-            <ArrowRight className="size-3.5" />
           </a>
-        </Reveal>
-      </div>
+        </div>
+      </Container>
     </section>
   );
 }

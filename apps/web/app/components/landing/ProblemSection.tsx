@@ -1,66 +1,61 @@
-import { NotebookPen, Wallet, Calculator, ShieldQuestion } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { SectionHeading, richAccent } from "./ui";
-import { Reveal as RevealWrap } from "./Reveal";
+import { Container } from "./ui";
 
-const PROBLEMS = [
-  {
-    icon: NotebookPen,
-    key: "scattered",
-    color: "text-primary bg-primary/10 ring-primary/25",
-  },
-  {
-    icon: Wallet,
-    key: "deposits",
-    color: "text-accent-warm bg-accent-warm/10 ring-accent-warm/25",
-  },
-  {
-    icon: Calculator,
-    key: "math",
-    color: "text-destructive bg-destructive/10 ring-destructive/25",
-  },
-  {
-    icon: ShieldQuestion,
-    key: "trust",
-    color: "text-success bg-success/10 ring-success/25",
-  },
-] as const;
+const NOTEBOOK = ["n1", "n2", "n3", "n4"] as const;
+const APP = ["a1", "a2", "a3", "a4"] as const;
 
+/** The notebook way vs. the MessMate way, line for line. */
 export async function ProblemSection() {
   const t = await getTranslations("landing.problem");
   return (
-    <section className="border-y border-border bg-surface-sunken py-20 lg:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow={t("eyebrow")}
-          title={t.rich("title", richAccent)}
-          subtitle={t("subtitle")}
-        />
+    <section className="border-t border-border py-20 lg:py-24">
+      <Container>
+        <h2 className="max-w-[30ch] font-heading text-[clamp(1.5rem,2.8vw,2.125rem)] font-bold leading-[1.15] tracking-[-0.02em] text-balance text-foreground">
+          {t("title")}
+        </h2>
 
-        <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {PROBLEMS.map((problem, idx) => (
-            <RevealWrap key={problem.key} delay={idx * 90}>
-              <div className="group flex h-full flex-col rounded-2xl border border-border bg-background p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border-strong hover:shadow-lg hover:shadow-black/20">
-                <span
-                  className={`flex size-11 items-center justify-center rounded-xl ring-1 ${problem.color}`}
+        <div className="mt-10 grid grid-cols-1 overflow-hidden rounded-2xl border border-border md:grid-cols-2">
+          <div className="bg-surface-sunken p-6 sm:p-8">
+            <h3 className="font-heading text-base font-semibold text-foreground-muted">
+              {t("notebookTitle")}
+            </h3>
+            <ul className="mt-5 divide-y divide-border">
+              {NOTEBOOK.map((key) => (
+                <li
+                  key={key}
+                  className="flex gap-3 py-3 text-[15px] text-foreground-muted"
                 >
-                  <problem.icon className="size-5" />
-                </span>
-                <h3 className="mt-5 font-bold text-foreground font-heading">
-                  {t(`items.${problem.key}.title`)}
-                </h3>
-                <ul className="mt-3 space-y-2">
-                  {(["p1", "p2", "p3"] as const).map((item) => (
-                    <li key={item} className="text-sm text-foreground-muted">
-                      {t(`items.${problem.key}.${item}`)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </RevealWrap>
-          ))}
+                  <X
+                    className="mt-0.5 size-4 shrink-0 text-destructive/80"
+                    aria-hidden="true"
+                  />
+                  {t(`notebook.${key}`)}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="border-t border-border bg-surface p-6 sm:p-8 md:border-t-0 md:border-l">
+            <h3 className="font-heading text-base font-semibold text-foreground">
+              {t("appTitle")}
+            </h3>
+            <ul className="mt-5 divide-y divide-border">
+              {APP.map((key) => (
+                <li
+                  key={key}
+                  className="flex gap-3 py-3 text-[15px] text-foreground-body"
+                >
+                  <Check
+                    className="mt-0.5 size-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  {t(`app.${key}`)}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

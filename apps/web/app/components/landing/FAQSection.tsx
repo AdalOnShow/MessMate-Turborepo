@@ -1,10 +1,6 @@
-"use client";
-
-import { ChevronDown } from "lucide-react";
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { SectionHeading, richAccent } from "./ui";
-import { Reveal } from "./Reveal";
+import { Plus } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import { Container } from "./ui";
 
 const FAQS = [
   "what",
@@ -17,68 +13,37 @@ const FAQS = [
   "visible",
 ] as const;
 
-export function FAQSection() {
-  const t = useTranslations("landing.faq");
-  const [open, setOpen] = useState(0);
+/** Native <details>: keyboard and screen-reader support with no client JS. */
+export async function FAQSection() {
+  const t = await getTranslations("landing.faq");
 
   return (
     <section
       id="faq"
-      className="scroll-mt-20 border-y border-border bg-surface-sunken py-20 lg:py-28"
+      className="scroll-mt-20 border-t border-border py-20 lg:py-28"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow={t("eyebrow")}
-          title={t.rich("title", richAccent)}
-          subtitle={t("subtitle")}
-        />
+      <Container className="grid grid-cols-1 gap-10 lg:grid-cols-12">
+        <h2 className="font-heading text-[clamp(1.75rem,3.4vw,2.625rem)] font-bold leading-[1.1] tracking-[-0.025em] text-foreground lg:col-span-4">
+          {t("title")}
+        </h2>
 
-        <div className="mx-auto mt-14 max-w-3xl space-y-3">
-          {FAQS.map((faq, idx) => {
-            const isOpen = open === idx;
-            return (
-              <Reveal key={faq} delay={idx * 40}>
-                <div
-                  className={`overflow-hidden rounded-2xl border transition-colors duration-300 ${
-                    isOpen
-                      ? "border-primary/30 bg-surface-raised"
-                      : "border-border bg-surface-raised/50 hover:border-border-strong"
-                  }`}
-                >
-                  <button
-                    type="button"
-                    aria-expanded={isOpen}
-                    onClick={() => setOpen(isOpen ? -1 : idx)}
-                    className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
-                  >
-                    <span className="font-bold text-foreground font-heading">
-                      {t(`items.${faq}.q`)}
-                    </span>
-                    <ChevronDown
-                      className={`size-5 shrink-0 text-primary transition-transform duration-300 ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  <div
-                    className={`grid transition-all duration-300 ease-out ${
-                      isOpen
-                        ? "grid-rows-[1fr] opacity-100"
-                        : "grid-rows-[0fr] opacity-0"
-                    }`}
-                  >
-                    <div className="overflow-hidden">
-                      <p className="px-6 pb-5 text-sm leading-relaxed text-foreground-muted">
-                        {t(`items.${faq}.a`)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Reveal>
-            );
-          })}
+        <div className="divide-y divide-border border-y border-border lg:col-span-8">
+          {FAQS.map((faq, idx) => (
+            <details key={faq} className="group" open={idx === 0}>
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-6 py-5 text-left font-heading text-base font-semibold text-foreground transition-colors hover:text-primary sm:text-[17px] [&::-webkit-details-marker]:hidden">
+                {t(`items.${faq}.q`)}
+                <Plus
+                  aria-hidden="true"
+                  className="mt-0.5 size-5 shrink-0 text-foreground-muted transition-transform duration-200 group-open:rotate-45"
+                />
+              </summary>
+              <p className="max-w-[62ch] pb-6 text-[15px] leading-relaxed text-foreground-muted">
+                {t(`items.${faq}.a`)}
+              </p>
+            </details>
+          ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

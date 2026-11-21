@@ -1,52 +1,47 @@
 import type { ReactNode } from "react";
 
-/** Rich-text tags for translated headings: `<accent>word</accent>` → blue highlight. */
+/** Rich-text tags for translated headings: `<accent>word</accent>` → blue highlight.
+ *  Used by the guide, install and about pages; the landing page no longer accents words. */
 export const richAccent = {
   accent: (chunks: ReactNode) => <span className="text-primary">{chunks}</span>,
   br: () => <br />,
 };
 
-export function SectionEyebrow({
+/** Page-width wrapper shared by every landing section. */
+export function Container({
   children,
-  align = "center",
+  className = "",
 }: {
   children: ReactNode;
-  align?: "center" | "left";
+  className?: string;
 }) {
   return (
-    <span
-      className={`label-mono inline-block text-primary ${
-        align === "center" ? "mx-auto" : ""
-      }`}
-    >
+    <div className={`mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 ${className}`}>
       {children}
-    </span>
+    </div>
   );
 }
 
+/** A plain, left-aligned section heading: no eyebrow, no accented word. */
 export function SectionHeading({
-  eyebrow,
   title,
   subtitle,
-  align = "center",
+  id,
 }: {
-  eyebrow: string;
-  title: ReactNode;
+  title: string;
   subtitle?: string;
-  align?: "center" | "left";
+  id?: string;
 }) {
   return (
-    <div
-      className={`max-w-3xl ${
-        align === "center" ? "mx-auto text-center" : "text-left"
-      } space-y-4`}
-    >
-      <SectionEyebrow align={align}>{eyebrow}</SectionEyebrow>
-      <h2 className="heading-tight text-[clamp(1.75rem,3.2vw,2.625rem)] text-foreground">
+    <div className="max-w-2xl">
+      <h2
+        id={id}
+        className="font-heading text-[clamp(1.75rem,3.4vw,2.625rem)] font-bold leading-[1.1] tracking-[-0.025em] text-balance text-foreground"
+      >
         {title}
       </h2>
       {subtitle && (
-        <p className="text-base sm:text-lg text-foreground-muted leading-relaxed">
+        <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-foreground-muted sm:text-lg">
           {subtitle}
         </p>
       )}

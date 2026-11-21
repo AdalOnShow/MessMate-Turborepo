@@ -1,72 +1,44 @@
 import { getTranslations } from "next-intl/server";
-import { richAccent } from "./ui";
-import { Check, Play } from "lucide-react";
-import { Badge } from "../ui/badge";
 import { DashboardPreview } from "./DashboardPreview";
-import { Reveal } from "./Reveal";
 import { PrimaryCta } from "./PrimaryCta";
 
-const TRUST = ["trust1", "trust2", "trust3"] as const;
-
+/** Two beams hang from the top corners and meet over the headline; what they
+ *  light is this month's mess dashboard. The only animated moment on the page. */
 export async function HeroSection() {
   const t = await getTranslations("landing.hero");
   return (
-    <section className="relative overflow-hidden bg-background pt-32 pb-24 lg:pt-40 lg:pb-32">
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-12">
-          <div className="max-w-xl">
-            <Reveal>
-              <Badge variant="pill" pulse>
-                {t("badge")}
-              </Badge>
-            </Reveal>
+    <section className="relative isolate overflow-hidden pt-32 pb-20 sm:pt-40 lg:pb-28">
+      <div aria-hidden="true" className="hero-spotlight -z-10">
+        <div className="hero-spotlight-beam hero-spotlight-beam--left" />
+        <div className="hero-spotlight-beam hero-spotlight-beam--right" />
+      </div>
 
-            <Reveal delay={80}>
-              <h1 className="heading-tight mt-6 text-[clamp(2.25rem,4.4vw,3.75rem)] text-foreground">
-                {t.rich("title", richAccent)}
-              </h1>
-            </Reveal>
+      <div className="hero-rise mx-auto max-w-4xl px-4 text-center sm:px-6">
+        <h1 className="landing-display mx-auto max-w-[22ch] text-balance text-foreground">
+          {t("title")}
+        </h1>
+        <p className="mx-auto mt-6 max-w-[56ch] text-base leading-relaxed text-foreground-body sm:text-lg">
+          {t("subtitle")}
+        </p>
 
-            <Reveal delay={160}>
-              <p className="mt-6 text-base leading-relaxed text-foreground-muted sm:text-lg">
-                {t("subtitle")}
-              </p>
-            </Reveal>
-
-            <Reveal delay={240}>
-              <div className="mt-9 flex flex-col gap-3.5 sm:flex-row sm:items-center">
-                <PrimaryCta className="rounded-[9px] px-7 py-3.5 text-sm" />
-                <a
-                  href="#how-it-works"
-                  className="inline-flex items-center justify-center gap-2 rounded-[9px] border border-border-strong bg-transparent px-7 py-3.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-surface-raised"
-                >
-                  <Play className="size-4" />
-                  {t("secondary")}
-                </a>
-              </div>
-            </Reveal>
-
-            <Reveal delay={320}>
-              <ul className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-2.5">
-                {TRUST.map((item) => (
-                  <li
-                    key={t(item)}
-                    className="label-mono flex items-center gap-1.5 text-[10px] text-foreground-muted"
-                  >
-                    <Check className="size-3.5 text-success" />
-                    {t(item)}
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-          </div>
-
-          <Reveal delay={200} className="relative">
-            <div className="relative mx-auto max-w-xl pt-8 md:pt-4">
-              <DashboardPreview />
-            </div>
-          </Reveal>
+        <div className="mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+          <PrimaryCta className="rounded-[10px] px-7 py-3.5 text-[15px]" />
+          <a
+            href="#how-it-works"
+            className="inline-flex items-center justify-center rounded-[10px] border border-border-strong px-7 py-3.5 text-[15px] font-semibold text-foreground transition-colors hover:border-foreground-muted hover:bg-surface"
+          >
+            {t("secondary")}
+          </a>
         </div>
+
+        <p className="mt-6 text-sm text-foreground-muted">{t("trust")}</p>
+      </div>
+
+      <div
+        id="preview"
+        className="hero-rise mx-auto mt-16 max-w-4xl scroll-mt-24 px-4 sm:px-6 lg:mt-20"
+      >
+        <DashboardPreview />
       </div>
     </section>
   );
