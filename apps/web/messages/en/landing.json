@@ -131,7 +131,24 @@
     },
     "carry": "When a month closes, money you're owed becomes your first deposit next month, and money you owe becomes your own expense to settle.",
     "cta": "Create your mess",
-    "guide": "Read the full guide"
+    "guide": "Read the full guide",
+    "calendar": {
+      "messName": "Riverside Mess",
+      "month": "August 2026",
+      "next": "September",
+      "notStarted": "Not started",
+      "open": "Month open",
+      "closed": "Month closed",
+      "meals": "Meals",
+      "bazaar": "Bazaar",
+      "deposits": "Deposits",
+      "mealRate": "Meal rate",
+      "carry": "Balances carried into {month}",
+      "stepOf": "Step {n} of {total}",
+      "members": "Members",
+      "noMembers": "No one yet",
+      "jump": "Go to step {n}: {title}"
+    }
   },
   "accounting": {
     "title": "The maths, written out",
