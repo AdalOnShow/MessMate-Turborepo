@@ -265,6 +265,117 @@
   }
 }
 
+/* ---------- Hover motion (public pages) ----------
+   Everything here answers the pointer: nothing moves on its own. */
+
+/* Dashboard preview tilts toward the cursor (set by <TiltCard>); the
+   floating meal-rate card sits higher in 3D so it drifts against it. */
+.tilt {
+  transform: perspective(1400px) rotateX(var(--rx, 0deg))
+    rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tilt[data-tracking="true"] {
+  transition: transform 0.12s linear;
+}
+.tilt-pop {
+  transform: translateZ(60px);
+}
+
+/* Feature mocks: the panel lifts and its border brightens. */
+.hover-panel {
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s;
+}
+.hover-panel:hover {
+  transform: translateY(-6px);
+  border-color: var(--color-border-strong);
+}
+
+/* Rows inside a mock slide aside under the pointer. */
+.hover-row {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s;
+}
+.hover-row:hover {
+  transform: translateX(6px);
+}
+
+/* Progress bars refill each time the panel is hovered. */
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+.bar-fill {
+  transform-origin: left center;
+}
+.hover-panel:hover .bar-fill {
+  animation: bar-fill 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Problem strip: hovering one side lights up the line it pairs with. */
+.pairs [data-pair] {
+  transition:
+    background-color 0.2s,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.2s;
+}
+.pairs:has([data-pair="1"]:hover) [data-pair="1"],
+.pairs:has([data-pair="2"]:hover) [data-pair="2"],
+.pairs:has([data-pair="3"]:hover) [data-pair="3"],
+.pairs:has([data-pair="4"]:hover) [data-pair="4"] {
+  background-color: var(--color-surface-raised);
+  color: var(--color-foreground);
+  transform: translateX(6px);
+}
+
+/* Buttons: a solid fill sweeps in from the left on the outline buttons;
+   the yellow CTA lifts a little. */
+.btn-sweep {
+  background-image: linear-gradient(
+    var(--color-surface-raised),
+    var(--color-surface-raised)
+  );
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  transition:
+    background-size 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s;
+}
+.btn-sweep:hover {
+  background-size: 100% 100%;
+}
+.btn-lift {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s;
+}
+.btn-lift:hover {
+  transform: translateY(-3px);
+}
+.btn-lift:active,
+.btn-sweep:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt,
+  .hover-panel,
+  .hover-row,
+  .pairs [data-pair],
+  .btn-lift {
+    transition: none;
+    transform: none !important;
+  }
+  .hover-panel:hover .bar-fill {
+    animation: none;
+  }
+}
+
 /* Nav links: an underline that draws in from the left on hover. */
 .nav-link {
   background-image: linear-gradient(currentColor, currentColor);

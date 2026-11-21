@@ -48,7 +48,7 @@ export async function HowItWorksSection() {
           {PHASES.map((phase) => (
             <li
               key={phase.key}
-              className="min-w-0 border-t-2 border-primary/60 pt-5"
+              className="min-w-0 border-t-2 border-primary/40 pt-5 transition-colors duration-300 hover:border-primary"
             >
               <p className="font-heading text-lg font-bold text-foreground">
                 {t(`phases.${phase.key}.label`)}
@@ -61,15 +61,15 @@ export async function HowItWorksSection() {
                 {phase.steps.map((step) => {
                   number += 1;
                   return (
-                    <li key={step.key} className="flex gap-4">
+                    <li key={step.key} className="group flex gap-4">
                       <span
                         aria-hidden="true"
-                        className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border-strong font-heading text-sm font-bold text-foreground"
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border-strong font-heading text-sm font-bold text-foreground transition-[background-color,border-color,color,transform] duration-300 group-hover:scale-110 group-hover:border-primary group-hover:bg-primary group-hover:text-white"
                       >
                         {number}
                       </span>
                       <div className="min-w-0">
-                        <h3 className="font-heading text-base font-semibold text-foreground">
+                        <h3 className="font-heading text-base font-semibold text-foreground transition-colors duration-200 group-hover:text-primary">
                           {t(`steps.${step.key}.title`)}
                         </h3>
                         <p className="mt-1 text-sm leading-relaxed text-foreground-muted">
@@ -94,7 +94,7 @@ export async function HowItWorksSection() {
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
           <a
             href="/signup"
-            className="inline-flex items-center justify-center rounded-[10px] bg-primary px-6 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-primary-hover"
+            className="btn-lift inline-flex items-center justify-center rounded-[10px] bg-primary px-6 py-3 text-[15px] font-semibold text-white hover:bg-primary-hover"
           >
             {t("cta")}
           </a>

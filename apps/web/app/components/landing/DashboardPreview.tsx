@@ -86,7 +86,7 @@ function StatTile({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface-raised p-3">
+    <div className="rounded-xl border border-border bg-surface-raised p-3 transition-[border-color,transform] duration-300 hover:-translate-y-1 hover:border-primary/50">
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-foreground-muted">{label}</span>
         <span
@@ -111,7 +111,7 @@ export async function DashboardPreview() {
   const t = await getTranslations("landing.dashPreview");
   const tRole = await getTranslations("role");
   return (
-    <div className="relative">
+    <div className="relative [transform-style:preserve-3d]">
       <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-panel">
         <div className="flex items-center justify-between border-b border-border bg-surface-raised px-4 py-3">
           <div className="flex items-center gap-2">
@@ -228,7 +228,7 @@ export async function DashboardPreview() {
         </div>
       </div>
 
-      <div className="absolute -right-6 -top-8 hidden w-44 rounded-2xl border border-border bg-surface-raised p-4 shadow-panel md:block">
+      <div className="tilt-pop absolute -right-6 -top-8 hidden w-44 rounded-2xl border border-border bg-surface-raised p-4 shadow-panel md:block">
         <p className="text-[11px] font-semibold text-foreground-muted">
           {t("todayRate")}
         </p>

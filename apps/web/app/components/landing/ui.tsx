@@ -40,15 +40,15 @@ export function SectionHeading({
   id?: string;
 }) {
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       <h2
         id={id}
-        className="font-heading text-[clamp(1.75rem,3.4vw,2.625rem)] font-bold leading-[1.1] tracking-[-0.025em] text-balance text-foreground"
+        className="font-heading text-[clamp(2.25rem,5vw,3.75rem)] font-extrabold leading-[1.04] tracking-[-0.035em] text-balance text-foreground"
       >
         {title}
       </h2>
       {subtitle && (
-        <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-foreground-muted sm:text-lg">
+        <p className="mt-5 max-w-[60ch] text-base leading-relaxed text-foreground-muted sm:text-lg">
           {subtitle}
         </p>
       )}

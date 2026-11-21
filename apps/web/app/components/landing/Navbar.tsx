@@ -72,7 +72,7 @@ export function Navbar() {
           </a>
           <a
             href="/signup"
-            className="bg-cta rounded-[7px] px-[18px] py-2 text-[13px] font-bold"
+            className="bg-cta btn-lift rounded-[7px] px-[18px] py-2 text-[13px] font-bold"
           >
             {tc("getStarted")}
           </a>

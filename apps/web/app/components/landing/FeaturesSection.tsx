@@ -55,7 +55,7 @@ function FeatureRow({
   return (
     <div className="grid grid-cols-1 items-center gap-8 py-12 md:grid-cols-12 md:gap-12 lg:py-16">
       <div className={`md:col-span-5 ${flip ? "md:order-2" : ""}`}>
-        <h3 className="font-heading text-[clamp(1.375rem,2.2vw,1.75rem)] font-bold leading-[1.2] tracking-[-0.02em] text-balance text-foreground">
+        <h3 className="font-heading text-[clamp(1.625rem,2.8vw,2.25rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-balance text-foreground">
           {title}
         </h3>
         <p className="mt-4 max-w-[46ch] text-[15px] leading-relaxed text-foreground-muted sm:text-base">
@@ -63,7 +63,7 @@ function FeatureRow({
         </p>
       </div>
       <div className={`min-w-0 md:col-span-7 ${flip ? "md:order-1" : ""}`}>
-        <div className="rounded-2xl border border-border bg-surface p-4 sm:p-6">
+        <div className="hover-panel rounded-2xl border border-border bg-surface p-4 sm:p-6">
           {children}
         </div>
       </div>
@@ -93,7 +93,7 @@ export async function FeaturesSection() {
               {EXPENSES.map((e) => (
                 <li
                   key={e.key}
-                  className="flex items-center gap-3 py-3 first:pt-0"
+                  className="hover-row flex items-center gap-3 py-3 first:pt-0"
                 >
                   <Avatar
                     initials={e.initials}
@@ -143,7 +143,7 @@ export async function FeaturesSection() {
                     </div>
                     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-overlay">
                       <div
-                        className="h-full rounded-full bg-success"
+                        className="bar-fill h-full rounded-full bg-success"
                         style={{ width: `${d.pct}%` }}
                       />
                     </div>
@@ -161,7 +161,7 @@ export async function FeaturesSection() {
                 </p>
                 <ol className="mt-3 space-y-4">
                   {LOG.map((row) => (
-                    <li key={row.key} className="flex gap-3">
+                    <li key={row.key} className="hover-row flex gap-3">
                       <Avatar
                         initials={row.initials}
                         className="!size-7 !text-[10px]"
@@ -183,7 +183,10 @@ export async function FeaturesSection() {
               </div>
               <ul className="space-y-2 border-t border-border pt-5 sm:col-span-2 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5">
                 {MEMBERS.map((m) => (
-                  <li key={m.name} className="flex items-center gap-2.5">
+                  <li
+                    key={m.name}
+                    className="hover-row flex items-center gap-2.5"
+                  >
                     <Avatar
                       initials={m.initials}
                       className="!size-7 !text-[10px]"

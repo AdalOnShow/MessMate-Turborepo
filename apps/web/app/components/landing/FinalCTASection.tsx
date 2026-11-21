@@ -10,7 +10,7 @@ export async function FinalCTASection() {
     <section className="border-t border-border bg-surface-sunken py-20 lg:py-28">
       <Container className="grid grid-cols-1 items-end gap-10 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <h2 className="font-heading text-[clamp(2rem,4.4vw,3.5rem)] font-extrabold leading-[1.05] tracking-[-0.035em] text-balance text-foreground">
+          <h2 className="font-heading text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[1.02] tracking-[-0.04em] text-balance text-foreground">
             {t("title")}
           </h2>
           <p className="mt-5 max-w-[52ch] text-base leading-relaxed text-foreground-muted sm:text-lg">
@@ -20,10 +20,10 @@ export async function FinalCTASection() {
 
         <div className="flex flex-col gap-3 lg:col-span-5 lg:items-end">
           <div className="flex flex-col gap-3 sm:flex-row">
-            <PrimaryCta className="rounded-[10px] px-8 py-4 text-[15px]" />
+            <PrimaryCta className="btn-lift rounded-[10px] px-8 py-4 text-[15px]" />
             <a
               href="/signin"
-              className="inline-flex items-center justify-center rounded-[10px] border border-border-strong px-8 py-4 text-[15px] font-semibold text-foreground transition-colors hover:border-foreground-muted hover:bg-surface"
+              className="btn-sweep inline-flex items-center justify-center rounded-[10px] border border-border-strong px-8 py-4 text-[15px] font-semibold text-foreground hover:border-foreground-muted"
             >
               {tc("signIn")}
             </a>

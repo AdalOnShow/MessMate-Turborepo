@@ -11,20 +11,21 @@ export async function ProblemSection() {
   return (
     <section className="border-t border-border py-20 lg:py-24">
       <Container>
-        <h2 className="max-w-[30ch] font-heading text-[clamp(1.5rem,2.8vw,2.125rem)] font-bold leading-[1.15] tracking-[-0.02em] text-balance text-foreground">
+        <h2 className="max-w-[30ch] font-heading text-[clamp(1.875rem,3.8vw,2.75rem)] font-extrabold leading-[1.08] tracking-[-0.03em] text-balance text-foreground">
           {t("title")}
         </h2>
 
-        <div className="mt-10 grid grid-cols-1 overflow-hidden rounded-2xl border border-border md:grid-cols-2">
+        <div className="pairs mt-10 grid grid-cols-1 overflow-hidden rounded-2xl border border-border md:grid-cols-2">
           <div className="bg-surface-sunken p-6 sm:p-8">
             <h3 className="font-heading text-base font-semibold text-foreground-muted">
               {t("notebookTitle")}
             </h3>
             <ul className="mt-5 divide-y divide-border">
-              {NOTEBOOK.map((key) => (
+              {NOTEBOOK.map((key, i) => (
                 <li
                   key={key}
-                  className="flex gap-3 py-3 text-[15px] text-foreground-muted"
+                  data-pair={i + 1}
+                  className="-mx-3 flex gap-3 rounded-lg px-3 py-3 text-[15px] text-foreground-muted"
                 >
                   <X
                     className="mt-0.5 size-4 shrink-0 text-destructive/80"
@@ -40,10 +41,11 @@ export async function ProblemSection() {
               {t("appTitle")}
             </h3>
             <ul className="mt-5 divide-y divide-border">
-              {APP.map((key) => (
+              {APP.map((key, i) => (
                 <li
                   key={key}
-                  className="flex gap-3 py-3 text-[15px] text-foreground-body"
+                  data-pair={i + 1}
+                  className="-mx-3 flex gap-3 rounded-lg px-3 py-3 text-[15px] text-foreground-body"
                 >
                   <Check
                     className="mt-0.5 size-4 shrink-0 text-primary"

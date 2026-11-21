@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { DashboardPreview } from "./DashboardPreview";
 import { PrimaryCta } from "./PrimaryCta";
 import { Spotlight } from "./Spotlight";
+import { TiltCard } from "./TiltCard";
 
 /** Two beams hang from the top corners and meet over the headline; what they
  *  light is this month's mess dashboard. With a mouse, the beams follow the cursor. */
@@ -20,10 +21,10 @@ export async function HeroSection() {
         </p>
 
         <div className="mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-          <PrimaryCta className="rounded-[10px] px-7 py-3.5 text-[15px]" />
+          <PrimaryCta className="btn-lift rounded-[10px] px-7 py-3.5 text-[15px]" />
           <a
             href="#how-it-works"
-            className="inline-flex items-center justify-center rounded-[10px] border border-border-strong px-7 py-3.5 text-[15px] font-semibold text-foreground transition-colors hover:border-foreground-muted hover:bg-surface"
+            className="btn-sweep inline-flex items-center justify-center rounded-[10px] border border-border-strong px-7 py-3.5 text-[15px] font-semibold text-foreground hover:border-foreground-muted"
           >
             {t("secondary")}
           </a>
@@ -36,7 +37,9 @@ export async function HeroSection() {
         id="preview"
         className="hero-rise mx-auto mt-16 max-w-4xl scroll-mt-24 px-4 sm:px-6 lg:mt-20"
       >
-        <DashboardPreview />
+        <TiltCard>
+          <DashboardPreview />
+        </TiltCard>
       </div>
     </section>
   );

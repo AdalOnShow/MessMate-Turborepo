@@ -43,7 +43,7 @@ export async function AccountingSection() {
               {(["rate", "cost", "balance"] as const).map((key) => (
                 <li
                   key={key}
-                  className="text-[15px] leading-relaxed text-foreground-muted"
+                  className="hover-row text-[15px] leading-relaxed text-foreground-muted hover:text-foreground"
                 >
                   {t(`lines.${key}`)}
                 </li>

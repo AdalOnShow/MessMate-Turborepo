@@ -61,7 +61,7 @@ export async function AboutContent() {
       <section className="py-16 lg:py-24">
         <Container className="grid grid-cols-1 gap-10 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <h2 className="font-heading text-[clamp(1.5rem,2.8vw,2.125rem)] font-bold leading-[1.15] tracking-[-0.02em] text-foreground">
+            <h2 className="font-heading text-[clamp(1.875rem,3.8vw,2.75rem)] font-extrabold leading-[1.08] tracking-[-0.03em] text-foreground">
               {t("project.heading")}
             </h2>
             <a
@@ -101,7 +101,7 @@ export async function AboutContent() {
       <section className="border-t border-border bg-surface-sunken py-16 lg:py-24">
         <Container className="grid grid-cols-1 gap-10 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <h2 className="font-heading text-[clamp(1.5rem,2.8vw,2.125rem)] font-bold leading-[1.15] tracking-[-0.02em] text-foreground">
+            <h2 className="font-heading text-[clamp(1.875rem,3.8vw,2.75rem)] font-extrabold leading-[1.08] tracking-[-0.03em] text-foreground">
               {t("me.heading")}
             </h2>
             <div className="mt-6">
