@@ -58,7 +58,7 @@ MessMate turns that monthly chore into a running ledger that everyone can see:
 | Manager (full access) | `demo.manager@messmate.demo` | `MessMate@2026` |
 | Member                | `demo.member@messmate.demo`  | `MessMate@2026` |
 
-The live demo mess, _Green Villa Bachelor Mess_, has 9 members, a **closed October 2026** with final bills and carried-forward balances, and an **active November 2026** with daily meals, bazaar submissions waiting for approval, shared bills and deposits.
+The live demo mess, _Green Villa Bachelor Mess_, has 8 members, a **closed October 2026** with final bills and carried-forward balances, and an **active November 2026** with daily meals, bazaar submissions waiting for approval, shared bills and deposits.
 
 ## Screenshots
 
